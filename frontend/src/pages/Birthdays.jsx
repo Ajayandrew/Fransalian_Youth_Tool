@@ -109,7 +109,7 @@ export default function Birthdays() {
                   </div>
 
                   <div className="mt-4 pt-3 border-t border-slate-100 text-xs font-semibold text-slate-600 space-y-1.5">
-                    <p><span className="text-slate-400">Parish Zone:</span> {m.zone || 'St. Francis'}</p>
+                    <p><span className="text-slate-400">Anbiyam / Zone:</span> {m.anbiyamName || m.anbiyam || m.zone || 'Sagaya Madha Anbiyam'}</p>
                     <p><span className="text-slate-400">Mobile:</span> {m.mobileNumber || m.phone || 'N/A'}</p>
                   </div>
                 </div>

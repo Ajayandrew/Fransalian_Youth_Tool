@@ -18,7 +18,7 @@ const memberSchema = new mongoose.Schema({
   pincode: { type: String, default: '600004' },
   occupation: { type: String, default: '' },
   bloodGroup: { type: String, default: 'O+' },
-  anbiyamName: { type: String, default: 'St. Francis Xavier Anbiyam' },
+  anbiyamName: { type: String, default: 'Sagaya Madha Anbiyam' },
   parish: { type: String, default: 'St. Mary Cathedral' },
   joinedYouthDate: { type: String, default: () => new Date().toISOString().split('T')[0] },
   activeStatus: { type: String, enum: ['Active', 'Inactive'], default: 'Active' },

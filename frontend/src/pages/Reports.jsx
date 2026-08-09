@@ -442,7 +442,7 @@ export default function Reports() {
     const memData = filteredMembers.map(m => ({
       'Member ID': m.memberId,
       'Full Name': m.fullName,
-      'Zone': m.zone || m.anbiyamName || 'St. Francis',
+      'Anbiyam / Zone': m.anbiyamName || m.anbiyam || m.zone || 'Sagaya Madha Anbiyam',
       'Role': m.role,
       'Mobile': m.mobileNumber || m.phone,
       'Status': m.activeStatus || 'Active'
@@ -570,7 +570,7 @@ export default function Reports() {
       'Baptism Name': m.baptismName || '-',
       'Gender': m.gender || '-',
       'Blood Group': m.bloodGroup || 'O+',
-      'Anbiyam / Zone': m.anbiyamName || m.zone || 'St. Francis',
+      'Anbiyam / Zone': m.anbiyamName || m.anbiyam || m.zone || 'Sagaya Madha Anbiyam',
       'Role': m.role || 'Youth Member',
       'Mobile': m.mobileNumber || m.phone || '-',
       'Status': m.activeStatus || 'Active'

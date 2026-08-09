@@ -344,7 +344,7 @@ export default function Attendance() {
                           </div>
                         </div>
                       </td>
-                      <td className="py-4 px-6 text-slate-500">{m.zone || 'St. Francis Xavier'}</td>
+                      <td className="py-4 px-6 text-slate-500">{m.anbiyamName || m.anbiyam || m.zone || 'Sagaya Madha Anbiyam'}</td>
                       <td className="py-4 px-6 text-slate-500">{m.mobileNumber || m.phone || 'N/A'}</td>
                       <td className="py-4 px-6 text-center">
                         <button
