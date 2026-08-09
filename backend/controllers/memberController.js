@@ -164,8 +164,11 @@ const createMember = async (req, res) => {
       data.memberId = generateNextMemberId();
     }
 
+    delete data.photo;
     if (req.file) {
       data.photo = `/uploads/${req.file.filename}`;
+    } else {
+      data.photo = '';
     }
 
     let newMember = null;
@@ -215,6 +218,7 @@ const updateMember = async (req, res) => {
     }
     data.updatedAt = new Date();
 
+    delete data.photo;
     if (data.removePhoto === 'true' || data.removePhoto === true) {
       data.photo = '';
     } else if (req.file) {

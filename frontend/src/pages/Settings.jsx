@@ -50,6 +50,7 @@ export default function Settings() {
       if (logoFile) {
         const payload = new FormData();
         Object.keys(settings).forEach(key => {
+          if (key === 'churchLogo') return;
           payload.append(key, settings[key]);
         });
         payload.append('churchLogo', logoFile);

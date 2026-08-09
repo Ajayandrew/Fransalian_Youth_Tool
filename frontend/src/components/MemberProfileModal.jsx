@@ -35,6 +35,10 @@ export default function MemberProfileModal({ member, onClose, onOpenIDBadge }) {
           <img
             src={getImageUrl(member.photo) || 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=300'}
             alt={member.fullName}
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=300';
+            }}
             className="w-24 h-24 rounded-2xl object-cover border-2 border-white shadow-md flex-shrink-0"
           />
           <div className="space-y-1 flex-1">

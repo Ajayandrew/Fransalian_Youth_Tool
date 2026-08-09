@@ -225,7 +225,7 @@ export default function Members() {
     try {
       const formPayload = new FormData();
       Object.keys(formData).forEach(key => {
-        if (['_id', 'createdAt', 'updatedAt', '__v'].includes(key)) return;
+        if (['_id', 'createdAt', 'updatedAt', '__v', 'photo'].includes(key)) return;
         const val = formData[key];
         if (val !== null && val !== undefined) {
           formPayload.append(key, val);
@@ -359,6 +359,10 @@ export default function Members() {
                       <img
                         src={getImageUrl(m.photo) || 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=300'}
                         alt={m.fullName}
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=300';
+                        }}
                         className="w-14 h-14 rounded-2xl object-cover border border-slate-200 group-hover/photo:opacity-90 transition"
                       />
                       <div className="absolute inset-0 bg-slate-900/40 rounded-2xl opacity-0 group-hover/photo:opacity-100 transition flex items-center justify-center text-white">
@@ -496,6 +500,10 @@ export default function Members() {
                       <img
                         src={getImageUrl(m.photo) || 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=100'}
                         alt={m.fullName}
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=100';
+                        }}
                         className="w-9 h-9 rounded-xl object-cover cursor-pointer hover:opacity-80"
                         onClick={() => handleOpenPhotoLightbox(m)}
                       />
@@ -566,6 +574,10 @@ export default function Members() {
                   <img
                     src={photoPreview || 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=200'}
                     alt="Preview"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=200';
+                    }}
                     className="w-16 h-16 rounded-2xl object-cover border border-slate-300 cursor-pointer"
                     onClick={() => {
                       if (photoPreview) setSelectedLightboxPhoto({ url: photoPreview, title: formData.fullName || 'Photo' });
