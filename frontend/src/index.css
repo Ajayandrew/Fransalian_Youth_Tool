@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+body {
+  background-color: #f8fafc;
+  color: #0f172a;
+  font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+.dark body {
+  @apply bg-slate-950 text-slate-100;
+}
+
+.white-card {
+  @apply bg-white border border-slate-200 rounded-2xl shadow-sm hover:shadow-md transition-all duration-200;
+}
+
+.dark .white-card {
+  @apply bg-slate-900 border-slate-800 text-slate-100;
+}
+
+.white-input {
+  @apply w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-indigo-600 transition;
+}
+
+.dark .white-input {
+  @apply bg-slate-800 border-slate-700 text-slate-100 focus:border-indigo-500;
+}
+
+/* Print styles */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
