@@ -655,10 +655,15 @@ export default function Members() {
                 <div>
                   <label className="font-bold text-slate-700 block mb-1">Anbiyam Name</label>
                   <select value={formData.anbiyamName} onChange={(e) => setFormData({ ...formData, anbiyamName: e.target.value })} className="white-input">
-                    <option value="St. Francis Xavier Anbiyam">St. Francis Xavier Anbiyam</option>
-                    <option value="St. Antony Anbiyam">St. Antony Anbiyam</option>
-                    <option value="Mother Teresa Anbiyam">Mother Teresa Anbiyam</option>
-                    <option value="St. Jude Anbiyam">St. Jude Anbiyam</option>
+                    <option value="Sagaya Madha Anbiyam">Sagaya Madha Anbiyam</option>
+                    <option value="Vinnarasi Madha Anbiyam">Vinnarasi Madha Anbiyam</option>
+                    <option value="Iruthaiya Aandaver Anbiyam">Iruthaiya Aandaver Anbiyam</option>
+                    <option value="Anthoniyar Anbiyam">Anthoniyar Anbiyam</option>
+                    <option value="Amalorpava Madha Anbiyam">Amalorpava Madha Anbiyam</option>
+                    <option value="Saleth Madha Anbiyam">Saleth Madha Anbiyam</option>
+                    <option value="Arockiya Matha Anbiyam">Arockiya Matha Anbiyam</option>
+                    <option value="Susaiyappar Anbiyam">Susaiyappar Anbiyam</option>
+                    <option value="Kulanthai Yeasu Anbiyam">Kulanthai Yeasu Anbiyam</option>
                   </select>
                 </div>
               </div>

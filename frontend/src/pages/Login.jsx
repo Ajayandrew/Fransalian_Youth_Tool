@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, Sparkles, ArrowRight, ShieldCheck, Wallet, Crown, Heart } from 'lucide-react';
 import toast from 'react-hot-toast';
 import PhotoLightboxModal from '../components/PhotoLightboxModal';
+import { getImageUrl } from '../utils/urlUtils';
 
 export default function Login() {
   const { login } = useAuth();
