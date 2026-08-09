@@ -19,6 +19,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
 import PhotoLightboxModal from './PhotoLightboxModal';
+import { getImageUrl } from '../utils/urlUtils';
 
 export default function Sidebar({ isOpen, setIsOpen, isMobileOpen, setIsMobileOpen }) {
   const { user } = useAuth();
@@ -61,7 +62,7 @@ export default function Sidebar({ isOpen, setIsOpen, isMobileOpen, setIsMobileOp
             title={settings.churchLogo ? "Click to view and download logo" : ""}
           >
             {settings.churchLogo ? (
-              <img src={settings.churchLogo} alt="Logo" className="w-10 h-10 rounded-xl object-cover border border-slate-200 flex-shrink-0 shadow-sm group-hover:scale-105 transition-transform" />
+              <img src={getImageUrl(settings.churchLogo)} alt="Logo" className="w-10 h-10 rounded-xl object-cover border border-slate-200 flex-shrink-0 shadow-sm group-hover:scale-105 transition-transform" />
             ) : (
               <div className="w-10 h-10 rounded-xl bg-indigo-600 flex-shrink-0 flex items-center justify-center font-black text-white text-lg shadow-md shadow-indigo-600/30">
                 {(settings.youthName || 'FY').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}

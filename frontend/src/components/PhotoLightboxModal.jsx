@@ -1,9 +1,11 @@
 import React from 'react';
 import { X, Download, Eye } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { getImageUrl } from '../utils/urlUtils';
 
 export default function PhotoLightboxModal({ photo, photoUrl: directUrl, title: directTitle, subtitle: directSubtitle, onClose, onViewProfile }) {
-  const url = directUrl || photo?.url || (typeof photo === 'string' ? photo : '');
+  const rawUrl = directUrl || photo?.url || (typeof photo === 'string' ? photo : '');
+  const url = getImageUrl(rawUrl);
   const title = directTitle || photo?.caption || photo?.albumTitle || photo?.title || 'Youth Photo';
   const subtitle = directSubtitle || photo?.subtitle || photo?.albumTitle || photo?.category || '';
 

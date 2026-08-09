@@ -5,6 +5,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useSettings } from '../context/SettingsContext';
 import RoleLoginModal from './RoleLoginModal';
 import PhotoLightboxModal from './PhotoLightboxModal';
+import { getImageUrl } from '../utils/urlUtils';
 import toast from 'react-hot-toast';
 
 export default function Navbar({ onToggleMobileSidebar }) {
@@ -67,7 +68,7 @@ export default function Navbar({ onToggleMobileSidebar }) {
             title={settings.churchLogo ? "Click to view and download logo" : ""}
           >
             {settings.churchLogo ? (
-              <img src={settings.churchLogo} alt="Logo" className="w-8 h-8 rounded-xl object-cover border border-slate-200 shadow-xs group-hover:scale-105 transition-transform" />
+              <img src={getImageUrl(settings.churchLogo)} alt="Logo" className="w-8 h-8 rounded-xl object-cover border border-slate-200 shadow-xs group-hover:scale-105 transition-transform" />
             ) : (
               <div className="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center font-black text-white text-xs shadow-sm">
                 {(settings.youthName || 'FY').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
@@ -100,7 +101,7 @@ export default function Navbar({ onToggleMobileSidebar }) {
                 title="Click to change your Email (Username) or Password"
               >
                 <img
-                  src={user.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100'}
+                  src={getImageUrl(user.avatar || user.photo) || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100'}
                   alt={user.fullName}
                   className="w-8 h-8 rounded-xl object-cover border border-slate-200 group-hover:border-indigo-400"
                 />

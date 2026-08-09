@@ -4,6 +4,7 @@ import { Image as GalleryIcon, Plus, Eye, Tag, Calendar, Upload, X, Sparkles, Tr
 import toast from 'react-hot-toast';
 import PhotoLightboxModal from '../components/PhotoLightboxModal';
 import { useAuth } from '../context/AuthContext';
+import { getImageUrl } from '../utils/urlUtils';
 
 export default function Gallery() {
   const { hasRole } = useAuth();
@@ -165,7 +166,7 @@ export default function Gallery() {
               className="group relative h-64 bg-slate-900 rounded-3xl overflow-hidden cursor-pointer shadow-xs hover:shadow-xl transition-all duration-300"
             >
               <img
-                src={photo.url}
+                src={getImageUrl(photo.url)}
                 alt={photo.caption || photo.albumTitle}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90 group-hover:opacity-100"
               />

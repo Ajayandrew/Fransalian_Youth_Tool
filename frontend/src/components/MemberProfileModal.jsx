@@ -2,6 +2,7 @@ import React from 'react';
 import { X, Phone, Mail, MapPin, Calendar, Briefcase, Heart, ShieldCheck, QrCode, Printer, CheckCircle2, User, Droplet } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useSettings } from '../context/SettingsContext';
+import { getImageUrl } from '../utils/urlUtils';
 
 export default function MemberProfileModal({ member, onClose, onOpenIDBadge }) {
   const { settings } = useSettings();
@@ -32,7 +33,7 @@ export default function MemberProfileModal({ member, onClose, onOpenIDBadge }) {
         {/* Member Banner */}
         <div className="p-5 rounded-2xl bg-gradient-to-r from-indigo-50 to-slate-50 border border-indigo-100 flex flex-col sm:flex-row items-center sm:items-start space-y-3 sm:space-y-0 sm:space-x-5 text-center sm:text-left">
           <img
-            src={member.photo || 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=300'}
+            src={getImageUrl(member.photo) || 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=300'}
             alt={member.fullName}
             className="w-24 h-24 rounded-2xl object-cover border-2 border-white shadow-md flex-shrink-0"
           />

@@ -3,6 +3,7 @@ import axios from 'axios';
 import MemberIDCardModal from '../components/MemberIDCardModal';
 import MemberProfileModal from '../components/MemberProfileModal';
 import PhotoLightboxModal from '../components/PhotoLightboxModal';
+import { getImageUrl } from '../utils/urlUtils';
 import {
   Users,
   Search,
@@ -153,7 +154,7 @@ export default function Members() {
 
   const handleOpenPhotoLightbox = (m) => {
     setSelectedLightboxPhoto({
-      url: m.photo || 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=600',
+      url: getImageUrl(m.photo) || 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=600',
       title: m.fullName,
       subtitle: `${m.anbiyamName || 'Parish Member'} ${m.baptismName ? '• Baptism: ' + m.baptismName : ''}`
     });
@@ -163,7 +164,7 @@ export default function Members() {
     setEditingMember(m);
     setFormData({ ...m });
     setPhotoFile(null);
-    setPhotoPreview(m.photo || '');
+    setPhotoPreview(getImageUrl(m.photo) || '');
     setShowModal(true);
   };
 
@@ -356,7 +357,7 @@ export default function Members() {
                   <div className="flex items-center space-x-3">
                     <div className="relative group/photo cursor-pointer" onClick={() => handleOpenPhotoLightbox(m)}>
                       <img
-                        src={m.photo || 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=300'}
+                        src={getImageUrl(m.photo) || 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=300'}
                         alt={m.fullName}
                         className="w-14 h-14 rounded-2xl object-cover border border-slate-200 group-hover/photo:opacity-90 transition"
                       />
@@ -493,7 +494,7 @@ export default function Members() {
                     </td>
                     <td className="p-4 font-bold text-slate-900 flex items-center space-x-3">
                       <img
-                        src={m.photo || 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=100'}
+                        src={getImageUrl(m.photo) || 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=100'}
                         alt={m.fullName}
                         className="w-9 h-9 rounded-xl object-cover cursor-pointer hover:opacity-80"
                         onClick={() => handleOpenPhotoLightbox(m)}
