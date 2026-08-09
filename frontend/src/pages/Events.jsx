@@ -4,6 +4,7 @@ import { Calendar, Plus, MapPin, Clock, DollarSign, Users, Trash2, Edit, CheckCi
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import PhotoLightboxModal from '../components/PhotoLightboxModal';
+import { getImageUrl } from '../utils/urlUtils';
 
 export default function Events() {
   const { hasRole } = useAuth();
@@ -76,7 +77,7 @@ export default function Events() {
       status: evt.status || 'Upcoming'
     });
     setBannerFile(null);
-    setBannerPreview(evt.bannerImage || '');
+    setBannerPreview(evt.bannerImage ? getImageUrl(evt.bannerImage) : '');
     setShowModal(true);
   };
 
@@ -228,11 +229,15 @@ export default function Events() {
             >
               <div
                 className="relative h-44 bg-slate-900 cursor-pointer group"
-                onClick={() => setSelectedBanner({ url: evt.bannerImage || 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=600', title: evt.eventName, subtitle: evt.category })}
+                onClick={() => setSelectedBanner({ url: getImageUrl(evt.bannerImage) || 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=600', title: evt.eventName, subtitle: evt.category })}
               >
                 <img
-                  src={evt.bannerImage || 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=600'}
+                  src={getImageUrl(evt.bannerImage) || 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=600'}
                   alt={evt.eventName}
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=600';
+                  }}
                   className="w-full h-full object-cover opacity-85 group-hover:scale-105 transition-transform duration-300"
                 />
                 <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-black uppercase text-indigo-700 shadow-xs">

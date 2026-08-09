@@ -23,6 +23,7 @@ import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGri
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
+import { getImageUrl } from '../utils/urlUtils';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -236,7 +237,15 @@ export default function Dashboard() {
             {(recentActivity.newMembers || []).map((m) => (
               <div key={m._id} className="py-3 flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <img src={m.photo || 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=100'} alt={m.fullName} className="w-9 h-9 rounded-xl object-cover" />
+                  <img
+                    src={getImageUrl(m.photo) || 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=100'}
+                    alt={m.fullName}
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=100';
+                    }}
+                    className="w-9 h-9 rounded-xl object-cover"
+                  />
                   <div>
                     <h4 className="font-bold text-slate-900">{m.fullName}</h4>
                     <p className="text-slate-500">{m.anbiyamName}</p>

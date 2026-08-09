@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Cake, Calendar, Gift, Send, Phone, MessageSquare, Sparkles, Heart } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { getImageUrl } from '../utils/urlUtils';
 
 export default function Birthdays() {
   const [members, setMembers] = useState([]);
@@ -90,8 +91,12 @@ export default function Birthdays() {
                 <div>
                   <div className="flex items-center gap-4">
                     <img
-                      src={m.photo || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200'}
+                      src={getImageUrl(m.photo) || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200'}
                       alt={m.fullName}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200';
+                      }}
                       className="w-16 h-16 rounded-2xl object-cover border-2 border-amber-400 shadow-md"
                     />
                     <div>

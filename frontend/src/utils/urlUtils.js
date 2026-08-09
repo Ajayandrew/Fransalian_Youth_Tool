@@ -6,10 +6,11 @@ import axios from 'axios';
  */
 export const getImageUrl = (path) => {
   if (!path) return '';
-  if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:')) {
-    return path;
+  let cleanPath = String(path).replace(/\\/g, '/').trim();
+  if (cleanPath.startsWith('http://') || cleanPath.startsWith('https://') || cleanPath.startsWith('data:')) {
+    return cleanPath;
   }
-  const baseUrl = axios.defaults.baseURL || import.meta.env.VITE_API_URL || '';
-  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  const baseUrl = (axios.defaults.baseURL || import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
+  cleanPath = cleanPath.startsWith('/') ? cleanPath : `/${cleanPath}`;
   return `${baseUrl}${cleanPath}`;
 };

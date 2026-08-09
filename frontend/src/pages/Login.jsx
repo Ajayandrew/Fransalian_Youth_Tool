@@ -113,7 +113,7 @@ export default function Login() {
             title={settings.churchLogo ? "Click to view and download logo" : ""}
           >
             {settings.churchLogo ? (
-              <img src={settings.churchLogo} alt="Logo" className="w-16 h-16 rounded-2xl object-cover border border-slate-200 shadow-md mx-auto mb-2 group-hover:scale-105 transition-transform" />
+              <img src={getImageUrl(settings.churchLogo)} alt="Logo" className="w-16 h-16 rounded-2xl object-cover border border-slate-200 shadow-md mx-auto mb-2 group-hover:scale-105 transition-transform" />
             ) : (
               <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-indigo-600 shadow-lg shadow-indigo-600/30 text-white font-black text-2xl mb-2">
                 {(settings.youthName || 'FY').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
@@ -149,8 +149,12 @@ export default function Login() {
                 >
                   {card.photo ? (
                     <img
-                      src={card.photo}
+                      src={getImageUrl(card.photo)}
                       alt={card.memberName}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200';
+                      }}
                       className="w-14 h-14 rounded-2xl object-cover border-2 border-white shadow-md flex-shrink-0"
                     />
                   ) : (

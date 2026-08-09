@@ -4,6 +4,7 @@ import { CalendarCheck, Users, CheckCircle2, XCircle, QrCode, Search, Save, Hist
 import toast from 'react-hot-toast';
 import * as XLSX from 'xlsx';
 import { useAuth } from '../context/AuthContext';
+import { getImageUrl } from '../utils/urlUtils';
 
 export default function Attendance() {
   const { hasRole } = useAuth();
@@ -329,8 +330,12 @@ export default function Attendance() {
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-3">
                           <img
-                            src={m.photo || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100'}
+                            src={getImageUrl(m.photo) || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100'}
                             alt={m.fullName}
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100';
+                            }}
                             className="w-8 h-8 rounded-full object-cover border border-slate-200"
                           />
                           <div>

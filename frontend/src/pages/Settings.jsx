@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useSettings } from '../context/SettingsContext';
 import PhotoLightboxModal from '../components/PhotoLightboxModal';
+import { getImageUrl } from '../utils/urlUtils';
 
 export default function Settings() {
   const { user, hasRole, updateUserProfile } = useAuth();
@@ -30,7 +31,7 @@ export default function Settings() {
 
   useEffect(() => {
     setSettings({ ...globalSettings });
-    setLogoPreview(globalSettings.churchLogo || '');
+    setLogoPreview(globalSettings.churchLogo ? getImageUrl(globalSettings.churchLogo) : '');
   }, [globalSettings]);
 
   const handleLogoFileChange = (e) => {

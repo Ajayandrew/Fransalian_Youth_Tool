@@ -168,6 +168,10 @@ export default function Gallery() {
               <img
                 src={getImageUrl(photo.url)}
                 alt={photo.caption || photo.albumTitle}
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=600';
+                }}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90 group-hover:opacity-100"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
