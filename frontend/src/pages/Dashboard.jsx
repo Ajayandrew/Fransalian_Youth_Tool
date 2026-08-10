@@ -23,6 +23,7 @@ import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGri
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
+import InteractiveLoader from '../components/InteractiveLoader';
 import { getImageUrl } from '../utils/urlUtils';
 
 export default function Dashboard() {
@@ -84,6 +85,10 @@ export default function Dashboard() {
     }
     return `https://${cleanUrl}`;
   };
+
+  if (loading) {
+    return <InteractiveLoader message="Loading Dashboard Analytics, Please Wait..." />;
+  }
 
   return (
     <div className="space-y-6 pb-12">

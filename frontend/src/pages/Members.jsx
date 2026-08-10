@@ -3,6 +3,7 @@ import axios from 'axios';
 import MemberIDCardModal from '../components/MemberIDCardModal';
 import MemberProfileModal from '../components/MemberProfileModal';
 import PhotoLightboxModal from '../components/PhotoLightboxModal';
+import InteractiveLoader from '../components/InteractiveLoader';
 import { getImageUrl } from '../utils/urlUtils';
 import {
   Users,
@@ -268,6 +269,10 @@ export default function Members() {
     window.open('/api/members/export/excel', '_blank');
     toast.success('Downloading Members Excel Sheet...');
   };
+
+  if (loading) {
+    return <InteractiveLoader message="Loading Youth Members Directory, Please Wait..." />;
+  }
 
   return (
     <div className="space-y-6 pb-12">

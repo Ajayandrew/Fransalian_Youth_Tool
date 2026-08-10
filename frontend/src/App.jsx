@@ -4,6 +4,8 @@ import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import { useAuth } from './context/AuthContext';
 
+import InteractiveLoader from './components/InteractiveLoader';
+
 // Lazy-loaded pages for blazingly fast bundle splitting
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Login = lazy(() => import('./pages/Login'));
@@ -18,17 +20,7 @@ const Reports = lazy(() => import('./pages/Reports'));
 const Settings = lazy(() => import('./pages/Settings'));
 
 function PageLoader() {
-  return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6 animate-pulse">
-      <div className="h-28 bg-gradient-to-r from-indigo-900 via-indigo-800 to-slate-900 rounded-3xl" />
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <div className="h-32 bg-white rounded-2xl border border-slate-200" />
-        <div className="h-32 bg-white rounded-2xl border border-slate-200" />
-        <div className="h-32 bg-white rounded-2xl border border-slate-200" />
-      </div>
-      <div className="h-64 bg-white rounded-3xl border border-slate-200" />
-    </div>
-  );
+  return <InteractiveLoader message="Loading Page, Please Wait..." />;
 }
 
 function AppLayout() {
