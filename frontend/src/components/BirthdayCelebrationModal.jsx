@@ -100,13 +100,13 @@ export default function BirthdayCelebrationModal({ member, onClose, onTriggerBur
             <div className="bg-gradient-to-b from-amber-500/15 via-slate-900 to-indigo-950/60 border-2 border-amber-400/40 rounded-3xl p-6 backdrop-blur-md text-center flex flex-col items-center justify-center space-y-4 shadow-2xl relative overflow-hidden">
               
               {/* Decorative top ribbon */}
-              <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-gradient-to-r from-amber-500 via-rose-500 to-amber-400 text-slate-950 text-xs font-black uppercase tracking-wider shadow-lg animate-pulse">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-500 via-rose-500 to-amber-400 text-slate-950 text-xs font-black uppercase tracking-wider shadow-lg">
                 <Crown className="w-4 h-4 text-slate-950" />
-                <span>Happy Birthday Celebration</span>
+                <span>Star of the Day • Happy Birthday</span>
                 <Sparkles className="w-4 h-4 text-slate-950" />
               </div>
 
-              {/* Centered Photo with Glowing Gold Ring & Zoom Click Handler */}
+              {/* Centered Photo with Glowing Gold Ring & Zoom Click Handler (Face completely unobstructed) */}
               <div
                 onClick={() => setShowFullImage(true)}
                 className="relative group cursor-pointer my-2"
@@ -123,12 +123,7 @@ export default function BirthdayCelebrationModal({ member, onClose, onTriggerBur
                   className="relative w-32 h-32 sm:w-36 sm:h-36 rounded-full object-cover border-4 border-amber-300 shadow-2xl group-hover:scale-105 transition-transform"
                 />
 
-                {/* Floating Crown Badge */}
-                <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-400 text-slate-950 px-2 py-0.5 rounded-full text-xs font-black shadow-xl animate-bounce z-10 flex items-center gap-1 border border-amber-200">
-                  👑 STAR OF THE DAY
-                </span>
-
-                {/* Hover Zoom Badge */}
+                {/* Hover Zoom Overlay */}
                 <div className="absolute inset-0 bg-slate-950/60 rounded-full flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10 text-amber-300">
                   <ZoomIn className="w-7 h-7 mb-1" />
                   <span className="text-[10px] font-black uppercase tracking-wider">Full View</span>
