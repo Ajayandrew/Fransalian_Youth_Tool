@@ -96,56 +96,68 @@ export default function BirthdayCelebrationModal({ member, onClose, onTriggerBur
 
           {/* Modal Body */}
           <div className="p-6 space-y-6 max-h-[80vh] overflow-y-auto relative z-10">
-            {/* Member Card Spotlight with Decorated Photo Frame */}
-            <div className="bg-gradient-to-br from-amber-500/10 via-slate-900 to-indigo-900/40 border border-amber-400/30 rounded-3xl p-5 backdrop-blur-md text-center sm:text-left space-y-4">
+            {/* Member Card Spotlight - Centered Birthday Banner Poster Style */}
+            <div className="bg-gradient-to-b from-amber-500/15 via-slate-900 to-indigo-950/60 border-2 border-amber-400/40 rounded-3xl p-6 backdrop-blur-md text-center flex flex-col items-center justify-center space-y-4 shadow-2xl relative overflow-hidden">
               
-              <div className="flex flex-col sm:flex-row items-center gap-5">
-                {/* Photo with Full View Click Handler */}
-                <div
+              {/* Decorative top ribbon */}
+              <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-gradient-to-r from-amber-500 via-rose-500 to-amber-400 text-slate-950 text-xs font-black uppercase tracking-wider shadow-lg animate-pulse">
+                <Crown className="w-4 h-4 text-slate-950" />
+                <span>Happy Birthday Celebration</span>
+                <Sparkles className="w-4 h-4 text-slate-950" />
+              </div>
+
+              {/* Centered Photo with Glowing Gold Ring & Zoom Click Handler */}
+              <div
+                onClick={() => setShowFullImage(true)}
+                className="relative group cursor-pointer my-2"
+                title="Click to view full screen image"
+              >
+                <div className="absolute -inset-2 bg-gradient-to-tr from-amber-400 via-rose-500 to-amber-300 rounded-full blur-sm group-hover:blur-md transition opacity-90 animate-pulse" />
+                <img
+                  src={photoUrl}
+                  alt={member.fullName}
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600';
+                  }}
+                  className="relative w-32 h-32 sm:w-36 sm:h-36 rounded-full object-cover border-4 border-amber-300 shadow-2xl group-hover:scale-105 transition-transform"
+                />
+
+                {/* Floating Crown Badge */}
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-400 text-slate-950 px-2 py-0.5 rounded-full text-xs font-black shadow-xl animate-bounce z-10 flex items-center gap-1 border border-amber-200">
+                  👑 STAR OF THE DAY
+                </span>
+
+                {/* Hover Zoom Badge */}
+                <div className="absolute inset-0 bg-slate-950/60 rounded-full flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10 text-amber-300">
+                  <ZoomIn className="w-7 h-7 mb-1" />
+                  <span className="text-[10px] font-black uppercase tracking-wider">Full View</span>
+                </div>
+              </div>
+
+              {/* Centered Member Info & Badges */}
+              <div className="space-y-1.5 w-full flex flex-col items-center text-center">
+                <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-amber-400/20 border border-amber-400/40 text-amber-300 text-xs font-black">
+                  <Gift className="w-4 h-4 text-amber-400" />
+                  <span>{dateStr}</span>
+                </div>
+                
+                <h3 className="text-2xl sm:text-3xl font-black text-amber-300 tracking-tight drop-shadow-md">
+                  {member.fullName}
+                </h3>
+                <p className="text-xs text-rose-300 font-extrabold uppercase tracking-wide">
+                  {member.role || 'Youth Member'}
+                </p>
+                <p className="text-xs text-indigo-200 font-semibold">
+                  {member.anbiyamName || 'Sagaya Madha Anbiyam'}
+                </p>
+
+                <button
                   onClick={() => setShowFullImage(true)}
-                  className="relative group cursor-pointer shrink-0"
-                  title="Click to view full screen image"
+                  className="mt-1 text-xs font-extrabold text-amber-400 hover:text-amber-300 underline flex items-center gap-1.5"
                 >
-                  <div className="absolute -inset-1 bg-gradient-to-r from-amber-400 to-rose-500 rounded-3xl blur-xs group-hover:blur-sm transition opacity-80" />
-                  <img
-                    src={photoUrl}
-                    alt={member.fullName}
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600';
-                    }}
-                    className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-2xl object-cover border-2 border-amber-300 shadow-2xl group-hover:scale-105 transition-transform"
-                  />
-
-                  {/* Crown Badge */}
-                  <span className="absolute -top-3 -right-2 bg-amber-400 text-slate-950 p-1.5 rounded-full text-xs shadow-lg animate-bounce z-10">
-                    👑
-                  </span>
-
-                  {/* Zoom Overlay Badge */}
-                  <div className="absolute inset-0 bg-slate-950/60 rounded-2xl flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10 text-amber-300">
-                    <ZoomIn className="w-6 h-6 mb-1" />
-                    <span className="text-[10px] font-black uppercase tracking-wider">Full View</span>
-                  </div>
-                </div>
-
-                {/* Member Details */}
-                <div className="space-y-1.5 flex-1">
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/20 border border-amber-400/40 text-amber-300 text-xs font-black">
-                    <Gift className="w-3.5 h-3.5" />
-                    <span>{dateStr} Celebration</span>
-                  </div>
-                  <h3 className="text-2xl font-black text-white">{member.fullName}</h3>
-                  <p className="text-xs text-amber-200 font-bold">{member.role || 'Youth Member'}</p>
-                  <p className="text-xs text-indigo-200 font-semibold">{member.anbiyamName || 'Sagaya Madha Anbiyam'}</p>
-
-                  <button
-                    onClick={() => setShowFullImage(true)}
-                    className="mt-2 text-xs font-extrabold text-amber-400 hover:text-amber-300 underline flex items-center gap-1 mx-auto sm:mx-0"
-                  >
-                    <Eye className="w-3.5 h-3.5" /> Click Photo to View Full Image
-                  </button>
-                </div>
+                  <Eye className="w-4 h-4" /> Click Photo for Full Screen View
+                </button>
               </div>
 
               {/* Animated Candle & Cake Cut Trigger */}
