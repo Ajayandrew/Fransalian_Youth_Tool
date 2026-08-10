@@ -1,5 +1,6 @@
 const { getIsInMemory } = require('../config/db');
 const memoryStore = require('../store/memoryStore');
+const { savePersistentStore } = require('../store/persistentStore');
 const Gallery = require('../models/Gallery');
 
 const getAlbums = async (req, res) => {
@@ -23,7 +24,7 @@ const uploadPhotoToAlbum = async (req, res) => {
     let photoUrl = '';
 
     if (req.file) {
-      photoUrl = `/uploads/${req.file.filename}`;
+      photoUrl = req.file.dataUrl || `/uploads/${req.file.filename}`;
     } else if (req.body.photoUrl) {
       photoUrl = req.body.photoUrl;
     } else {
@@ -53,6 +54,7 @@ const uploadPhotoToAlbum = async (req, res) => {
       album.photos.unshift({ url: photoUrl, caption: caption || title });
       await album.save();
     }
+    savePersistentStore();
 
     return res.status(201).json({ success: true, message: 'Photo uploaded to album.' });
   } catch (error) {
@@ -78,6 +80,7 @@ const deletePhoto = async (req, res) => {
         await Gallery.updateMany({}, { $pull: { photos: { url: photoUrl } } });
       }
     }
+    savePersistentStore();
 
     return res.json({ success: true, message: 'Photo deleted from gallery.' });
   } catch (error) {

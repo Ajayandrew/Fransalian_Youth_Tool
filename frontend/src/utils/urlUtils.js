@@ -10,7 +10,8 @@ export const getImageUrl = (path) => {
   if (cleanPath.startsWith('http://') || cleanPath.startsWith('https://') || cleanPath.startsWith('data:')) {
     return cleanPath;
   }
-  const baseUrl = (axios.defaults.baseURL || import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
+  let baseUrl = (axios.defaults.baseURL || import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
+  baseUrl = baseUrl.replace(/\/api$/, '');
   cleanPath = cleanPath.startsWith('/') ? cleanPath : `/${cleanPath}`;
   return `${baseUrl}${cleanPath}`;
 };

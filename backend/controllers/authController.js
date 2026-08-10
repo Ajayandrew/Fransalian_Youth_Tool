@@ -199,6 +199,13 @@ const updateProfile = async (req, res) => {
     const userRole = req.user?.role;
     const currentEmail = req.user?.email;
 
+    if (userRole === 'Youth Member') {
+      return res.status(403).json({
+        success: false,
+        message: 'Youth members are not allowed to change credentials. Please contact a Youth Leader or Administrator.'
+      });
+    }
+
     if (!email && !newPassword && !fullName && !bloodGroup) {
       return res.status(400).json({ success: false, message: 'Nothing to update.' });
     }
@@ -297,6 +304,13 @@ const updateProfile = async (req, res) => {
 
 const changePassword = async (req, res) => {
   try {
+    if (req.user?.role === 'Youth Member') {
+      return res.status(403).json({
+        success: false,
+        message: 'Youth members are not allowed to change credentials. Please contact a Youth Leader or Administrator.'
+      });
+    }
+
     const { newPassword } = req.body;
     if (!newPassword) {
       return res.status(400).json({ success: false, message: 'New Password is required.' });

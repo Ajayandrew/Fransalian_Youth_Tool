@@ -1,5 +1,6 @@
 const { getIsInMemory } = require('../config/db');
 const memoryStore = require('../store/memoryStore');
+const { savePersistentStore } = require('../store/persistentStore');
 const Event = require('../models/Event');
 
 const getEvents = async (req, res) => {
@@ -29,7 +30,7 @@ const createEvent = async (req, res) => {
     }
 
     if (req.file) {
-      data.bannerImage = `/uploads/${req.file.filename}`;
+      data.bannerImage = req.file.dataUrl || `/uploads/${req.file.filename}`;
     }
 
     let newEvent = null;
@@ -39,6 +40,7 @@ const createEvent = async (req, res) => {
     } else {
       newEvent = await Event.create(data);
     }
+    savePersistentStore();
 
     return res.status(201).json({ success: true, event: newEvent, message: 'Event created successfully.' });
   } catch (error) {
@@ -51,7 +53,7 @@ const updateEvent = async (req, res) => {
     const { id } = req.params;
     const data = req.body;
     if (req.file) {
-      data.bannerImage = `/uploads/${req.file.filename}`;
+      data.bannerImage = req.file.dataUrl || `/uploads/${req.file.filename}`;
     }
 
     let updated = null;
@@ -64,6 +66,7 @@ const updateEvent = async (req, res) => {
     } else {
       updated = await Event.findByIdAndUpdate(id, data, { new: true });
     }
+    savePersistentStore();
 
     return res.json({ success: true, event: updated, message: 'Event updated successfully.' });
   } catch (error) {
@@ -79,6 +82,7 @@ const deleteEvent = async (req, res) => {
     } else {
       await Event.findByIdAndDelete(id);
     }
+    savePersistentStore();
 
     return res.json({ success: true, message: 'Event removed.' });
   } catch (error) {

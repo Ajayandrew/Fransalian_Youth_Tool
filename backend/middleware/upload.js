@@ -4,22 +4,41 @@ const fs = require('fs');
 
 const uploadDir = path.join(__dirname, '../uploads');
 if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
+  try {
+    fs.mkdirSync(uploadDir, { recursive: true });
+  } catch (e) {}
 }
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
-
-const upload = multer({
-  storage: storage,
+const memoryStorage = multer.memoryStorage();
+const rawMulter = multer({
+  storage: memoryStorage,
   limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
 });
 
-module.exports = upload;
+const uploadMiddleware = (fieldname) => {
+  return (req, res, next) => {
+    rawMulter.single(fieldname)(req, res, (err) => {
+      if (err) return next(err);
+      if (req.file) {
+        const ext = path.extname(req.file.originalname) || '.jpg';
+        const filename = `${req.file.fieldname}-${Date.now()}-${Math.round(Math.random() * 1E9)}${ext}`;
+        req.file.filename = filename;
+
+        // 1. Write copy to local disk folder (/uploads) for local serving
+        const localPath = path.join(uploadDir, filename);
+        try {
+          fs.writeFileSync(localPath, req.file.buffer);
+        } catch (e) {}
+
+        // 2. Construct persistent Base64 Data URI for Render/Cloud database persistence
+        const mime = req.file.mimetype || 'image/jpeg';
+        req.file.dataUrl = `data:${mime};base64,${req.file.buffer.toString('base64')}`;
+      }
+      next();
+    });
+  };
+};
+
+module.exports = {
+  single: uploadMiddleware
+};

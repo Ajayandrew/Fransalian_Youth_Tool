@@ -59,7 +59,15 @@ const getMembers = async (req, res) => {
     } else {
       list = await Member.find({});
       if (list.length > 0) {
-        memoryStore.members = list.map(m => (m.toObject ? m.toObject() : m));
+        const dbList = list.map(m => (m.toObject ? m.toObject() : m));
+        dbList.forEach(m => {
+          const memMatch = memoryStore.members.find(existing => existing._id === String(m._id) || (existing.fullName && m.fullName && existing.fullName.toLowerCase() === m.fullName.toLowerCase()));
+          if (memMatch && memMatch.photo && !m.photo) {
+            m.photo = memMatch.photo;
+            Member.findByIdAndUpdate(m._id, { photo: memMatch.photo }).catch(() => {});
+          }
+        });
+        memoryStore.members = dbList;
         savePersistentStore();
       } else if (memoryStore.members.length > 0) {
         // Sync persistent memoryStore items to MongoDB Atlas if DB was empty
@@ -166,7 +174,7 @@ const createMember = async (req, res) => {
 
     delete data.photo;
     if (req.file) {
-      data.photo = `/uploads/${req.file.filename}`;
+      data.photo = req.file.dataUrl || `/uploads/${req.file.filename}`;
     } else {
       data.photo = '';
     }
@@ -222,7 +230,12 @@ const updateMember = async (req, res) => {
     if (data.removePhoto === 'true' || data.removePhoto === true) {
       data.photo = '';
     } else if (req.file) {
-      data.photo = `/uploads/${req.file.filename}`;
+      data.photo = req.file.dataUrl || `/uploads/${req.file.filename}`;
+    } else {
+      const existing = memoryStore.members.find(m => m._id === id);
+      if (existing && existing.photo) {
+        data.photo = existing.photo;
+      }
     }
 
     let updatedMember = null;

@@ -65,7 +65,7 @@ const addIncome = async (req, res) => {
 
     data.receiptNumber = data.receiptNumber || `REC-INC-${Date.now().toString().slice(-6)}`;
     if (req.file) {
-      data.receiptImage = `/uploads/${req.file.filename}`;
+      data.receiptImage = req.file.dataUrl || `/uploads/${req.file.filename}`;
     }
 
     let newIncome;
@@ -93,7 +93,7 @@ const addExpense = async (req, res) => {
 
     data.receiptNumber = data.receiptNumber || `EXP-${Date.now().toString().slice(-6)}`;
     if (req.file) {
-      data.receiptImage = `/uploads/${req.file.filename}`;
+      data.receiptImage = req.file.dataUrl || `/uploads/${req.file.filename}`;
     }
 
     let newExpense;

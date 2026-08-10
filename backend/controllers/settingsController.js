@@ -45,7 +45,7 @@ const updateSettings = async (req, res) => {
   try {
     const data = req.body;
     if (req.file) {
-      data.churchLogo = `/uploads/${req.file.filename}`;
+      data.churchLogo = req.file.dataUrl || `/uploads/${req.file.filename}`;
     }
 
     let updated = null;
@@ -56,6 +56,8 @@ const updateSettings = async (req, res) => {
       updated = await Settings.findByIdAndUpdate('org_settings', { $set: data }, { new: true, upsert: true });
       memoryStore.settings = updated.toObject();
     }
+    const { savePersistentStore } = require('../store/persistentStore');
+    savePersistentStore();
 
     return res.json({ success: true, settings: updated, message: 'Organization Settings updated successfully.' });
   } catch (error) {

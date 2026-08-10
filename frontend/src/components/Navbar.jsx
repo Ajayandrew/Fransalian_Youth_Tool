@@ -22,7 +22,12 @@ export default function Navbar({ onToggleMobileSidebar }) {
   const [accountConfirmPassword, setAccountConfirmPassword] = useState('');
   const [updating, setUpdating] = useState(false);
 
+  const isYouthMember = user?.role === 'Youth Member';
+
   const handleOpenAccountModal = () => {
+    if (isYouthMember) {
+      return toast.error('Youth members are not allowed to change credentials. Please contact a Youth Leader or Administrator.');
+    }
     if (user) {
       setAccountEmail(user.email || '');
       setAccountBloodGroup(user.bloodGroup || 'O+');
@@ -34,6 +39,9 @@ export default function Navbar({ onToggleMobileSidebar }) {
 
   const handleSaveCredentials = async (e) => {
     e.preventDefault();
+    if (isYouthMember) {
+      return toast.error('Youth members are not allowed to change credentials.');
+    }
     if (accountPassword && accountPassword !== accountConfirmPassword) {
       return toast.error('Passwords do not match.');
     }
@@ -96,9 +104,9 @@ export default function Navbar({ onToggleMobileSidebar }) {
           {user && (
             <div className="flex items-center space-x-3 border-l border-slate-200 pl-3">
               <div
-                onClick={handleOpenAccountModal}
-                className="flex items-center space-x-2 cursor-pointer hover:opacity-80 transition group"
-                title="Click to change your Email (Username) or Password"
+                onClick={!isYouthMember ? handleOpenAccountModal : undefined}
+                className={`flex items-center space-x-2 ${!isYouthMember ? 'cursor-pointer hover:opacity-80' : ''} transition group`}
+                title={!isYouthMember ? "Click to change your Email (Username) or Password" : user.fullName}
               >
                 <img
                   src={getImageUrl(user.avatar || user.photo) || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100'}
@@ -111,13 +119,15 @@ export default function Navbar({ onToggleMobileSidebar }) {
                 </div>
               </div>
 
-              <button
-                onClick={handleOpenAccountModal}
-                className="p-2 rounded-xl bg-indigo-50 text-indigo-700 hover:bg-indigo-100 text-xs font-bold transition"
-                title="Change Username & Password"
-              >
-                <User className="w-4 h-4" />
-              </button>
+              {!isYouthMember && (
+                <button
+                  onClick={handleOpenAccountModal}
+                  className="p-2 rounded-xl bg-indigo-50 text-indigo-700 hover:bg-indigo-100 text-xs font-bold transition"
+                  title="Change Username & Password"
+                >
+                  <User className="w-4 h-4" />
+                </button>
+              )}
 
               <button
                 onClick={() => logout()}
@@ -210,7 +220,7 @@ export default function Navbar({ onToggleMobileSidebar }) {
                   disabled={updating}
                   className="py-2.5 px-5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-md shadow-indigo-600/20"
                 >
-                  {updating ? 'Saving Profile...' : 'Save Profile & Blood Group'}
+                  {updating ? 'Saving Profile...' : 'Save Profile'}
                 </button>
               </div>
             </form>
