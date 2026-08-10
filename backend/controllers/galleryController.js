@@ -9,7 +9,7 @@ const getAlbums = async (req, res) => {
     if (getIsInMemory()) {
       albums = memoryStore.albums || [];
     } else {
-      albums = await Gallery.find({});
+      albums = await Gallery.find({}).lean();
     }
 
     return res.json({ success: true, count: albums.length, albums });

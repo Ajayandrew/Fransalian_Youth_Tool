@@ -13,4 +13,7 @@ const subscriptionSchema = new mongoose.Schema({
   remarks: { type: String, default: '' }
 }, { timestamps: true });
 
+subscriptionSchema.index({ memberId: 1 });
+subscriptionSchema.index({ month: 1, year: 1, status: 1 });
+
 module.exports = mongoose.models.Subscription || mongoose.model('Subscription', subscriptionSchema);

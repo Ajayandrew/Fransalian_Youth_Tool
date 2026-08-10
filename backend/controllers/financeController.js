@@ -13,11 +13,13 @@ const getFinanceSummary = async (req, res) => {
       secretOfferings = memoryStore.secretOfferings || [];
       subscriptions = memoryStore.subscriptions || [];
     } else {
-      incomeList = await Income.find({});
-      expenseList = await Expense.find({});
-      secretOfferings = memoryStore.secretOfferings || [];
       const Subscription = require('../models/Subscription');
-      subscriptions = await Subscription.find({});
+      [incomeList, expenseList, subscriptions] = await Promise.all([
+        Income.find({}).lean(),
+        Expense.find({}).lean(),
+        Subscription.find({}).lean()
+      ]);
+      secretOfferings = memoryStore.secretOfferings || [];
     }
 
     const generalIncome = incomeList

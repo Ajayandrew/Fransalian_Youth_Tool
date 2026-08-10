@@ -16,9 +16,11 @@ const getSubscriptions = async (req, res) => {
       subsList = memoryStore.subscriptions || [];
       membersList = memoryStore.members || [];
     } else {
-      subsList = await Subscription.find({});
       const Member = require('../models/Member');
-      membersList = await Member.find({});
+      [subsList, membersList] = await Promise.all([
+        Subscription.find({}).lean(),
+        Member.find({}).lean()
+      ]);
     }
 
     const defaultSubsAmount = (memoryStore.settings?.subscriptionAmount) || 50;

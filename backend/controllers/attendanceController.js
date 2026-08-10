@@ -8,7 +8,7 @@ const getAttendance = async (req, res) => {
     if (getIsInMemory()) {
       list = memoryStore.attendance || [];
     } else {
-      list = await Attendance.find({});
+      list = await Attendance.find({}).lean();
     }
 
     return res.json({ success: true, count: list.length, attendance: list });

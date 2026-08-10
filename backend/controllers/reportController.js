@@ -16,12 +16,14 @@ const getReports = async (req, res) => {
       attendance = memoryStore.attendance || [];
       secretOfferings = memoryStore.secretOfferings || [];
     } else {
-      members = await Member.find({});
-      incomeList = await Income.find({});
-      expenseList = await Expense.find({});
-      subs = await Subscription.find({});
       const Attendance = require('../models/Attendance');
-      attendance = await Attendance.find({});
+      [members, incomeList, expenseList, subs, attendance] = await Promise.all([
+        Member.find({}).lean(),
+        Income.find({}).lean(),
+        Expense.find({}).lean(),
+        Subscription.find({}).lean(),
+        Attendance.find({}).lean()
+      ]);
       secretOfferings = memoryStore.secretOfferings || [];
     }
 

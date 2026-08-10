@@ -90,8 +90,10 @@ export default function Members() {
     }
   };
 
-  const fetchMembers = async () => {
-    setLoading(true);
+  const fetchMembers = async (isInitial = false) => {
+    if (isInitial || members.length === 0) {
+      setLoading(true);
+    }
     try {
       const res = await axios.get('/api/members', {
         params: {

@@ -15,4 +15,6 @@ const attendanceSchema = new mongoose.Schema({
   notes: { type: String, default: '' }
 }, { timestamps: true });
 
+attendanceSchema.index({ date: -1 });
+
 module.exports = mongoose.models.Attendance || mongoose.model('Attendance', attendanceSchema);

@@ -9,7 +9,7 @@ const getEvents = async (req, res) => {
     if (getIsInMemory()) {
       list = memoryStore.events || [];
     } else {
-      list = await Event.find({});
+      list = await Event.find({}).lean();
     }
 
     const todayStr = new Date().toISOString().split('T')[0];

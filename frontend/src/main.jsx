@@ -7,6 +7,7 @@ import App from './App';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { SettingsProvider } from './context/SettingsContext';
+import { DataProvider } from './context/DataContext';
 import './index.css';
 
 if (import.meta.env.VITE_API_URL) {
@@ -19,8 +20,10 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <AuthProvider>
         <ThemeProvider>
           <SettingsProvider>
-            <Toaster position="top-right" reverseOrder={false} />
-            <App />
+            <DataProvider>
+              <Toaster position="top-right" reverseOrder={false} />
+              <App />
+            </DataProvider>
           </SettingsProvider>
         </ThemeProvider>
       </AuthProvider>

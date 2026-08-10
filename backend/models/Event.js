@@ -11,4 +11,7 @@ const eventSchema = new mongoose.Schema({
   status: { type: String, enum: ['Upcoming', 'Completed'], default: 'Upcoming' }
 }, { timestamps: true });
 
+eventSchema.index({ date: -1 });
+eventSchema.index({ status: 1 });
+
 module.exports = mongoose.models.Event || mongoose.model('Event', eventSchema);

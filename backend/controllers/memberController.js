@@ -57,22 +57,11 @@ const getMembers = async (req, res) => {
     if (getIsInMemory()) {
       list = [...memoryStore.members];
     } else {
-      list = await Member.find({});
-      if (list.length > 0) {
-        const dbList = list.map(m => (m.toObject ? m.toObject() : m));
-        dbList.forEach(m => {
-          const memMatch = memoryStore.members.find(existing => existing._id === String(m._id) || (existing.fullName && m.fullName && existing.fullName.toLowerCase() === m.fullName.toLowerCase()));
-          if (memMatch && memMatch.photo && !m.photo) {
-            m.photo = memMatch.photo;
-            Member.findByIdAndUpdate(m._id, { photo: memMatch.photo }).catch(() => {});
-          }
-        });
-        memoryStore.members = dbList;
-        savePersistentStore();
-      } else if (memoryStore.members.length > 0) {
+      list = await Member.find({}).lean();
+      if (list.length === 0 && memoryStore.members.length > 0) {
         // Sync persistent memoryStore items to MongoDB Atlas if DB was empty
         await Member.insertMany(memoryStore.members).catch(() => {});
-        list = await Member.find({});
+        list = await Member.find({}).lean();
       }
     }
 

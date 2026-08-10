@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, LogOut, Sun, Moon, User, KeyRound, Lock, Mail, X, Droplet } from 'lucide-react';
+import { Menu, LogOut, Sun, Moon, User, KeyRound, Lock, Mail, X, Droplet, Search, Command } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useSettings } from '../context/SettingsContext';
 import RoleLoginModal from './RoleLoginModal';
 import PhotoLightboxModal from './PhotoLightboxModal';
+import CommandPaletteModal from './CommandPaletteModal';
 import { getImageUrl } from '../utils/urlUtils';
 import toast from 'react-hot-toast';
 
@@ -15,6 +16,18 @@ export default function Navbar({ onToggleMobileSidebar }) {
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [showLogoModal, setShowLogoModal] = useState(false);
   const [showAccountModal, setShowAccountModal] = useState(false);
+  const [showCommandPalette, setShowCommandPalette] = useState(false);
+
+  useEffect(() => {
+    const handleGlobalKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setShowCommandPalette(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, []);
 
   const [accountEmail, setAccountEmail] = useState('');
   const [accountBloodGroup, setAccountBloodGroup] = useState('O+');
@@ -89,7 +102,20 @@ export default function Navbar({ onToggleMobileSidebar }) {
           </div>
         </div>
 
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-2 sm:space-x-3">
+          {/* Quick Command Palette Search Button */}
+          <button
+            onClick={() => setShowCommandPalette(true)}
+            className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition flex items-center gap-2 border border-slate-200"
+            title="Open Quick Search & Command Palette (Ctrl + K)"
+          >
+            <Search className="w-3.5 h-3.5 text-slate-500" />
+            <span className="hidden md:inline">Quick Search...</span>
+            <kbd className="hidden sm:inline-flex items-center gap-0.5 text-[9px] font-black uppercase text-slate-500 bg-white border border-slate-300 px-1.5 py-0.5 rounded shadow-xs">
+              Ctrl K
+            </kbd>
+          </button>
+
           {/* Role Login / Switcher */}
           <button
             onClick={() => setShowRoleModal(true)}
@@ -237,6 +263,12 @@ export default function Navbar({ onToggleMobileSidebar }) {
           onClose={() => setShowLogoModal(false)}
         />
       )}
+
+      {/* Global Command Palette Modal */}
+      <CommandPaletteModal
+        isOpen={showCommandPalette}
+        onClose={() => setShowCommandPalette(false)}
+      />
     </>
   );
 }

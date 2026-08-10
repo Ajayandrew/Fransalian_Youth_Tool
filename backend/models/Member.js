@@ -35,4 +35,10 @@ const memberSchema = new mongoose.Schema({
   notes: { type: String, default: '', maxlength: 150 }
 }, { timestamps: true });
 
+memberSchema.index({ memberId: 1 });
+memberSchema.index({ fullName: 1 });
+memberSchema.index({ activeStatus: 1 });
+memberSchema.index({ anbiyamName: 1 });
+memberSchema.index({ gender: 1 });
+
 module.exports = mongoose.models.Member || mongoose.model('Member', memberSchema);

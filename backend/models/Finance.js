@@ -33,6 +33,12 @@ const expenseSchema = new mongoose.Schema({
   notes: { type: String, default: '' }
 }, { timestamps: true });
 
+incomeSchema.index({ date: -1 });
+incomeSchema.index({ category: 1 });
+
+expenseSchema.index({ date: -1 });
+expenseSchema.index({ category: 1 });
+
 const Income = mongoose.models.Income || mongoose.model('Income', incomeSchema);
 const Expense = mongoose.models.Expense || mongoose.model('Expense', expenseSchema);
 
