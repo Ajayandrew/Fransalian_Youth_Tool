@@ -14,19 +14,60 @@ import {
   Search,
   CheckCircle2,
   Crown,
-  Share2
+  Share2,
+  RefreshCw
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getImageUrl } from '../utils/urlUtils';
 import ConfettiCanvas from '../components/ConfettiCanvas';
 import BirthdayCelebrationModal from '../components/BirthdayCelebrationModal';
 
-export default function Birthdays() {
+class BirthdaysErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('[Birthdays ErrorBoundary] Caught error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="p-8 max-w-xl mx-auto my-12 bg-white rounded-3xl border border-rose-200 shadow-xl text-center space-y-4">
+          <div className="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center mx-auto text-xl font-bold">
+            🍰
+          </div>
+          <h3 className="text-lg font-extrabold text-slate-900">Birthday Celebrations</h3>
+          <p className="text-xs text-slate-500 font-medium">
+            Something unexpected occurred while rendering the month filter.
+          </p>
+          <button
+            onClick={() => {
+              this.setState({ hasError: false, error: null });
+            }}
+            className="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl text-xs font-black transition shadow-md inline-flex items-center gap-2"
+          >
+            <RefreshCw className="w-4 h-4" /> Reset Filters
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+function BirthdaysContent() {
   const confettiRef = useRef(null);
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
-  const [filterMode, setFilterMode] = useState('all'); // 'all', 'today', 'month'
+  const [filterMode, setFilterMode] = useState('all'); // 'all', 'today'
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCelebrationMember, setSelectedCelebrationMember] = useState(null);
 
@@ -44,11 +85,14 @@ export default function Birthdays() {
       setLoading(true);
       try {
         const res = await axios.get('/api/members');
-        if (res.data && res.data.members) {
+        if (res.data && Array.isArray(res.data.members)) {
           setMembers(res.data.members);
+        } else {
+          setMembers([]);
         }
       } catch (err) {
         console.warn('Fallback member birthday list');
+        setMembers([]);
       } finally {
         setLoading(false);
       }
@@ -64,7 +108,8 @@ export default function Birthdays() {
   };
 
   // Compute Today's Birthdays
-  const todayBirthdays = members.filter(m => {
+  const todayBirthdays = (members || []).filter(m => {
+    if (!m || typeof m !== 'object') return false;
     const d = safeParseDOB(m.dob);
     if (!d) return false;
     return d.getMonth() === currentMonth && d.getDate() === currentDate;
@@ -79,12 +124,15 @@ export default function Birthdays() {
     }
   }, [todayBirthdays.length]);
 
-  const targetMonthIndex = typeof selectedMonth === 'number' && !isNaN(selectedMonth) && selectedMonth >= 0 && selectedMonth < 12
+  const targetMonthIndex = (typeof selectedMonth === 'number' && !isNaN(selectedMonth) && selectedMonth >= 0 && selectedMonth < 12)
     ? Number(selectedMonth)
     : currentMonth;
 
+  const currentMonthName = months[targetMonthIndex] || months[currentMonth] || 'Month';
+
   // Filter members born in selectedMonth or search query
-  const filteredMembers = members.filter(m => {
+  const filteredMembers = (members || []).filter(m => {
+    if (!m || typeof m !== 'object') return false;
     const d = safeParseDOB(m.dob);
     if (!d) return false;
 
@@ -107,6 +155,7 @@ export default function Birthdays() {
   });
 
   const triggerBurstAtEvent = (e) => {
+    if (!e || !e.currentTarget) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const x = rect.left + rect.width / 2;
     const y = rect.top + rect.height / 2;
@@ -190,7 +239,7 @@ export default function Birthdays() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {todayBirthdays.map((m) => (
               <div
-                key={m._id}
+                key={m._id || m.fullName}
                 onClick={(e) => {
                   triggerBurstAtEvent(e);
                   setSelectedCelebrationMember(m);
@@ -199,7 +248,7 @@ export default function Birthdays() {
               >
                 <img
                   src={getImageUrl(m.photo) || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200'}
-                  alt={m.fullName}
+                  alt={m.fullName || 'Member'}
                   className="w-14 h-14 rounded-xl object-cover border-2 border-amber-400"
                 />
                 <div>
@@ -227,7 +276,7 @@ export default function Birthdays() {
                 : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
             }`}
           >
-            By Month ({months[selectedMonth]})
+            By Month ({currentMonthName})
           </button>
           <button
             onClick={() => setFilterMode('today')}
@@ -263,10 +312,11 @@ export default function Birthdays() {
                 setSelectedMonth(isNaN(val) ? currentMonth : val);
                 setFilterMode('all');
               }}
-              className="w-full sm:w-auto px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-extrabold text-slate-800 shadow-xs focus:ring-2 focus:ring-amber-500/20 focus:outline-none"
+              className="w-full sm:w-auto px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-extrabold text-slate-800 shadow-xs focus:ring-2 focus:ring-amber-500/20 focus:outline-none cursor-pointer"
             >
               {months.map((month, i) => {
-                const count = members.filter(m => {
+                const count = (members || []).filter(m => {
+                  if (!m || typeof m !== 'object') return false;
                   const d = safeParseDOB(m.dob);
                   return d && d.getMonth() === i;
                 }).length;
@@ -293,14 +343,14 @@ export default function Birthdays() {
             const dob = safeParseDOB(m.dob);
             const dateStr = dob
               ? dob.toLocaleDateString('en-IN', { day: 'numeric', month: 'long' })
-              : 'Birthday';
+              : 'Special Date';
             const isToday = dob
               ? (dob.getMonth() === currentMonth && dob.getDate() === currentDate)
               : false;
 
             return (
               <div
-                key={m._id}
+                key={m._id || m.fullName}
                 className={`bg-white border rounded-3xl p-6 shadow-xs hover:shadow-xl transition-all duration-300 relative overflow-hidden flex flex-col justify-between group ${
                   isToday ? 'border-2 border-amber-400 ring-4 ring-amber-400/20' : 'border-slate-200 hover:border-amber-300'
                 }`}
@@ -322,7 +372,7 @@ export default function Birthdays() {
                       >
                         <img
                           src={getImageUrl(m.photo) || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200'}
-                          alt={m.fullName}
+                          alt={m.fullName || 'Member'}
                           onError={(e) => {
                             e.target.onerror = null;
                             e.target.src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200';
@@ -334,9 +384,6 @@ export default function Birthdays() {
                             👑
                           </span>
                         )}
-                        <div className="absolute inset-0 bg-slate-950/40 rounded-2xl flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity">
-                          <Eye className="w-5 h-5 text-amber-300" />
-                        </div>
                       </div>
 
                       <div
@@ -393,7 +440,7 @@ export default function Birthdays() {
         ) : (
           <div className="col-span-full py-16 text-center bg-white rounded-3xl border border-slate-200">
             <Cake className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-            <h4 className="text-base font-extrabold text-slate-700">No birthdays found</h4>
+            <h4 className="text-base font-extrabold text-slate-700">No birthdays found in {currentMonthName}</h4>
             <p className="text-xs font-medium text-slate-400 mt-1">Select a different month or clear your search query.</p>
           </div>
         )}
@@ -408,5 +455,13 @@ export default function Birthdays() {
         />
       )}
     </div>
+  );
+}
+
+export default function Birthdays() {
+  return (
+    <BirthdaysErrorBoundary>
+      <BirthdaysContent />
+    </BirthdaysErrorBoundary>
   );
 }
