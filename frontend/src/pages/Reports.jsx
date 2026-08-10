@@ -218,23 +218,28 @@ export default function Reports() {
     return entries;
   }, [reportsData.members]);
 
+  // Helper to ensure PDF page overflow handling
+  const ensurePDFSpace = (doc, currentY, requiredHeight = 40) => {
+    if (currentY + requiredHeight > 270) {
+      doc.addPage();
+      return 20;
+    }
+    return currentY;
+  };
+
   // 1. Export Master PDF Report
   const handleExportPDF = () => {
     const doc = new jsPDF();
 
-    doc.setFontSize(18);
+    doc.setFontSize(16);
     doc.setTextColor(79, 70, 229);
-    doc.text(`${(settings.youthName || 'FRANSALIAN YOUTH').toUpperCase()} - MASTER REPORT (${getFilterLabel().toUpperCase()})`, 14, 20);
+    doc.text(`${(settings.youthName || 'FRANSALIAN YOUTH').toUpperCase()} - EXECUTIVE MASTER REPORT`, 14, 18);
 
     doc.setFontSize(9);
     doc.setTextColor(100);
-    doc.text(`Generated on: ${new Date().toLocaleDateString('en-IN')} | Period: ${getFilterLabel()} | ${settings.churchName || 'Cathedral Parish'}`, 14, 27);
+    doc.text(`Generated on: ${new Date().toLocaleDateString('en-IN')} | Period: ${getFilterLabel()} | ${settings.churchName || 'Cathedral Parish'}`, 14, 25);
 
-    // Section 1: Executive Summary
-    doc.setFontSize(12);
-    doc.setTextColor(15);
-    doc.text(`1. Executive Summary (${getFilterLabel()})`, 14, 37);
-
+    // Mathematical Totals Calculation
     const memCount = filteredMembers.length;
     const subCollected = (filteredSubscriptions || [])
       .filter(s => (s.status || '').toLowerCase() === 'paid')
@@ -243,127 +248,192 @@ export default function Reports() {
     const secretCollected = (filteredSecretOfferings || [])
       .reduce((s, b) => s + (Number(b.amount) || 0), 0);
 
-    const incomeLedgerTotal = (filteredIncome || []).reduce((s, i) => s + (Number(i.amount) || 0), 0);
+    const generalIncomeTotal = (filteredIncome || [])
+      .filter(i => i.category !== 'Monthly Subscription' && i.source !== 'Monthly Subscription' && i.category !== 'Meeting Secret Offering' && i.source !== 'Meeting Secret Offering')
+      .reduce((s, i) => s + (Number(i.amount) || 0), 0);
 
-    const unrecordedSecret = (filteredSecretOfferings || [])
-      .filter(sec => !(filteredIncome || []).some(inc => inc._id === sec._id || inc.receiptNumber === `SEC-${sec._id}`))
-      .reduce((sum, sec) => sum + (Number(sec.amount) || 0), 0);
-
-    const unrecordedSub = (filteredSubscriptions || [])
-      .filter(sub => (sub.status || '').toLowerCase() === 'paid' && !(filteredIncome || []).some(inc => inc.category === 'Monthly Subscription' && (inc.title || '').includes(sub.memberName)))
-      .reduce((sum, sub) => sum + (Number(sub.amount) || 0), 0);
-
-    const totalInc = Math.max(incomeLedgerTotal + unrecordedSecret + unrecordedSub, subCollected + secretCollected);
+    const totalInc = generalIncomeTotal + subCollected + secretCollected;
     const totalExp = (filteredExpense || []).reduce((s, e) => s + (Number(e.amount) || 0), 0);
     const netBal = totalInc - totalExp;
 
+    // Section 1: Executive Summary
+    let nextY = 32;
+    doc.setFontSize(11);
+    doc.setTextColor(15);
+    doc.text(`1. Executive Summary & Financial Overview (${getFilterLabel()})`, 14, nextY);
+
     doc.autoTable({
-      startY: 42,
-      head: [['Key Indicator', 'Metric Value']],
+      startY: nextY + 4,
+      head: [['Key Indicator / Financial Metric', 'Metric Value (₹ / Count)']],
       body: [
-        ['Registered Youth Members', `${memCount} Members`],
+        ['Registered Youth Members Directory Count', `${memCount} Active Members`],
         ['Monthly Subscriptions Dues Collected', `₹${subCollected.toLocaleString('en-IN')}`],
-        ['Secret Box Offerings Collected', `₹${secretCollected.toLocaleString('en-IN')}`],
-        ['Overall Total Income (All Sources Combined)', `₹${totalInc.toLocaleString('en-IN')}`],
-        ['Total Expenditure', `₹${totalExp.toLocaleString('en-IN')}`],
-        ['Overall Net Treasury Balance', `₹${netBal.toLocaleString('en-IN')}`]
+        ['Meeting Secret Box Offerings Collected', `₹${secretCollected.toLocaleString('en-IN')}`],
+        ['General Income & Donations Collected', `₹${generalIncomeTotal.toLocaleString('en-IN')}`],
+        ['Overall Realized Total Income (All Sources)', `₹${totalInc.toLocaleString('en-IN')}`],
+        ['Total Expenditure Logged', `₹${totalExp.toLocaleString('en-IN')}`],
+        ['Net Available Treasury Cash Balance', `₹${netBal.toLocaleString('en-IN')}`]
       ],
       theme: 'striped',
       headStyles: { fillStyle: [79, 70, 229] }
     });
 
-    // Section 2: Subscriptions Dues
-    doc.setFontSize(12);
+    // Section 2: Subscriptions Dues Ledger
+    nextY = ensurePDFSpace(doc, doc.lastAutoTable.finalY + 12, 50);
+    doc.setFontSize(11);
     doc.setTextColor(15);
-    const subY = doc.lastAutoTable.finalY + 12;
-    doc.text(`2. Member Subscription Dues (${getFilterLabel()})`, 14, subY);
+    doc.text(`2. Member Subscription Dues Ledger (${getFilterLabel()})`, 14, nextY);
 
     const subRows = (filteredSubscriptions.length > 0 ? filteredSubscriptions : [
-      { memberName: 'Catherine Monica', month: 'August 2026', amount: 50, status: 'Paid', paymentMode: 'Cash' },
-      { memberName: 'David Raj', month: 'August 2026', amount: 50, status: 'Paid', paymentMode: 'UPI' },
-      { memberName: 'Joseph Fernando', month: 'August 2026', amount: 50, status: 'Paid', paymentMode: 'Cash' }
+      { memberName: 'Sample Member', month: 'August 2026', amount: 50, status: 'Paid', paymentMode: 'Cash' }
     ]).map(s => [s.memberName, s.month, `₹${s.amount || 50}`, s.status, s.paymentMode || '-']);
 
     doc.autoTable({
-      startY: subY + 5,
-      head: [['Member Name', 'Month', 'Amount', 'Status', 'Mode']],
+      startY: nextY + 4,
+      head: [['Member Name', 'Month', 'Amount', 'Status', 'Payment Mode']],
       body: subRows,
-      theme: 'grid'
+      theme: 'grid',
+      headStyles: { fillStyle: [16, 185, 129] }
     });
 
-    // Section 3: Events Schedule
-    const evtY = doc.lastAutoTable.finalY + 12;
-    if (evtY < 250) {
-      doc.setFontSize(12);
-      doc.setTextColor(15);
-      doc.text(`3. Youth Activities & Event Calendar (${getFilterLabel()})`, 14, evtY);
+    // Section 3: Itemized Accounts Ledger (Income & Expense)
+    nextY = ensurePDFSpace(doc, doc.lastAutoTable.finalY + 12, 50);
+    doc.setFontSize(11);
+    doc.setTextColor(15);
+    doc.text(`3. Itemized Accounts & Financial Ledger (${getFilterLabel()})`, 14, nextY);
 
-      const evtRows = (filteredEvents.length > 0 ? filteredEvents : [
-        { eventName: 'Annual Youth Cultural Feast', date: '2026-08-15', venue: 'Parish Hall', budget: 15000, status: 'Upcoming' },
-        { eventName: 'Youth Leadership Retreat', date: '2026-09-05', venue: 'Retreat House', budget: 8000, status: 'Upcoming' }
-      ]).map(e => [e.eventName, e.date, e.venue || 'Parish Hall', e.budget ? `₹${e.budget}` : 'N/A', e.status]);
+    const ledgerRows = [
+      ...(filteredIncome || []).map(i => ['Income', i.title, `₹${i.amount}`, i.category || 'General', i.date || '-', i.paymentMode || 'Cash']),
+      ...(filteredExpense || []).map(e => ['Expense', e.title, `₹${e.amount}`, e.category || 'General', e.date || '-', e.paymentMode || 'Cash'])
+    ];
 
-      doc.autoTable({
-        startY: evtY + 5,
-        head: [['Event Name', 'Date', 'Venue', 'Budget', 'Status']],
-        body: evtRows,
-        theme: 'striped'
-      });
-    }
+    doc.autoTable({
+      startY: nextY + 4,
+      head: [['Type', 'Entry Title', 'Amount', 'Category', 'Date', 'Mode']],
+      body: ledgerRows.length > 0 ? ledgerRows : [['Info', 'No transaction entries logged for period', '₹0', '-', '-', '-']],
+      theme: 'striped',
+      headStyles: { fillStyle: [59, 130, 246] }
+    });
 
-    // Section 4: Secret Box Offerings Details
-    const secY = doc.lastAutoTable.finalY + 12;
-    if (secY < 250) {
-      doc.setFontSize(12);
-      doc.setTextColor(15);
-      doc.text(`4. Meeting Secret Box Offerings Details (${getFilterLabel()})`, 14, secY);
+    // Section 4: Secret Box Offerings
+    nextY = ensurePDFSpace(doc, doc.lastAutoTable.finalY + 12, 50);
+    doc.setFontSize(11);
+    doc.setTextColor(15);
+    doc.text(`4. Meeting Secret Box Offerings Details (${getFilterLabel()})`, 14, nextY);
 
-      const secRows = (filteredSecretOfferings.length > 0 ? filteredSecretOfferings : [
-        { meetingName: 'Youth Sunday Mass Collection', date: '2026-08-02', amount: 850, collectedBy: 'Treasurer', notes: 'Anonymous Box' }
-      ]).map(s => [s.meetingName || s.title, s.date, `₹${s.amount}`, s.collectedBy || 'Leader', s.notes || '-']);
+    const secRows = (filteredSecretOfferings.length > 0 ? filteredSecretOfferings : [
+      { meetingName: 'Youth Mass Collection', date: '2026-08-02', amount: 850, collectedBy: 'Leader', notes: 'Secret Box' }
+    ]).map(s => [s.meetingName || s.title, s.date || '-', `₹${s.amount}`, s.collectedBy || 'Leader', s.notes || '-']);
 
-      doc.autoTable({
-        startY: secY + 5,
-        head: [['Meeting / Event Title', 'Date', 'Amount', 'Collected By', 'Notes']],
-        body: secRows,
-        theme: 'grid',
-        headStyles: { fillStyle: [217, 119, 6] }
-      });
-    }
+    doc.autoTable({
+      startY: nextY + 4,
+      head: [['Meeting / Event Title', 'Date', 'Amount', 'Collected By', 'Notes']],
+      body: secRows,
+      theme: 'grid',
+      headStyles: { fillStyle: [217, 119, 6] }
+    });
 
-    // Section 5: Youth Attendance Register Details
-    const attY = doc.lastAutoTable.finalY + 12;
-    if (attY < 250) {
-      doc.setFontSize(12);
-      doc.setTextColor(15);
-      doc.text(`5. Youth Attendance Register (${getFilterLabel()})`, 14, attY);
+    // Section 5: Youth Activities & Event Calendar
+    nextY = ensurePDFSpace(doc, doc.lastAutoTable.finalY + 12, 50);
+    doc.setFontSize(11);
+    doc.setTextColor(15);
+    doc.text(`5. Youth Activities & Event Calendar (${getFilterLabel()})`, 14, nextY);
 
-      const attRows = (filteredAttendance.length > 0 ? filteredAttendance : [
-        { meetingName: 'Monthly Youth General Body Meeting', meetingDate: '2026-08-09', presentCount: 28, totalMembers: 30, notes: 'General Body Session' }
-      ]).map(a => {
-        const p = a.presentCount || (a.records ? a.records.filter(r => r.status === 'Present').length : 0);
-        const total = a.totalMembers || (a.records ? a.records.length : 0) || 1;
-        const pct = Math.round((p / total) * 100);
-        return [a.meetingName || a.title || 'Youth Meeting', a.meetingDate || a.date, `${p} / ${total}`, `${pct}%`, a.notes || '-'];
-      });
+    const evtRows = (filteredEvents.length > 0 ? filteredEvents : [
+      { eventName: 'Youth Cultural Gathering', date: '2026-08-15', venue: 'Parish Hall', budget: 15000, status: 'Upcoming' }
+    ]).map(e => [e.eventName, e.date || '-', e.venue || 'Parish Hall', e.budget ? `₹${e.budget}` : 'N/A', e.status || 'Upcoming']);
 
-      doc.autoTable({
-        startY: attY + 5,
-        head: [['Meeting / Event Title', 'Date', 'Attendance (Present/Total)', 'Turnout Rate', 'Notes']],
-        body: attRows,
-        theme: 'striped',
-        headStyles: { fillStyle: [147, 51, 234] }
-      });
-    }
+    doc.autoTable({
+      startY: nextY + 4,
+      head: [['Event Name', 'Date', 'Venue', 'Budget', 'Status']],
+      body: evtRows,
+      theme: 'striped',
+      headStyles: { fillStyle: [244, 63, 94] }
+    });
 
-    doc.save(`Fransalian_Youth_Master_Report_${getFilterLabel().replace(/\s+/g, '_')}.pdf`);
-    toast.success(`Downloaded Master PDF Report for ${getFilterLabel()}!`);
+    // Section 6: Youth Attendance Register
+    nextY = ensurePDFSpace(doc, doc.lastAutoTable.finalY + 12, 50);
+    doc.setFontSize(11);
+    doc.setTextColor(15);
+    doc.text(`6. Youth Attendance Register (${getFilterLabel()})`, 14, nextY);
+
+    const attRows = (filteredAttendance.length > 0 ? filteredAttendance : [
+      { meetingName: 'Monthly Youth Meeting', meetingDate: '2026-08-09', presentCount: 28, totalMembers: 30, notes: 'General Session' }
+    ]).map(a => {
+      const p = a.presentCount || (a.records ? a.records.filter(r => r.status === 'Present').length : 0);
+      const total = a.totalMembers || (a.records ? a.records.length : 0) || 1;
+      const pct = Math.round((p / total) * 100);
+      return [a.meetingName || a.title || 'Youth Meeting', a.meetingDate || a.date || '-', `${p} / ${total}`, `${pct}%`, a.notes || '-'];
+    });
+
+    doc.autoTable({
+      startY: nextY + 4,
+      head: [['Meeting / Event Title', 'Date', 'Attendance (Present/Total)', 'Turnout Rate', 'Notes']],
+      body: attRows,
+      theme: 'striped',
+      headStyles: { fillStyle: [147, 51, 234] }
+    });
+
+    // Section 7: Youth Members Directory Roster
+    nextY = ensurePDFSpace(doc, doc.lastAutoTable.finalY + 12, 50);
+    doc.setFontSize(11);
+    doc.setTextColor(15);
+    doc.text(`7. Youth Members Directory Roster (${filteredMembers.length} Members)`, 14, nextY);
+
+    const memRows = (filteredMembers.length > 0 ? filteredMembers : []).map(m => [
+      m.memberId || 'FY-MEM-001',
+      m.fullName,
+      m.role || 'Youth Member',
+      m.anbiyamName || m.zone || 'Sagaya Madha Anbiyam',
+      m.mobileNumber || m.phone || '-',
+      m.activeStatus || 'Active'
+    ]);
+
+    doc.autoTable({
+      startY: nextY + 4,
+      head: [['Member ID', 'Full Name', 'Role', 'Anbiyam / Zone', 'Mobile', 'Status']],
+      body: memRows.length > 0 ? memRows : [['-', 'No member records found', '-', '-', '-', '-']],
+      theme: 'grid',
+      headStyles: { fillStyle: [79, 70, 229] }
+    });
+
+    doc.save(`Fransalian_Youth_Master_Executive_Report_${getFilterLabel().replace(/\s+/g, '_')}.pdf`);
+    toast.success(`Downloaded Master Executive PDF Report for ${getFilterLabel()}!`);
   };
 
-  // 2. Export Master Excel Workbook (Multi-Sheet)
+  // 2. Export Master Excel Workbook (Multi-Sheet Complete Workbook)
   const handleExportExcel = () => {
     const wb = XLSX.utils.book_new();
 
+    // Sheet 1: Executive Summary
+    const memCount = filteredMembers.length;
+    const subCollected = (filteredSubscriptions || [])
+      .filter(s => (s.status || '').toLowerCase() === 'paid')
+      .reduce((s, b) => s + (Number(b.amount) || 0), 0);
+    const secretCollected = (filteredSecretOfferings || [])
+      .reduce((s, b) => s + (Number(b.amount) || 0), 0);
+    const generalIncomeTotal = (filteredIncome || [])
+      .filter(i => i.category !== 'Monthly Subscription' && i.source !== 'Monthly Subscription' && i.category !== 'Meeting Secret Offering' && i.source !== 'Meeting Secret Offering')
+      .reduce((s, i) => s + (Number(i.amount) || 0), 0);
+    const totalInc = generalIncomeTotal + subCollected + secretCollected;
+    const totalExp = (filteredExpense || []).reduce((s, e) => s + (Number(e.amount) || 0), 0);
+    const netBal = totalInc - totalExp;
+
+    const summaryData = [
+      { 'Executive Key Indicator': 'Reporting Period Filter', 'Value': getFilterLabel() },
+      { 'Executive Key Indicator': 'Total Registered Youth Members', 'Value': memCount },
+      { 'Executive Key Indicator': 'Monthly Subscriptions Dues Collected (₹)', 'Value': subCollected },
+      { 'Executive Key Indicator': 'Meeting Secret Box Offerings Collected (₹)', 'Value': secretCollected },
+      { 'Executive Key Indicator': 'General Income & Donations (₹)', 'Value': generalIncomeTotal },
+      { 'Executive Key Indicator': 'Overall Realized Income (All Sources Combined ₹)', 'Value': totalInc },
+      { 'Executive Key Indicator': 'Total Expenditures Logged (₹)', 'Value': totalExp },
+      { 'Executive Key Indicator': 'Net Available Treasury Cash Balance (₹)', 'Value': netBal },
+      { 'Executive Key Indicator': 'Report Generated Date', 'Value': new Date().toLocaleDateString('en-IN') }
+    ];
+    const wsSummary = XLSX.utils.json_to_sheet(summaryData);
+    XLSX.utils.book_append_sheet(wb, wsSummary, 'Executive Summary');
+
+    // Sheet 2: Subscriptions Dues
     const subData = filteredSubscriptions.map(s => ({
       'Member Name': s.memberName,
       'Month & Year': s.month,
@@ -372,31 +442,34 @@ export default function Reports() {
       'Payment Date': s.paymentDate || '-',
       'Payment Mode': s.paymentMode || '-'
     }));
-
-    const wsSub = XLSX.utils.json_to_sheet(subData.length > 0 ? subData : [{ 'Info': 'No records for selected period' }]);
+    const wsSub = XLSX.utils.json_to_sheet(subData.length > 0 ? subData : [{ 'Status': 'No subscription records' }]);
     XLSX.utils.book_append_sheet(wb, wsSub, 'Subscriptions Dues');
 
+    // Sheet 3: Income Ledger
     const incData = filteredIncome.map(i => ({
       'Type': 'Income',
       'Title': i.title,
       'Amount (₹)': i.amount,
-      'Category': i.category,
+      'Category': i.category || 'General',
       'Date': i.date,
-      'Payment Mode': i.paymentMode
+      'Payment Mode': i.paymentMode || 'Cash'
     }));
+    const wsInc = XLSX.utils.json_to_sheet(incData.length > 0 ? incData : [{ 'Status': 'No income records' }]);
+    XLSX.utils.book_append_sheet(wb, wsInc, 'Income Ledger');
 
+    // Sheet 4: Expense Ledger
     const expData = filteredExpense.map(e => ({
       'Type': 'Expense',
       'Title': e.title,
       'Amount (₹)': e.amount,
-      'Category': e.category,
+      'Category': e.category || 'General',
       'Date': e.date,
-      'Payment Mode': e.paymentMode
+      'Payment Mode': e.paymentMode || 'Cash'
     }));
+    const wsExp = XLSX.utils.json_to_sheet(expData.length > 0 ? expData : [{ 'Status': 'No expense records' }]);
+    XLSX.utils.book_append_sheet(wb, wsExp, 'Expense Ledger');
 
-    const wsLedger = XLSX.utils.json_to_sheet([...incData, ...expData]);
-    XLSX.utils.book_append_sheet(wb, wsLedger, 'Accounts Ledger');
-
+    // Sheet 5: Secret Box Offerings
     const secData = filteredSecretOfferings.map(s => ({
       'Meeting Name': s.meetingName || s.title,
       'Date': s.date,
@@ -404,24 +477,24 @@ export default function Reports() {
       'Collected By': s.collectedBy || 'Leader',
       'Notes': s.notes || 'Anonymous secret box collection'
     }));
-
-    const wsSec = XLSX.utils.json_to_sheet(secData.length > 0 ? secData : [{ 'Info': 'No secret offering records for selected period' }]);
+    const wsSec = XLSX.utils.json_to_sheet(secData.length > 0 ? secData : [{ 'Status': 'No secret box offering records' }]);
     XLSX.utils.book_append_sheet(wb, wsSec, 'Secret Box Offerings');
 
+    // Sheet 6: Youth Events Schedule
     const evtData = filteredEvents.map(e => ({
       'Event Name': e.eventName,
       'Category': e.category || 'General',
       'Date': e.date,
       'Time': e.time || '10:00 AM',
-      'Venue': e.venue,
+      'Venue': e.venue || 'Parish Hall',
       'Budget (₹)': e.budget || 0,
       'Coordinator': e.coordinator || '-',
-      'Status': e.status
+      'Status': e.status || 'Upcoming'
     }));
-
-    const wsEvents = XLSX.utils.json_to_sheet(evtData);
+    const wsEvents = XLSX.utils.json_to_sheet(evtData.length > 0 ? evtData : [{ 'Status': 'No event records' }]);
     XLSX.utils.book_append_sheet(wb, wsEvents, 'Youth Events');
 
+    // Sheet 7: Attendance Register
     const attSheetData = filteredAttendance.map(a => {
       const p = a.presentCount || (a.records ? a.records.filter(r => r.status === 'Present').length : 0);
       const total = a.totalMembers || (a.records ? a.records.length : 0) || 1;
@@ -435,24 +508,23 @@ export default function Reports() {
         'Notes': a.notes || '-'
       };
     });
-
-    const wsAttendance = XLSX.utils.json_to_sheet(attSheetData.length > 0 ? attSheetData : [{ 'Info': 'No attendance records for selected period' }]);
+    const wsAttendance = XLSX.utils.json_to_sheet(attSheetData.length > 0 ? attSheetData : [{ 'Status': 'No attendance records' }]);
     XLSX.utils.book_append_sheet(wb, wsAttendance, 'Attendance Register');
 
+    // Sheet 8: Youth Members Directory
     const memData = filteredMembers.map(m => ({
-      'Member ID': m.memberId,
+      'Member ID': m.memberId || 'FY-MEM-001',
       'Full Name': m.fullName,
       'Anbiyam / Zone': m.anbiyamName || m.anbiyam || m.zone || 'Sagaya Madha Anbiyam',
-      'Role': m.role,
-      'Mobile': m.mobileNumber || m.phone,
+      'Role': m.role || 'Youth Member',
+      'Mobile': m.mobileNumber || m.phone || '-',
       'Status': m.activeStatus || 'Active'
     }));
-
-    const wsMembers = XLSX.utils.json_to_sheet(memData);
+    const wsMembers = XLSX.utils.json_to_sheet(memData.length > 0 ? memData : [{ 'Status': 'No member records' }]);
     XLSX.utils.book_append_sheet(wb, wsMembers, 'Youth Members');
 
-    XLSX.writeFile(wb, `Fransalian_Youth_Complete_Workbook_${getFilterLabel().replace(/\s+/g, '_')}.xlsx`);
-    toast.success(`Downloaded Complete Excel Workbook for ${getFilterLabel()}!`);
+    XLSX.writeFile(wb, `Fransalian_Youth_Complete_Master_Workbook_${getFilterLabel().replace(/\s+/g, '_')}.xlsx`);
+    toast.success(`Downloaded Complete Master Excel Workbook for ${getFilterLabel()}!`);
   };
 
   // 3. Export Subscriptions Dues Only (Specific Excel)
