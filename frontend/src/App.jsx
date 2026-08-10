@@ -19,14 +19,9 @@ const Settings = lazy(() => import('./pages/Settings'));
 
 function PageLoader() {
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6 animate-pulse">
-      <div className="h-28 bg-gradient-to-r from-indigo-950 via-slate-900 to-indigo-950 rounded-3xl" />
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <div className="h-32 bg-white rounded-2xl border border-slate-200" />
-        <div className="h-32 bg-white rounded-2xl border border-slate-200" />
-        <div className="h-32 bg-white rounded-2xl border border-slate-200" />
-      </div>
-      <div className="h-64 bg-white rounded-3xl border border-slate-200" />
+    <div className="flex items-center justify-center py-20 text-slate-500 font-bold text-xs tracking-wide">
+      <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin mr-2.5" />
+      <span>Loading...</span>
     </div>
   );
 }

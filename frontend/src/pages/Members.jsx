@@ -349,8 +349,13 @@ export default function Members() {
         </div>
       </div>
 
-      {/* Grid View */}
-      {viewMode === 'grid' ? (
+      {/* Content */}
+      {loading ? (
+        <div className="flex items-center justify-center py-20 text-slate-500 font-bold text-xs tracking-wide">
+          <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin mr-2.5" />
+          <span>Loading...</span>
+        </div>
+      ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {members.map((m) => (
             <div key={m._id} className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm hover:shadow-md transition space-y-4 flex flex-col justify-between">
