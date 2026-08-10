@@ -288,7 +288,15 @@ export default function Birthdays() {
                 <div>
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-4">
-                      <div className="relative">
+                      <div
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          triggerBurstAtEvent(e);
+                          setSelectedCelebrationMember(m);
+                        }}
+                        className="relative cursor-pointer group/img shrink-0"
+                        title="Click to view full image & birthday card"
+                      >
                         <img
                           src={getImageUrl(m.photo) || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200'}
                           alt={m.fullName}
@@ -296,16 +304,25 @@ export default function Birthdays() {
                             e.target.onerror = null;
                             e.target.src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200';
                           }}
-                          className="w-16 h-16 rounded-2xl object-cover border-2 border-amber-400 shadow-md group-hover:rotate-3 transition-transform"
+                          className="w-16 h-16 rounded-2xl object-cover border-2 border-amber-400 shadow-md group-hover/img:scale-105 group-hover/img:rotate-3 transition-transform"
                         />
                         {isToday && (
                           <span className="absolute -top-2 -right-2 bg-amber-500 text-slate-950 p-1 rounded-full text-xs shadow-md animate-bounce">
                             👑
                           </span>
                         )}
+                        <div className="absolute inset-0 bg-slate-950/40 rounded-2xl flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity">
+                          <Eye className="w-5 h-5 text-amber-300" />
+                        </div>
                       </div>
 
-                      <div>
+                      <div
+                        onClick={(e) => {
+                          triggerBurstAtEvent(e);
+                          setSelectedCelebrationMember(m);
+                        }}
+                        className="cursor-pointer"
+                      >
                         <span className={`inline-flex items-center gap-1 text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full ${
                           isToday ? 'bg-amber-500 text-slate-950 animate-pulse' : 'bg-amber-100 text-amber-800'
                         }`}>
