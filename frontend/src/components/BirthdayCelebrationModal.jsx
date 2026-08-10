@@ -13,9 +13,15 @@ export default function BirthdayCelebrationModal({ member, onClose, onTriggerBur
   const [showFullImage, setShowFullImage] = useState(false);
   const [candlesLit, setCandlesLit] = useState(true);
 
+  const parseDOB = (str) => {
+    if (!str) return null;
+    const d = new Date(str);
+    return isNaN(d.getTime()) ? null : d;
+  };
+
   const photoUrl = getImageUrl(member.photo) || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600';
-  const dob = member.dob ? new Date(member.dob) : new Date();
-  const dateStr = dob.toLocaleDateString('en-IN', { day: 'numeric', month: 'long' });
+  const dob = parseDOB(member.dob);
+  const dateStr = dob ? dob.toLocaleDateString('en-IN', { day: 'numeric', month: 'long' }) : 'Special Birthday';
 
   // Auto trigger confetti burst on modal open
   useEffect(() => {

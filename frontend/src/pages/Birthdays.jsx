@@ -56,10 +56,17 @@ export default function Birthdays() {
     fetchMembers();
   }, []);
 
+  const safeParseDOB = (dobString) => {
+    if (!dobString) return null;
+    const d = new Date(dobString);
+    if (isNaN(d.getTime())) return null;
+    return d;
+  };
+
   // Compute Today's Birthdays
   const todayBirthdays = members.filter(m => {
-    if (!m.dob) return false;
-    const d = new Date(m.dob);
+    const d = safeParseDOB(m.dob);
+    if (!d) return false;
     return d.getMonth() === currentMonth && d.getDate() === currentDate;
   });
 
@@ -72,10 +79,15 @@ export default function Birthdays() {
     }
   }, [todayBirthdays.length]);
 
+  const targetMonthIndex = typeof selectedMonth === 'number' && !isNaN(selectedMonth) && selectedMonth >= 0 && selectedMonth < 12
+    ? Number(selectedMonth)
+    : currentMonth;
+
   // Filter members born in selectedMonth or search query
   const filteredMembers = members.filter(m => {
-    if (!m.dob) return false;
-    const d = new Date(m.dob);
+    const d = safeParseDOB(m.dob);
+    if (!d) return false;
+
     const dobMonth = d.getMonth();
     const dobDate = d.getDate();
 
@@ -91,7 +103,7 @@ export default function Birthdays() {
       return dobMonth === currentMonth && dobDate === currentDate;
     }
 
-    return dobMonth === Number(selectedMonth);
+    return dobMonth === targetMonthIndex;
   });
 
   const triggerBurstAtEvent = (e) => {
@@ -245,18 +257,25 @@ export default function Birthdays() {
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
             <select
-              value={selectedMonth}
+              value={targetMonthIndex}
               onChange={(e) => {
-                setSelectedMonth(Number(e.target.value));
+                const val = parseInt(e.target.value, 10);
+                setSelectedMonth(isNaN(val) ? currentMonth : val);
                 setFilterMode('all');
               }}
               className="w-full sm:w-auto px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-extrabold text-slate-800 shadow-xs focus:ring-2 focus:ring-amber-500/20 focus:outline-none"
             >
-              {months.map((month, i) => (
-                <option key={month} value={i}>
-                  {month} ({members.filter(m => m.dob && new Date(m.dob).getMonth() === i).length})
-                </option>
-              ))}
+              {months.map((month, i) => {
+                const count = members.filter(m => {
+                  const d = safeParseDOB(m.dob);
+                  return d && d.getMonth() === i;
+                }).length;
+                return (
+                  <option key={month} value={i}>
+                    {month} ({count})
+                  </option>
+                );
+              })}
             </select>
           </div>
         </div>
@@ -271,9 +290,13 @@ export default function Birthdays() {
           </div>
         ) : filteredMembers.length > 0 ? (
           filteredMembers.map((m) => {
-            const dob = new Date(m.dob);
-            const dateStr = dob.toLocaleDateString('en-IN', { day: 'numeric', month: 'long' });
-            const isToday = dob.getMonth() === currentMonth && dob.getDate() === currentDate;
+            const dob = safeParseDOB(m.dob);
+            const dateStr = dob
+              ? dob.toLocaleDateString('en-IN', { day: 'numeric', month: 'long' })
+              : 'Birthday';
+            const isToday = dob
+              ? (dob.getMonth() === currentMonth && dob.getDate() === currentDate)
+              : false;
 
             return (
               <div
