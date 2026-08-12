@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import axios from 'axios';
 import App from './App';
+import ErrorBoundary from './components/ErrorBoundary';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { SettingsProvider } from './context/SettingsContext';
@@ -16,17 +17,19 @@ if (import.meta.env.VITE_API_URL) {
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <AuthProvider>
-        <ThemeProvider>
-          <SettingsProvider>
-            <DataProvider>
-              <Toaster position="top-right" reverseOrder={false} />
-              <App />
-            </DataProvider>
-          </SettingsProvider>
-        </ThemeProvider>
-      </AuthProvider>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <AuthProvider>
+          <ThemeProvider>
+            <SettingsProvider>
+              <DataProvider>
+                <Toaster position="top-right" reverseOrder={false} />
+                <App />
+              </DataProvider>
+            </SettingsProvider>
+          </ThemeProvider>
+        </AuthProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   </React.StrictMode>
 );

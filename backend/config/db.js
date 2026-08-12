@@ -15,10 +15,15 @@ let isInMemoryMode = false;
 const connectDB = async () => {
   const uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/francisalian_youth_db';
   
+  const mongooseOptions = {
+    serverSelectionTimeoutMS: 8000,
+    maxPoolSize: 50,
+    minPoolSize: 10,
+    socketTimeoutMS: 45000,
+  };
+
   try {
-    const conn = await mongoose.connect(uri, {
-      serverSelectionTimeoutMS: 8000,
-    });
+    const conn = await mongoose.connect(uri, mongooseOptions);
     console.log(`[Database] MongoDB Atlas Connected Successfully: ${conn.connection.host}`);
     isInMemoryMode = false;
     return true;
@@ -28,9 +33,7 @@ const connectDB = async () => {
     // Fallback DNS servers for Windows SRV resolution
     try {
       dns.setServers(['8.8.8.8', '1.1.1.1']);
-      const conn = await mongoose.connect(uri, {
-        serverSelectionTimeoutMS: 8000,
-      });
+      const conn = await mongoose.connect(uri, mongooseOptions);
       console.log(`[Database] MongoDB Atlas Connected Successfully (via DNS Resolver): ${conn.connection.host}`);
       isInMemoryMode = false;
       return true;
