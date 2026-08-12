@@ -13,12 +13,19 @@ const calcAge = (dobString) => {
 };
 
 const ensureMemberIds = (membersList) => {
+  if (!Array.isArray(membersList)) return [];
   let counter = 1;
-  const usedIds = new Set(membersList.filter(m => m.memberId && m.memberId !== 'undefined').map(m => m.memberId));
+  const usedIds = new Set(
+    membersList
+      .filter(m => m && m.memberId && String(m.memberId) !== 'undefined')
+      .map(m => String(m.memberId))
+  );
   let modified = false;
 
   membersList.forEach(m => {
-    if (!m.memberId || m.memberId === 'undefined' || m.memberId.trim() === '') {
+    if (!m) return;
+    const strId = m.memberId !== undefined && m.memberId !== null ? String(m.memberId).trim() : '';
+    if (!strId || strId === 'undefined') {
       let candidate = `FY-MEM-${String(counter).padStart(3, '0')}`;
       while (usedIds.has(candidate)) {
         counter++;
@@ -32,7 +39,9 @@ const ensureMemberIds = (membersList) => {
   });
 
   if (modified) {
-    savePersistentStore();
+    try {
+      savePersistentStore();
+    } catch (e) {}
   }
   return membersList;
 };

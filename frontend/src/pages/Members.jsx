@@ -102,11 +102,11 @@ export default function Members() {
       if (statusFilter && statusFilter !== 'All') params.activeStatus = statusFilter;
 
       const data = await fetchWithCache('members', '/api/members', params);
-      if (data && data.success) {
-        setMembers(data.members || []);
+      if (data && (data.members || Array.isArray(data))) {
+        setMembers(Array.isArray(data) ? data : data.members || []);
       }
     } catch (err) {
-      toast.error('Failed to load youth members.');
+      console.error('Failed to load youth members:', err);
     } finally {
       setLoading(false);
     }
@@ -269,11 +269,6 @@ export default function Members() {
     }
   };
 
-  const handleExportExcel = () => {
-    window.open('/api/members/export/excel', '_blank');
-    toast.success('Downloading Members Excel Sheet...');
-  };
-
   return (
     <div className="space-y-6 pb-12">
       {/* Header Banner */}
@@ -283,14 +278,6 @@ export default function Members() {
           <p className="text-xs text-slate-500 font-medium">Manage member profiles, blood groups, photos, contact numbers, and ID badges</p>
         </div>
         <div className="flex items-center space-x-2">
-          <button
-            onClick={handleExportExcel}
-            className="py-2.5 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl text-xs font-bold border border-emerald-200 transition flex items-center space-x-1.5"
-          >
-            <FileSpreadsheet className="w-4 h-4" />
-            <span>Export Excel</span>
-          </button>
-
           {canEdit && (
             <button
               onClick={handleOpenNewModal}
