@@ -77,6 +77,8 @@ export default function Members() {
   const [photoPreview, setPhotoPreview] = useState('');
 
   const canEdit = user?.role === 'Admin' || user?.role === 'Youth Leader' || user?.role === 'Secretary';
+  const canDelete = user?.role === 'Admin';
+  const canAssignRole = user?.role === 'Admin';
 
   const handleRoleChange = async (memberId, newRole) => {
     if (user?.role !== 'Admin') {
