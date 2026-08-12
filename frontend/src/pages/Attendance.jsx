@@ -9,6 +9,7 @@ import * as XLSX from 'xlsx';
 import { useAuth } from '../context/AuthContext';
 import { useDataCache } from '../context/DataContext';
 import { getImageUrl } from '../utils/urlUtils';
+import QRScannerModal from '../components/QRScannerModal';
 
 export default function Attendance() {
   const { hasRole } = useAuth();
@@ -627,50 +628,14 @@ export default function Attendance() {
         )}
       </div>
 
-      {/* QR Code Scanner Simulation Modal */}
-      {showQRModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 text-center border border-slate-100">
-            <div className="w-16 h-16 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto">
-              <QrCode className="w-8 h-8" />
-            </div>
-
-            <div>
-              <h3 className="text-base font-black text-slate-900">Digital QR Attendance Check-In</h3>
-              <p className="text-xs font-medium text-slate-500 mt-1">
-                Scan member ID Card QR or type Member ID below to mark instantaneous presence.
-              </p>
-            </div>
-
-            <form onSubmit={handleQRScan} className="space-y-3">
-              <input
-                type="text"
-                autoFocus
-                placeholder="Scan or type Member ID (e.g., FY-MEM-001)"
-                value={qrCodeInput}
-                onChange={(e) => setQrCodeInput(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-center font-mono font-bold text-sm focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
-              />
-
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowQRModal(false)}
-                  className="w-1/2 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs"
-                >
-                  Close Scanner
-                </button>
-                <button
-                  type="submit"
-                  className="w-1/2 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md shadow-indigo-600/20"
-                >
-                  Confirm Check-In
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* Mobile Camera QR Code Live Scanner Modal */}
+      <QRScannerModal
+        isOpen={showQRModal}
+        onClose={() => setShowQRModal(false)}
+        members={members}
+        attendanceRecords={attendanceRecords}
+        setAttendanceRecords={setAttendanceRecords}
+      />
     </div>
   );
 }
