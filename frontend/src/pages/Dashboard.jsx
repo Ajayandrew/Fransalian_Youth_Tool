@@ -17,17 +17,21 @@ import {
   Youtube,
   Facebook,
   Instagram,
-  ExternalLink
+  ExternalLink,
+  LogOut
 } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, LineChart, Line } from 'recharts';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
+import { useDataCache } from '../context/DataContext';
 import { getImageUrl } from '../utils/urlUtils';
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { settings } = useSettings();
+  const { fetchWithCache } = useDataCache();
+  const isYouthMember = !user?.role || user?.role === 'Youth Member';
   const [stats, setStats] = useState({
     totalMembers: 0,
     activeMembers: 0,
@@ -61,11 +65,11 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
-        const res = await axios.get('/api/dashboard/stats');
-        if (res.data && res.data.success) {
-          setStats(res.data.stats || stats);
-          setCharts(res.data.charts || charts);
-          setRecentActivity(res.data.recentActivity || recentActivity);
+        const data = await fetchWithCache('dashboard', '/api/dashboard/stats');
+        if (data && data.success) {
+          setStats(data.stats || stats);
+          setCharts(data.charts || charts);
+          setRecentActivity(data.recentActivity || recentActivity);
         }
       } catch (err) {
         console.error('Failed to load dashboard stats:', err);
@@ -74,7 +78,7 @@ export default function Dashboard() {
       }
     };
     fetchDashboard();
-  }, []);
+  }, [fetchWithCache]);
 
   const ensureAbsoluteUrl = (url, fallback) => {
     if (!url || !url.trim()) return fallback;
@@ -108,6 +112,16 @@ export default function Dashboard() {
           >
             Switch Role →
           </Link>
+          {!isYouthMember && (
+            <button
+              onClick={() => logout()}
+              className="px-3.5 py-1.5 rounded-xl bg-rose-500/80 hover:bg-rose-600 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer"
+              title="Logout Safely"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span>Logout</span>
+            </button>
+          )}
         </div>
       </div>
 

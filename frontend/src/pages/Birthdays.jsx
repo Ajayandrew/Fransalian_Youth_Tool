@@ -18,6 +18,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useDataCache } from '../context/DataContext';
 import { getImageUrl } from '../utils/urlUtils';
 import ConfettiCanvas from '../components/ConfettiCanvas';
 import BirthdayCelebrationModal from '../components/BirthdayCelebrationModal';
@@ -33,20 +34,18 @@ class BirthdaysErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    console.error('[Birthdays ErrorBoundary] Caught error:', error, errorInfo);
+    console.error("Birthdays Component Error caught:", error, errorInfo);
   }
 
   render() {
     if (this.state.hasError) {
       return (
-        <div className="p-8 max-w-xl mx-auto my-12 bg-white rounded-3xl border border-rose-200 shadow-xl text-center space-y-4">
-          <div className="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center mx-auto text-xl font-bold">
-            🍰
+        <div className="p-8 text-center space-y-3 bg-white rounded-3xl border border-slate-200 shadow-sm max-w-lg mx-auto my-12">
+          <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center mx-auto">
+            <Cake className="w-6 h-6" />
           </div>
-          <h3 className="text-lg font-extrabold text-slate-900">Birthday Celebrations</h3>
-          <p className="text-xs text-slate-500 font-medium">
-            Something unexpected occurred while rendering the month filter.
-          </p>
+          <h3 className="text-base font-black text-slate-900">Birthday Roster Temporarily Unavailable</h3>
+          <p className="text-xs text-slate-500 font-medium">An error occurred while loading member birthdays. Click reset to retry.</p>
           <button
             onClick={() => {
               this.setState({ hasError: false, error: null });
@@ -63,6 +62,7 @@ class BirthdaysErrorBoundary extends React.Component {
 }
 
 function BirthdaysContent() {
+  const { fetchWithCache } = useDataCache();
   const confettiRef = useRef(null);
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -84,9 +84,9 @@ function BirthdaysContent() {
     const fetchMembers = async () => {
       setLoading(true);
       try {
-        const res = await axios.get('/api/members');
-        if (res.data && Array.isArray(res.data.members)) {
-          setMembers(res.data.members);
+        const data = await fetchWithCache('members', '/api/members');
+        if (data && Array.isArray(data.members)) {
+          setMembers(data.members);
         } else {
           setMembers([]);
         }
@@ -98,7 +98,7 @@ function BirthdaysContent() {
       }
     };
     fetchMembers();
-  }, []);
+  }, [fetchWithCache]);
 
   const safeParseDOB = (dobString) => {
     if (!dobString) return null;

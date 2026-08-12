@@ -4,10 +4,12 @@ import { Image as GalleryIcon, Plus, Eye, Tag, Calendar, Upload, X, Sparkles, Tr
 import toast from 'react-hot-toast';
 import PhotoLightboxModal from '../components/PhotoLightboxModal';
 import { useAuth } from '../context/AuthContext';
+import { useDataCache } from '../context/DataContext';
 import { getImageUrl } from '../utils/urlUtils';
 
 export default function Gallery() {
   const { hasRole } = useAuth();
+  const { fetchWithCache, invalidateCache } = useDataCache();
   const [albums, setAlbums] = useState([]);
   const [activeCategory, setActiveCategory] = useState('All');
   const [selectedPhoto, setSelectedPhoto] = useState(null);
@@ -26,9 +28,9 @@ export default function Gallery() {
 
   const fetchGallery = async () => {
     try {
-      const res = await axios.get('/api/gallery');
-      if (res.data && res.data.albums) {
-        setAlbums(res.data.albums);
+      const data = await fetchWithCache('gallery', '/api/gallery');
+      if (data && data.albums) {
+        setAlbums(data.albums);
       }
     } catch (err) {
       console.warn('Fallback gallery data');

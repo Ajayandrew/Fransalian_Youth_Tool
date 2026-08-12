@@ -74,37 +74,35 @@ export default function Members() {
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState('');
 
-  const canEdit = hasRole(['Admin', 'Treasurer', 'Youth Leader', 'Secretary']);
-  const canDelete = hasRole(['Admin']);
-  const canAssignRole = hasRole(['Admin']);
+  const canEdit = user?.role === 'Admin' || user?.role === 'Youth Leader' || user?.role === 'Secretary';
 
   const handleRoleChange = async (memberId, newRole) => {
+    if (user?.role !== 'Admin') {
+      return toast.error('Only System Admin / Pastor can change key office bearer roles.');
+    }
     try {
       const res = await axios.put(`/api/members/${memberId}`, { role: newRole });
       if (res.data && res.data.success) {
-        toast.success(`Updated role to ${newRole}`);
+        toast.success(`Role updated to ${newRole}`);
+        invalidateCache('members');
+        invalidateCache('dashboard');
         fetchMembers();
       }
     } catch (err) {
-      toast.error('Failed to update member role.');
+      toast.error('Failed to update role.');
     }
   };
 
   const fetchMembers = async (isInitial = false) => {
-    if (isInitial || members.length === 0) {
-      setLoading(true);
-    }
     try {
-      const res = await axios.get('/api/members', {
-        params: {
-          search,
-          gender: genderFilter,
-          anbiyam: anbiyamFilter,
-          activeStatus: statusFilter
-        }
+      const data = await fetchWithCache('members', '/api/members', {
+        search,
+        gender: genderFilter,
+        anbiyam: anbiyamFilter,
+        activeStatus: statusFilter
       });
-      if (res.data && res.data.success) {
-        setMembers(res.data.members || []);
+      if (data && data.success) {
+        setMembers(data.members || []);
       }
     } catch (err) {
       toast.error('Failed to load youth members.');
@@ -191,6 +189,8 @@ export default function Members() {
       const res = await axios.delete(`/api/members/${id}`);
       if (res.data && res.data.success) {
         toast.success('Member removed.');
+        invalidateCache('members');
+        invalidateCache('dashboard');
         fetchMembers();
       }
     } catch (err) {
@@ -247,6 +247,8 @@ export default function Members() {
           if (selectedProfileMember && selectedProfileMember._id === editingMember._id) {
             setSelectedProfileMember(res.data.member);
           }
+          invalidateCache('members');
+          invalidateCache('dashboard');
           fetchMembers();
         }
       } else {
@@ -256,6 +258,8 @@ export default function Members() {
           setShowModal(false);
           setPhotoFile(null);
           setPhotoPreview('');
+          invalidateCache('members');
+          invalidateCache('dashboard');
           fetchMembers();
         }
       }

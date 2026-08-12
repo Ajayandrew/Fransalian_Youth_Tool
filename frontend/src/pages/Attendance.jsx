@@ -4,10 +4,12 @@ import { CalendarCheck, Users, CheckCircle2, XCircle, QrCode, Search, Save, Hist
 import toast from 'react-hot-toast';
 import * as XLSX from 'xlsx';
 import { useAuth } from '../context/AuthContext';
+import { useDataCache } from '../context/DataContext';
 import { getImageUrl } from '../utils/urlUtils';
 
 export default function Attendance() {
   const { hasRole } = useAuth();
+  const { fetchWithCache, invalidateCache } = useDataCache();
   const [meetingName, setMeetingName] = useState('Monthly Youth General Body Meeting');
   const [meetingDate, setMeetingDate] = useState(new Date().toISOString().split('T')[0]);
   const [meetingNotes, setMeetingNotes] = useState('Discussion on upcoming Feast day youth choir and stall.');
@@ -23,13 +25,13 @@ export default function Attendance() {
 
   const fetchData = async () => {
     try {
-      const [memRes, attRes] = await Promise.all([
-        axios.get('/api/members'),
-        axios.get('/api/attendance')
+      const [memData, attData] = await Promise.all([
+        fetchWithCache('members', '/api/members'),
+        fetchWithCache('attendance', '/api/attendance')
       ]);
 
-      if (memRes.data && memRes.data.members) {
-        const mems = memRes.data.members;
+      if (memData && memData.members) {
+        const mems = memData.members;
         setMembers(mems);
         
         // Initialize all members as 'Present' by default
@@ -40,8 +42,8 @@ export default function Attendance() {
         setAttendanceRecords(initial);
       }
 
-      if (attRes.data && attRes.data.attendance) {
-        setHistoryList(attRes.data.attendance);
+      if (attData && attData.attendance) {
+        setHistoryList(attData.attendance);
       }
     } catch (err) {
       console.warn('Fallback data for attendance');
@@ -97,10 +99,14 @@ export default function Attendance() {
 
       if (res.data && res.data.success) {
         toast.success(`Attendance saved for ${meetingName}!`);
+        invalidateCache('attendance');
+        invalidateCache('dashboard');
         fetchData();
       }
     } catch (err) {
       toast.success(`Attendance saved for ${meetingName}!`);
+      invalidateCache('attendance');
+      invalidateCache('dashboard');
       fetchData();
     }
   };

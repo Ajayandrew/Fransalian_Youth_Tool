@@ -4,6 +4,14 @@ import toast from 'react-hot-toast';
 
 const AuthContext = createContext();
 
+const DEFAULT_YOUTH_MEMBER = {
+  id: 'usr_member',
+  fullName: 'Parish Youth Member',
+  email: 'member@church.org',
+  role: 'Youth Member',
+  bloodGroup: 'O+'
+};
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem('fy_user');
@@ -23,13 +31,7 @@ export function AuthProvider({ children }) {
         }
       } catch (e) {}
     }
-    return {
-      id: 'usr_member',
-      fullName: 'Parish Youth Member',
-      email: 'member@church.org',
-      role: 'Youth Member',
-      bloodGroup: 'O+'
-    };
+    return DEFAULT_YOUTH_MEMBER;
   });
 
   const [token, setToken] = useState(() => localStorage.getItem('fy_token') || 'member_token');
@@ -94,7 +96,7 @@ export function AuthProvider({ children }) {
   };
 
   const logout = (reason = 'Logged out successfully.') => {
-    setUser(null);
+    setUser(DEFAULT_YOUTH_MEMBER);
     setToken(null);
     localStorage.removeItem('fy_user');
     localStorage.removeItem('fy_token');

@@ -8,10 +8,12 @@ import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
+import { useDataCache } from '../context/DataContext';
 
 export default function Reports() {
   const { hasRole } = useAuth();
   const { settings } = useSettings();
+  const { fetchWithCache } = useDataCache();
   const canDownload = hasRole(['Admin', 'Youth Leader', 'Treasurer', 'Secretary']);
 
   const currentYear = new Date().getFullYear().toString();
@@ -34,15 +36,15 @@ export default function Reports() {
   const fetchReports = async () => {
     try {
       const [repRes, evtRes] = await Promise.all([
-        axios.get('/api/reports'),
-        axios.get('/api/events')
+        fetchWithCache('reports', '/api/reports'),
+        fetchWithCache('events', '/api/events')
       ]);
 
-      if (repRes.data && repRes.data.reports) {
+      if (repRes && repRes.reports) {
         setReportsData(prev => ({
           ...prev,
-          ...repRes.data.reports,
-          events: evtRes.data?.events || []
+          ...repRes.reports,
+          events: evtRes?.events || []
         }));
       }
     } catch (err) {

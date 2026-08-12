@@ -4,10 +4,12 @@ import { Wallet, TrendingUp, TrendingDown, DollarSign, Plus, Search, Filter, Fil
 import toast from 'react-hot-toast';
 import * as XLSX from 'xlsx';
 import { useAuth } from '../context/AuthContext';
+import { useDataCache } from '../context/DataContext';
 import PhotoLightboxModal from '../components/PhotoLightboxModal';
 
 export default function Finance() {
   const { hasRole } = useAuth();
+  const { fetchWithCache, invalidateCache } = useDataCache();
   const [activeTab, setActiveTab] = useState('all');
   const [search, setSearch] = useState('');
   const [selectedReceipt, setSelectedReceipt] = useState(null);
@@ -40,9 +42,9 @@ export default function Finance() {
 
   const fetchFinance = async () => {
     try {
-      const res = await axios.get('/api/finance/summary');
-      if (res.data && res.data.success) {
-        setFinanceData(res.data);
+      const data = await fetchWithCache('finance', '/api/finance/summary');
+      if (data && data.success) {
+        setFinanceData(data);
       }
     } catch (err) {
       console.warn('Using default finance data fallback');
@@ -64,6 +66,8 @@ export default function Finance() {
         await axios.delete(`/api/finance/expense/${item._id}`);
       }
       toast.success(`${item.txType} deleted.`);
+      invalidateCache('finance');
+      invalidateCache('dashboard');
       fetchFinance();
     } catch (err) {
       toast.error('Failed to delete transaction.');
@@ -73,9 +77,9 @@ export default function Finance() {
   const handleOpenModal = (type) => {
     setModalType(type);
     setFormData({
-      title: type === 'SecretOffering' ? 'Weekly Youth Secret Offering' : '',
+      title: type === 'Secret Offering' ? 'Secret Offering Collection' : '',
       amount: '',
-      category: type === 'Income' ? 'Monthly Contribution' : type === 'Expense' ? 'Event Expenses' : 'Secret Offering',
+      category: type === 'Income' ? 'Donation' : type === 'Expense' ? 'Youth Meeting Expenses' : 'Secret Offering',
       paymentMode: 'Cash',
       date: new Date().toISOString().split('T')[0],
       receiptNumber: `REC-${type.substring(0,3).toUpperCase()}-${Math.floor(100000 + Math.random() * 900000)}`,
@@ -108,11 +112,15 @@ export default function Finance() {
       if (res.data && res.data.success) {
         toast.success(`${modalType} logged successfully!`);
         setShowModal(false);
+        invalidateCache('finance');
+        invalidateCache('dashboard');
         fetchFinance();
       }
     } catch (err) {
       toast.success(`${modalType} logged successfully!`);
       setShowModal(false);
+      invalidateCache('finance');
+      invalidateCache('dashboard');
       fetchFinance();
     }
   };

@@ -3,11 +3,13 @@ import axios from 'axios';
 import { Calendar, Plus, MapPin, Clock, DollarSign, Users, Trash2, Edit, CheckCircle2, AlertCircle, X, Sparkles, Upload } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
+import { useDataCache } from '../context/DataContext';
 import PhotoLightboxModal from '../components/PhotoLightboxModal';
 import { getImageUrl } from '../utils/urlUtils';
 
 export default function Events() {
   const { hasRole } = useAuth();
+  const { fetchWithCache, invalidateCache } = useDataCache();
   const [activeTab, setActiveTab] = useState('upcoming');
   const [eventsList, setEventsList] = useState([]);
   const [showModal, setShowModal] = useState(false);
@@ -32,9 +34,9 @@ export default function Events() {
 
   const fetchEvents = async () => {
     try {
-      const res = await axios.get('/api/events');
-      if (res.data && res.data.events) {
-        setEventsList(res.data.events);
+      const data = await fetchWithCache('events', '/api/events');
+      if (data && data.events) {
+        setEventsList(data.events);
       }
     } catch (err) {
       console.warn('Using default events data');
@@ -133,6 +135,8 @@ export default function Events() {
       setShowModal(false);
       setBannerFile(null);
       setBannerPreview('');
+      invalidateCache('events');
+      invalidateCache('dashboard');
       fetchEvents();
     } catch (err) {
       toast.error('Failed to save event.');
@@ -146,9 +150,13 @@ export default function Events() {
     try {
       await axios.delete(`/api/events/${id}`);
       toast.success('Event deleted.');
+      invalidateCache('events');
+      invalidateCache('dashboard');
       fetchEvents();
     } catch (err) {
       toast.success('Event deleted.');
+      invalidateCache('events');
+      invalidateCache('dashboard');
       fetchEvents();
     }
   };

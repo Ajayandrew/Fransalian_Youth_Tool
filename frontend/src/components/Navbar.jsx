@@ -146,23 +146,25 @@ export default function Navbar({ onToggleMobileSidebar }) {
               </div>
 
               {!isYouthMember && (
-                <button
-                  onClick={handleOpenAccountModal}
-                  className="p-2 rounded-xl bg-indigo-50 text-indigo-700 hover:bg-indigo-100 text-xs font-bold transition"
-                  title="Change Username & Password"
-                >
-                  <User className="w-4 h-4" />
-                </button>
-              )}
+                <>
+                  <button
+                    onClick={handleOpenAccountModal}
+                    className="p-2 rounded-xl bg-indigo-50 text-indigo-700 hover:bg-indigo-100 text-xs font-bold transition"
+                    title="Change Username & Password"
+                  >
+                    <User className="w-4 h-4" />
+                  </button>
 
-              <button
-                onClick={() => logout()}
-                className="p-2 rounded-xl bg-rose-50 text-rose-700 hover:bg-rose-100 text-xs font-bold transition flex items-center space-x-1"
-                title="Logout Safely"
-              >
-                <LogOut className="w-4 h-4" />
-                <span className="hidden md:inline">Logout</span>
-              </button>
+                  <button
+                    onClick={() => logout()}
+                    className="p-2 rounded-xl bg-rose-50 text-rose-700 hover:bg-rose-100 text-xs font-bold transition flex items-center space-x-1"
+                    title="Logout Safely"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span className="hidden md:inline">Logout</span>
+                  </button>
+                </>
+              )}
             </div>
           )}
         </div>

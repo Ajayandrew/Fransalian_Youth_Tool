@@ -4,9 +4,11 @@ import { CreditCard, CheckCircle2, AlertCircle, Search, Calendar, FileSpreadshee
 import toast from 'react-hot-toast';
 import * as XLSX from 'xlsx';
 import { useAuth } from '../context/AuthContext';
+import { useDataCache } from '../context/DataContext';
 
 export default function Subscriptions() {
   const { hasRole } = useAuth();
+  const { fetchWithCache, invalidateCache } = useDataCache();
   
   // Calculate real-time current month string (e.g., "August 2026")
   const realTimeCurrentMonth = `${new Date().toLocaleString('en-US', { month: 'long' })} ${new Date().getFullYear()}`;
@@ -47,18 +49,18 @@ export default function Subscriptions() {
 
   const fetchSubscriptions = async () => {
     try {
-      const [subRes, memRes] = await Promise.all([
-        axios.get('/api/subscriptions', {
-          params: { month: selectedMonth, year: selectedYear, search, status: statusFilter !== 'All' ? statusFilter : '' }
+      const [subData, memData] = await Promise.all([
+        fetchWithCache('subscriptions', '/api/subscriptions', {
+          month: selectedMonth, year: selectedYear, search, status: statusFilter !== 'All' ? statusFilter : ''
         }),
-        axios.get('/api/members')
+        fetchWithCache('members', '/api/members')
       ]);
 
-      if (subRes.data && subRes.data.success) {
-        setSubscriptionsData(subRes.data);
+      if (subData && subData.success) {
+        setSubscriptionsData(subData);
       }
-      if (memRes.data && memRes.data.success) {
-        setMembersList(memRes.data.members || []);
+      if (memData && memData.success) {
+        setMembersList(memData.members || []);
       }
     } catch (err) {
       console.error('Failed to load subscriptions:', err);
@@ -89,6 +91,8 @@ export default function Subscriptions() {
       if (res.data && res.data.success) {
         toast.success(`₹${payAmount} Subscription collected for ${payMemberName}!`);
         setShowModal(false);
+        invalidateCache('subscriptions');
+        invalidateCache('dashboard');
         fetchSubscriptions();
       }
     } catch (err) {
@@ -107,6 +111,8 @@ export default function Subscriptions() {
       });
       if (res.data && res.data.success) {
         toast.success(`Subscription for ${memberName} set to UNPAID / PENDING.`);
+        invalidateCache('subscriptions');
+        invalidateCache('dashboard');
         fetchSubscriptions();
       }
     } catch (err) {
