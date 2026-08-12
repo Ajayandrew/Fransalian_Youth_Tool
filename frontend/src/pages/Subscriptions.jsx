@@ -61,25 +61,33 @@ export default function Subscriptions() {
     const phone = overridePhone || getMemberPhone(memberName);
     const text = generateReceiptText(memberName, month, amount, paymentMode);
     if (!phone) {
-      toast.error(`Mobile number not available for ${memberName}. Please enter mobile number.`);
+      toast('Subscription marked Paid (No mobile number registered for WhatsApp)', { icon: 'ℹ️' });
       return;
     }
     const cleanPhone = phone.replace(/\D/g, '');
     const formattedPhone = cleanPhone.length === 10 ? `91${cleanPhone}` : cleanPhone;
-    window.open(`https://wa.me/${formattedPhone}?text=${encodeURIComponent(text)}`, '_blank');
-    toast.success(`Opening WhatsApp receipt for ${memberName}! 🚀`);
+    try {
+      window.open(`https://wa.me/${formattedPhone}?text=${encodeURIComponent(text)}`, '_blank');
+      toast.success(`Opening WhatsApp receipt for ${memberName}! 🚀`);
+    } catch (e) {
+      console.warn("Could not open WhatsApp window:", e);
+    }
   };
 
   const sendSMSReceipt = (memberName, month, amount = 50, paymentMode = 'Cash', overridePhone = '') => {
     const phone = overridePhone || getMemberPhone(memberName);
     const text = generateReceiptText(memberName, month, amount, paymentMode);
     if (!phone) {
-      toast.error(`Mobile number not available for ${memberName}. Please enter mobile number.`);
+      toast('Subscription marked Paid (No mobile number registered for SMS)', { icon: 'ℹ️' });
       return;
     }
     const cleanPhone = phone.replace(/\D/g, '');
-    window.open(`sms:${cleanPhone}?body=${encodeURIComponent(text)}`, '_blank');
-    toast.success(`Opening SMS app for ${memberName}! 📱`);
+    try {
+      window.open(`sms:${cleanPhone}?body=${encodeURIComponent(text)}`, '_blank');
+      toast.success(`Opening SMS app for ${memberName}! 📱`);
+    } catch (e) {
+      console.warn("Could not open SMS app:", e);
+    }
   };
 
   const fetchSubscriptions = async () => {
@@ -134,8 +142,38 @@ export default function Subscriptions() {
         invalidateCache('subscriptions');
         invalidateCache('dashboard');
 
-        // AUTOMATICALLY send WhatsApp receipt message instantly without showing buttons or modals!
-        sendWhatsAppReceipt(targetMemberName, selectedMonth, targetAmount, targetMode);
+        // AUTOMATICALLY send SMS receipt message instantly!
+        sendSMSReceipt(targetMemberName, selectedMonth, targetAmount, targetMode);
+
+        fetchSubscriptions();
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to record subscription.');
+    }
+  };
+
+  const handleQuickTogglePaid = async (memberName) => {
+    if (!isCurrentMonth) {
+      return toast.error(`Payment collection is locked for ${selectedMonth}. Active current month is ${realTimeCurrentMonth}.`);
+    }
+    try {
+      const selectedMemObj = membersList.find(m => m.fullName === memberName);
+      const res = await axios.post('/api/subscriptions/pay', {
+        memberId: selectedMemObj ? selectedMemObj._id : 'mem_' + Date.now(),
+        memberName,
+        month: selectedMonth,
+        year: selectedYear,
+        amount: 50,
+        paymentMode: 'Cash',
+        remarks: '₹50 Monthly Subscription Collected'
+      });
+      if (res.data && res.data.success) {
+        toast.success(`₹50 Subscription collected for ${memberName}!`);
+        invalidateCache('subscriptions');
+        invalidateCache('dashboard');
+
+        // AUTOMATICALLY send SMS receipt message!
+        sendSMSReceipt(memberName, selectedMonth, 50, 'Cash');
 
         fetchSubscriptions();
       }
@@ -149,8 +187,10 @@ export default function Subscriptions() {
       return toast.error(`Subscription changes are locked for ${selectedMonth}. Active current month is ${realTimeCurrentMonth}.`);
     }
     try {
+      const selectedMemObj = membersList.find(m => m.fullName === memberName);
       const res = await axios.post('/api/subscriptions/unpaid', {
         memberName,
+        memberId: selectedMemObj ? selectedMemObj._id : undefined,
         month: selectedMonth
       });
       if (res.data && res.data.success) {
@@ -372,7 +412,7 @@ export default function Subscriptions() {
                       <div className="inline-flex rounded-xl p-1 bg-slate-100 border border-slate-200 shadow-xs ml-auto">
                         <button
                           type="button"
-                          onClick={() => sub.status !== 'Paid' && handleQuickPay(sub.memberName)}
+                          onClick={() => sub.status !== 'Paid' && handleQuickTogglePaid(sub.memberName)}
                           className={`px-3 py-1 rounded-lg text-[11px] font-black transition flex items-center gap-1 ${
                             sub.status === 'Paid'
                               ? 'bg-emerald-600 text-white shadow-xs'

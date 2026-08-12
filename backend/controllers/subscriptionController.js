@@ -30,7 +30,7 @@ const getSubscriptions = async (req, res) => {
       const existing = subsList.find(s =>
         ( (s.memberId && s.memberId.toString() === m._id.toString()) ||
           (s.memberName && s.memberName.trim().toLowerCase() === m.fullName.trim().toLowerCase()) ) &&
-        (!s.month || s.month.toLowerCase() === targetMonth.toLowerCase())
+        (s.month && s.month.trim().toLowerCase() === targetMonth.trim().toLowerCase())
       );
 
       const isPaid = existing && (existing.status || '').toLowerCase() === 'paid';
@@ -186,28 +186,36 @@ const markSubscriptionPaid = async (req, res) => {
 
 const markSubscriptionUnpaid = async (req, res) => {
   try {
-    const { memberName, month } = req.body;
+    const { memberName, memberId, month } = req.body;
     if (!memberName) {
       return res.status(400).json({ success: false, message: 'Member Name is required.' });
     }
 
     const targetMonth = month || 'August 2026';
+    const targetMonthNorm = targetMonth.trim().toLowerCase();
     const cleanName = memberName.trim();
+    const cleanNameNorm = cleanName.toLowerCase();
 
     if (getIsInMemory()) {
-      // Remove subscription record from memory (reverting to Unpaid)
-      memoryStore.subscriptions = (memoryStore.subscriptions || []).filter(s =>
-        !(s.memberName && s.memberName.trim().toLowerCase() === cleanName.toLowerCase() && s.month === targetMonth)
-      );
+      // Remove all matching subscription records from memory (reverting to Unpaid)
+      memoryStore.subscriptions = (memoryStore.subscriptions || []).filter(s => {
+        const sName = (s.memberName || '').trim().toLowerCase();
+        const sId = (s.memberId || '').toString();
+        const sMonth = (s.month || '').trim().toLowerCase();
+        
+        const isMemberMatch = sName === cleanNameNorm || (memberId && sId === memberId.toString());
+        const isMonthMatch = !sMonth || sMonth === targetMonthNorm;
+        
+        return !(isMemberMatch && isMonthMatch);
+      });
 
-      // Remove ONLY corresponding Monthly Subscription income entry from memory
+      // Remove corresponding Monthly Subscription income entry from memory
       memoryStore.income = (memoryStore.income || []).filter(i => {
         const isSubscriptionIncome = (i.category === 'Monthly Subscription' || i.source === 'Monthly Subscription');
-        const matchesMember = i.title && i.title.toLowerCase().includes(cleanName.toLowerCase());
-        const matchesMonth = (i.title && i.title.toLowerCase().includes(targetMonth.toLowerCase())) ||
-                             (i.notes && i.notes.toLowerCase().includes(targetMonth.toLowerCase()));
+        const matchesMember = i.title && i.title.toLowerCase().includes(cleanNameNorm);
+        const matchesMonth = (i.title && i.title.toLowerCase().includes(targetMonthNorm)) ||
+                             (i.notes && i.notes.toLowerCase().includes(targetMonthNorm));
         
-        // If it is a subscription income matching this member and month, remove it
         if (isSubscriptionIncome && matchesMember && matchesMonth) {
           return false;
         }
@@ -215,9 +223,17 @@ const markSubscriptionUnpaid = async (req, res) => {
       });
     } else {
       await Subscription.deleteMany({
-        memberName: { $regex: new RegExp(`^${cleanName.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}$`, 'i') },
-        month: targetMonth
+        $or: [
+          { memberName: { $regex: new RegExp(`^${cleanName.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}$`, 'i') } },
+          { memberId: memberId || 'nomatch' }
+        ],
+        $or: [
+          { month: { $regex: new RegExp(`^${targetMonth.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}$`, 'i') } },
+          { month: { $exists: false } },
+          { month: '' }
+        ]
       });
+
       const { Income } = require('../models/Finance');
       await Income.deleteMany({
         category: 'Monthly Subscription',
@@ -226,7 +242,7 @@ const markSubscriptionUnpaid = async (req, res) => {
     }
     savePersistentStore();
 
-    return res.json({ success: true, message: `Subscription set to Unpaid for ${cleanName}. Secret offerings and other income remain completely untouched.` });
+    return res.json({ success: true, message: `Subscription set to Unpaid for ${cleanName}.` });
   } catch (error) {
     console.error('Error marking subscription unpaid:', error);
     return res.status(500).json({ success: false, message: error.message });
