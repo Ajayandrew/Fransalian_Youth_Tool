@@ -138,25 +138,30 @@ export default function Reports() {
   const monthlyFinanceChartData = React.useMemo(() => {
     const monthMap = {};
 
-    // 1. Process Income entries
-    (reportsData.incomeList || []).forEach(inc => {
-      const d = new Date(inc.date || inc.createdAt);
-      if (!isNaN(d.getTime())) {
-        const key = d.toLocaleString('en-US', { month: 'short', year: 'numeric' });
-        if (!monthMap[key]) monthMap[key] = { month: key, Income: 0, Expense: 0, sortKey: d.getTime() };
-        monthMap[key].Income += Number(inc.amount) || 0;
-      }
-    });
-
-    // 2. Process Secret Offerings (if not matched by _id in incomeList)
-    allSecretOfferings.forEach(sec => {
-      if (!(reportsData.incomeList || []).some(inc => inc._id === sec._id || inc.receiptNumber === `SEC-${sec._id}`)) {
-        const d = new Date(sec.date || sec.createdAt);
+    // 1. Process General Income entries (excluding Subscriptions & Secret Offerings to avoid double-counting)
+    (reportsData.incomeList || [])
+      .filter(inc =>
+        inc.category !== 'Monthly Subscription' &&
+        inc.source !== 'Monthly Subscription' &&
+        inc.category !== 'Meeting Secret Offering' &&
+        inc.source !== 'Meeting Secret Offering'
+      )
+      .forEach(inc => {
+        const d = new Date(inc.date || inc.createdAt);
         if (!isNaN(d.getTime())) {
           const key = d.toLocaleString('en-US', { month: 'short', year: 'numeric' });
           if (!monthMap[key]) monthMap[key] = { month: key, Income: 0, Expense: 0, sortKey: d.getTime() };
-          monthMap[key].Income += Number(sec.amount) || 0;
+          monthMap[key].Income += Number(inc.amount) || 0;
         }
+      });
+
+    // 2. Process Secret Offerings
+    allSecretOfferings.forEach(sec => {
+      const d = new Date(sec.date || sec.createdAt);
+      if (!isNaN(d.getTime())) {
+        const key = d.toLocaleString('en-US', { month: 'short', year: 'numeric' });
+        if (!monthMap[key]) monthMap[key] = { month: key, Income: 0, Expense: 0, sortKey: d.getTime() };
+        monthMap[key].Income += Number(sec.amount) || 0;
       }
     });
 
@@ -167,9 +172,7 @@ export default function Reports() {
         const d = dateStr ? new Date(dateStr) : new Date();
         const key = sub.month || (!isNaN(d.getTime()) ? d.toLocaleString('en-US', { month: 'short', year: 'numeric' }) : 'Aug 2026');
         if (!monthMap[key]) monthMap[key] = { month: key, Income: 0, Expense: 0, sortKey: !isNaN(d.getTime()) ? d.getTime() : Date.now() };
-        if (!(reportsData.incomeList || []).some(inc => inc.category === 'Monthly Subscription' && (inc.title || '').includes(sub.memberName))) {
-          monthMap[key].Income += Number(sub.amount) || 50;
-        }
+        monthMap[key].Income += Number(sub.amount) || 50;
       }
     });
 
@@ -889,17 +892,16 @@ export default function Reports() {
           const secretCollected = (filteredSecretOfferings || [])
             .reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
 
-          const incomeLedgerTotal = (filteredIncome || []).reduce((s, i) => s + (Number(i.amount) || 0), 0);
+          const generalIncomeTotal = (filteredIncome || [])
+            .filter(i =>
+              i.category !== 'Monthly Subscription' &&
+              i.source !== 'Monthly Subscription' &&
+              i.category !== 'Meeting Secret Offering' &&
+              i.source !== 'Meeting Secret Offering'
+            )
+            .reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
 
-          const unrecordedSecret = (filteredSecretOfferings || [])
-            .filter(sec => !(filteredIncome || []).some(inc => inc._id === sec._id || inc.receiptNumber === `SEC-${sec._id}`))
-            .reduce((sum, sec) => sum + (Number(sec.amount) || 0), 0);
-
-          const unrecordedSub = (filteredSubscriptions || [])
-            .filter(sub => (sub.status || '').toLowerCase() === 'paid' && !(filteredIncome || []).some(inc => inc.category === 'Monthly Subscription' && (inc.title || '').includes(sub.memberName)))
-            .reduce((sum, sub) => sum + (Number(sub.amount) || 0), 0);
-
-          const totalCombinedIncome = Math.max(incomeLedgerTotal + unrecordedSecret + unrecordedSub, subCollected + secretCollected);
+          const totalCombinedIncome = generalIncomeTotal + subCollected + secretCollected;
           const totalExp = (filteredExpense || []).reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
           const netBal = totalCombinedIncome - totalExp;
 
