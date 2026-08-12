@@ -215,6 +215,9 @@ export default function Attendance() {
   };
 
   const handleExportAttendanceReport = () => {
+    if (!canEdit) {
+      return toast.error('Attendance report exports are restricted to Admin, Youth Leader, Secretary, and Treasurer.');
+    }
     const wb = XLSX.utils.book_new();
     
     const currentSessionData = members.map(m => ({
@@ -276,14 +279,16 @@ export default function Attendance() {
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
-          <button
-            onClick={handleExportAttendanceReport}
-            className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-2 transition shadow-md shadow-emerald-600/20"
-          >
-            <Download className="w-4 h-4" /> Export Attendance (.xlsx)
-          </button>
+          {canEdit && (
+            <button
+              onClick={handleExportAttendanceReport}
+              className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-2 transition shadow-md shadow-emerald-600/20"
+            >
+              <Download className="w-4 h-4" /> Export Attendance (.xlsx)
+            </button>
+          )}
 
-          {!isLockedView && (
+          {canEdit && !isLockedView && (
             <button
               onClick={() => setShowQRModal(true)}
               className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center gap-2 transition shadow-md"
