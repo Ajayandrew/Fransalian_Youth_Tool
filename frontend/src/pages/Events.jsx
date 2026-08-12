@@ -183,15 +183,6 @@ export default function Events() {
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
-          <button
-            onClick={() => {
-              window.open('/api/reports', '_blank');
-              toast.success('Downloading Youth Events Schedule Report...');
-            }}
-            className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center gap-2 transition shadow-md"
-          >
-            <Calendar className="w-4 h-4 text-amber-400" /> Export Events Report
-          </button>
           {canEdit && (
             <button
               onClick={handleOpenCreateModal}
