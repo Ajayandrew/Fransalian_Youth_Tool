@@ -27,11 +27,13 @@ import {
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
+import { useDataCache } from '../context/DataContext';
 import { useSearchParams } from 'react-router-dom';
 
 export default function Members() {
   const { user, hasRole, updateUserRole } = useAuth();
   const { settings } = useSettings();
+  const { fetchWithCache, invalidateCache } = useDataCache();
   const [searchParams] = useSearchParams();
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
