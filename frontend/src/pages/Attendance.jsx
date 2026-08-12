@@ -29,7 +29,7 @@ export default function Attendance() {
   const [showQRModal, setShowQRModal] = useState(false);
   const [qrCodeInput, setQrCodeInput] = useState('');
 
-  const canEdit = hasRole(['Admin', 'Youth Leader', 'Secretary']);
+  const canEdit = hasRole(['Admin', 'Treasurer', 'Youth Leader', 'Secretary']);
   const isLockedView = sessionMode === 'view';
 
   const fetchData = async () => {
@@ -47,11 +47,11 @@ export default function Attendance() {
         const attList = attData.attendance || [];
         setHistoryList(attList);
 
-        // If in 'new' mode and initial load, initialize all members as Present by default
+        // Active Attendance Session (Editable) defaults all members to 'Absent' until marked Present
         if (sessionMode === 'new' && memData?.members) {
           const initial = {};
           memData.members.forEach(m => {
-            initial[m._id] = 'Present';
+            initial[m._id] = 'Absent';
           });
           setAttendanceRecords(initial);
         }
@@ -76,7 +76,7 @@ export default function Attendance() {
       
       const initial = {};
       members.forEach(m => {
-        initial[m._id] = 'Present';
+        initial[m._id] = 'Absent';
       });
       setAttendanceRecords(initial);
     } else {
@@ -148,7 +148,7 @@ export default function Attendance() {
       const recordsArray = members.map(m => ({
         memberId: m._id,
         memberName: m.fullName,
-        status: attendanceRecords[m._id] || 'Present'
+        status: attendanceRecords[m._id] || 'Absent'
       }));
 
       const res = await axios.post('/api/attendance', {

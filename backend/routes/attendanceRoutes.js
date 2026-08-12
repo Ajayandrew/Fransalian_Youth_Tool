@@ -4,7 +4,7 @@ const { getAttendance, recordAttendance, deleteAttendance } = require('../contro
 const { authMiddleware, checkRole } = require('../middleware/auth');
 
 router.get('/', authMiddleware, getAttendance);
-router.post('/', authMiddleware, checkRole(['Admin', 'Youth Leader', 'Secretary']), recordAttendance);
-router.delete('/:id', authMiddleware, checkRole(['Admin', 'Youth Leader', 'Secretary']), deleteAttendance);
+router.post('/', authMiddleware, checkRole(['Admin', 'Treasurer', 'Youth Leader', 'Secretary']), recordAttendance);
+router.delete('/:id', authMiddleware, checkRole(['Admin', 'Treasurer', 'Youth Leader', 'Secretary']), deleteAttendance);
 
 module.exports = router;
