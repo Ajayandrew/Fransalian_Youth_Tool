@@ -31,11 +31,14 @@ const authMiddleware = (req, res, next) => {
 const checkRole = (allowedRoles = []) => {
   return (req, res, next) => {
     if (!req.user) {
-      req.user = { id: 'usr_1', fullName: 'Super Admin', role: 'Admin' };
+      return res.status(401).json({ success: false, message: 'Authentication required.' });
     }
 
-    if (allowedRoles.length > 0 && !allowedRoles.includes(req.user.role)) {
-      return next(); // Fallback for dev convenience
+    if (allowedRoles.length > 0 && req.user.role !== 'Admin' && !allowedRoles.includes(req.user.role)) {
+      return res.status(403).json({ 
+        success: false, 
+        message: `Access denied. Action restricted to ${allowedRoles.join(', ')}.` 
+      });
     }
 
     next();

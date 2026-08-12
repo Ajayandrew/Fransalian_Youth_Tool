@@ -37,8 +37,8 @@ export default function Subscriptions() {
   const [payMode, setPayMode] = useState('Cash');
   const [payRemarks, setPayRemarks] = useState('Paid at monthly meeting');
 
-  // Office bearers can manage subscription status
-  const canEdit = hasRole(['Admin', 'Treasurer', 'Youth Leader', 'Secretary']);
+  // Subscription collection (Paid / Unpaid status toggle) is strictly restricted to Treasurer and Admin
+  const canEdit = hasRole(['Admin', 'Treasurer']);
   const isCurrentMonth = selectedMonth.toLowerCase() === realTimeCurrentMonth.toLowerCase();
 
   const allMonthsList = [
@@ -397,7 +397,7 @@ export default function Subscriptions() {
                     ) : (
                       <span className="px-2.5 py-1 text-[10px] font-bold rounded-lg bg-slate-100 text-slate-500 border border-slate-200 flex items-center space-x-1 w-max ml-auto">
                         <Lock className="w-3 h-3 text-slate-400" />
-                        <span>Locked</span>
+                        <span>Locked (Treasurer Only)</span>
                       </span>
                     )}
                   </td>
