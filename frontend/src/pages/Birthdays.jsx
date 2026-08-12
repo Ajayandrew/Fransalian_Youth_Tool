@@ -98,7 +98,7 @@ function BirthdaysContent() {
       }
     };
     fetchMembers();
-  }, [fetchWithCache]);
+  }, []);
 
   const safeParseDOB = (dobString) => {
     if (!dobString) return null;

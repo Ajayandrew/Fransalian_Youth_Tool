@@ -4,31 +4,30 @@ import axios from 'axios';
 const DataContext = createContext();
 
 export function DataProvider({ children }) {
-  const [cache, setCache] = useState({});
+  const cacheRef = React.useRef({});
   const [loadingKeys, setLoadingKeys] = useState({});
 
   const fetchWithCache = useCallback(async (key, url, params = {}, forceRefresh = false) => {
-    // If cached data exists and not forcing refresh, return cached data immediately
     const cacheKey = key + JSON.stringify(params);
 
-    if (cache[cacheKey] && !forceRefresh) {
+    if (cacheRef.current[cacheKey] && !forceRefresh) {
       // Background silent revalidation
       axios.get(url, { params })
         .then(res => {
           if (res.data) {
-            setCache(prev => ({ ...prev, [cacheKey]: res.data }));
+            cacheRef.current[cacheKey] = res.data;
           }
         })
         .catch(() => {});
 
-      return cache[cacheKey];
+      return cacheRef.current[cacheKey];
     }
 
     setLoadingKeys(prev => ({ ...prev, [cacheKey]: true }));
     try {
       const res = await axios.get(url, { params });
       if (res.data) {
-        setCache(prev => ({ ...prev, [cacheKey]: res.data }));
+        cacheRef.current[cacheKey] = res.data;
       }
       return res.data;
     } catch (err) {
@@ -36,22 +35,18 @@ export function DataProvider({ children }) {
     } finally {
       setLoadingKeys(prev => ({ ...prev, [cacheKey]: false }));
     }
-  }, [cache]);
+  }, []);
 
   const invalidateCache = useCallback((keyPrefix) => {
-    setCache(prev => {
-      const newCache = { ...prev };
-      Object.keys(newCache).forEach(k => {
-        if (!keyPrefix || k.startsWith(keyPrefix)) {
-          delete newCache[k];
-        }
-      });
-      return newCache;
+    Object.keys(cacheRef.current).forEach(k => {
+      if (!keyPrefix || k.startsWith(keyPrefix)) {
+        delete cacheRef.current[k];
+      }
     });
   }, []);
 
   return (
-    <DataContext.Provider value={{ cache, fetchWithCache, invalidateCache, loadingKeys }}>
+    <DataContext.Provider value={{ cache: cacheRef.current, fetchWithCache, invalidateCache, loadingKeys }}>
       {children}
     </DataContext.Provider>
   );

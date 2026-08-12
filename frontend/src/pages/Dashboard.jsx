@@ -78,7 +78,7 @@ export default function Dashboard() {
       }
     };
     fetchDashboard();
-  }, [fetchWithCache]);
+  }, []);
 
   const ensureAbsoluteUrl = (url, fallback) => {
     if (!url || !url.trim()) return fallback;

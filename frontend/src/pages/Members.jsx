@@ -95,12 +95,13 @@ export default function Members() {
 
   const fetchMembers = async (isInitial = false) => {
     try {
-      const data = await fetchWithCache('members', '/api/members', {
-        search,
-        gender: genderFilter,
-        anbiyam: anbiyamFilter,
-        activeStatus: statusFilter
-      });
+      const params = {};
+      if (search) params.search = search;
+      if (genderFilter && genderFilter !== 'All') params.gender = genderFilter;
+      if (anbiyamFilter && anbiyamFilter !== 'All') params.anbiyam = anbiyamFilter;
+      if (statusFilter && statusFilter !== 'All') params.activeStatus = statusFilter;
+
+      const data = await fetchWithCache('members', '/api/members', params);
       if (data && data.success) {
         setMembers(data.members || []);
       }

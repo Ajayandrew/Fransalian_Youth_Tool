@@ -83,9 +83,9 @@ const getMembers = async (req, res) => {
       );
     }
 
-    if (gender) list = list.filter(m => m.gender === gender);
-    if (anbiyam) list = list.filter(m => m.anbiyamName === anbiyam);
-    if (activeStatus) list = list.filter(m => m.activeStatus === activeStatus);
+    if (gender && gender !== 'All') list = list.filter(m => m.gender === gender);
+    if (anbiyam && anbiyam !== 'All') list = list.filter(m => m.anbiyamName === anbiyam);
+    if (activeStatus && activeStatus !== 'All') list = list.filter(m => m.activeStatus === activeStatus);
 
     if (bloodGroup) {
       const targetBg = bloodGroup.trim().replace(/\s+/g, '+').toUpperCase();
