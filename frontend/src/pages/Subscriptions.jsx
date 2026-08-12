@@ -57,39 +57,6 @@ export default function Subscriptions() {
     return `Dear ${memberName},\n\nThank you! Your ₹${amount || 50} Youth Subscription payment for ${month} (${paymentMode || 'Cash'}) has been successfully received.\n\nPayment Status: PAID ✅\nFransalian Youth Movement`;
   };
 
-  const sendWhatsAppReceipt = (memberName, month, amount = 50, paymentMode = 'Cash', overridePhone = '') => {
-    const phone = overridePhone || getMemberPhone(memberName);
-    const text = generateReceiptText(memberName, month, amount, paymentMode);
-    if (!phone) {
-      toast('Subscription marked Paid (No mobile number registered for WhatsApp)', { icon: 'ℹ️' });
-      return;
-    }
-    const cleanPhone = phone.replace(/\D/g, '');
-    const formattedPhone = cleanPhone.length === 10 ? `91${cleanPhone}` : cleanPhone;
-    try {
-      window.open(`https://wa.me/${formattedPhone}?text=${encodeURIComponent(text)}`, '_blank');
-      toast.success(`Opening WhatsApp receipt for ${memberName}! 🚀`);
-    } catch (e) {
-      console.warn("Could not open WhatsApp window:", e);
-    }
-  };
-
-  const sendSMSReceipt = (memberName, month, amount = 50, paymentMode = 'Cash', overridePhone = '') => {
-    const phone = overridePhone || getMemberPhone(memberName);
-    const text = generateReceiptText(memberName, month, amount, paymentMode);
-    if (!phone) {
-      toast('Subscription marked Paid (No mobile number registered for SMS)', { icon: 'ℹ️' });
-      return;
-    }
-    const cleanPhone = phone.replace(/\D/g, '');
-    try {
-      window.open(`sms:${cleanPhone}?body=${encodeURIComponent(text)}`, '_blank');
-      toast.success(`Opening SMS app for ${memberName}! 📱`);
-    } catch (e) {
-      console.warn("Could not open SMS app:", e);
-    }
-  };
-
   const fetchSubscriptions = async () => {
     try {
       const [subData, memData] = await Promise.all([
@@ -141,10 +108,6 @@ export default function Subscriptions() {
         setShowModal(false);
         invalidateCache('subscriptions');
         invalidateCache('dashboard');
-
-        // AUTOMATICALLY send SMS receipt message instantly!
-        sendSMSReceipt(targetMemberName, selectedMonth, targetAmount, targetMode);
-
         fetchSubscriptions();
       }
     } catch (err) {
@@ -171,10 +134,6 @@ export default function Subscriptions() {
         toast.success(`₹50 Subscription collected for ${memberName}!`);
         invalidateCache('subscriptions');
         invalidateCache('dashboard');
-
-        // AUTOMATICALLY send SMS receipt message!
-        sendSMSReceipt(memberName, selectedMonth, 50, 'Cash');
-
         fetchSubscriptions();
       }
     } catch (err) {

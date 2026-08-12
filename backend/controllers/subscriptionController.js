@@ -222,15 +222,21 @@ const markSubscriptionUnpaid = async (req, res) => {
         return true;
       });
     } else {
+      const memberOrCond = [{ memberName: { $regex: new RegExp(`^${cleanName.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}$`, 'i') } }];
+      if (memberId) {
+        memberOrCond.push({ memberId: memberId.toString() });
+      }
+
       await Subscription.deleteMany({
-        $or: [
-          { memberName: { $regex: new RegExp(`^${cleanName.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}$`, 'i') } },
-          { memberId: memberId || 'nomatch' }
-        ],
-        $or: [
-          { month: { $regex: new RegExp(`^${targetMonth.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}$`, 'i') } },
-          { month: { $exists: false } },
-          { month: '' }
+        $and: [
+          { $or: memberOrCond },
+          {
+            $or: [
+              { month: { $regex: new RegExp(`^${targetMonth.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}$`, 'i') } },
+              { month: { $exists: false } },
+              { month: '' }
+            ]
+          }
         ]
       });
 
