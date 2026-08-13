@@ -108,6 +108,11 @@ export function AuthProvider({ children }) {
     if (!user) return false;
     if (allowedRoles.length === 0) return true;
     if (user.role === 'Admin') return true;
+    if (user.role === 'Parish Priest') {
+      if (allowedRoles.includes('Youth Leader') || allowedRoles.includes('Secretary') || allowedRoles.includes('Treasurer') || allowedRoles.includes('Parish Priest')) {
+        return true;
+      }
+    }
     return allowedRoles.includes(user.role);
   };
 

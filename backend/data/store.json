@@ -12,6 +12,17 @@
       "createdAt": "2026-08-09T06:18:25.325Z"
     },
     {
+      "_id": "usr_priest",
+      "fullName": "Parish Priest",
+      "email": "priest@church.org",
+      "password": "$2a$10$rOK1Wioxga1vm6OF/tGYpeD79rQ77kJOerLI1swDkEbgoQ70q9LDq",
+      "role": "Parish Priest",
+      "avatar": "",
+      "bloodGroup": "O+",
+      "activeStatus": true,
+      "createdAt": "2026-08-09T06:18:25.325Z"
+    },
+    {
       "_id": "usr_leader",
       "fullName": "Youth Leader",
       "email": "leader@church.org",

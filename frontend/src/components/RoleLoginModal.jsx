@@ -30,6 +30,14 @@ export default function RoleLoginModal({ isOpen, onClose, initialRole = 'Admin' 
       desc: 'Complete system administrative access'
     },
     {
+      role: 'Parish Priest',
+      name: 'Parish Priest (Director)',
+      icon: UserCheck,
+      color: 'bg-amber-600 text-white border-amber-600',
+      badge: 'Spiritual & Youth Oversight',
+      desc: 'Full executive oversight, member records & reports'
+    },
+    {
       role: 'Youth Leader',
       name: 'Youth Leader (President)',
       icon: UserCheck,

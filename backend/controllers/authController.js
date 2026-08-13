@@ -92,6 +92,8 @@ const login = async (req, res) => {
       derivedRole = 'Youth Leader';
     } else if (cleanInput.includes('secretary') || lowEmail.includes('secretary')) {
       derivedRole = 'Secretary';
+    } else if (cleanInput.includes('priest') || cleanInput.includes('pastor') || lowEmail.includes('priest') || lowEmail.includes('pastor')) {
+      derivedRole = 'Parish Priest';
     } else if (cleanInput.includes('admin') || lowEmail.includes('admin')) {
       derivedRole = 'Admin';
     } else if (!derivedRole || derivedRole === 'undefined') {

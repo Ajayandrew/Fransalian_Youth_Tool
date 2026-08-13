@@ -16,6 +16,17 @@ const memoryStore = {
       createdAt: new Date()
     },
     {
+      _id: 'usr_priest',
+      fullName: 'Parish Priest',
+      email: 'priest@church.org',
+      password: defaultPasswordHash,
+      role: 'Parish Priest',
+      avatar: '',
+      bloodGroup: 'O+',
+      activeStatus: true,
+      createdAt: new Date()
+    },
+    {
       _id: 'usr_leader',
       fullName: 'Youth Leader',
       email: 'leader@church.org',

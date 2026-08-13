@@ -34,11 +34,17 @@ const checkRole = (allowedRoles = []) => {
       return res.status(401).json({ success: false, message: 'Authentication required.' });
     }
 
-    if (allowedRoles.length > 0 && req.user.role !== 'Admin' && !allowedRoles.includes(req.user.role)) {
-      return res.status(403).json({ 
-        success: false, 
-        message: `Access denied. Action restricted to ${allowedRoles.join(', ')}.` 
-      });
+    const userRole = req.user.role;
+    if (allowedRoles.length > 0 && userRole !== 'Admin') {
+      const isPriestWithLeaderAccess = userRole === 'Parish Priest' && 
+        (allowedRoles.includes('Youth Leader') || allowedRoles.includes('Secretary') || allowedRoles.includes('Treasurer') || allowedRoles.includes('Parish Priest'));
+
+      if (!allowedRoles.includes(userRole) && !isPriestWithLeaderAccess) {
+        return res.status(403).json({ 
+          success: false, 
+          message: `Access denied. Action restricted to ${allowedRoles.join(', ')}.` 
+        });
+      }
     }
 
     next();

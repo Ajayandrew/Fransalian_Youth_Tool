@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, Sparkles, ArrowRight, ShieldCheck, Wallet, Crown, Heart } from 'lucide-react';
+import { Mail, Lock, Sparkles, ArrowRight, ShieldCheck, Wallet, Crown, Heart, UserCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
 import PhotoLightboxModal from '../components/PhotoLightboxModal';
 import { getImageUrl } from '../utils/urlUtils';
@@ -35,9 +35,25 @@ export default function Login() {
 
   // Find assigned members for key office bearer roles
   const getAssignedCard = (roleName, defaultLabel, icon, colorClass, defaultEmail) => {
-    const assignedMember = registeredMembers.find(
+    let assignedMember = registeredMembers.find(
       m => (m.role || '').toLowerCase() === roleName.toLowerCase()
     );
+
+    if (!assignedMember && roleName === 'Parish Priest') {
+      if (settings.parishPriestName) {
+        return {
+          roleName: 'Parish Priest',
+          displayTitle: `${defaultLabel}: ${settings.parishPriestName}`,
+          memberName: settings.parishPriestName,
+          email: 'priest@church.org',
+          photo: settings.parishPriestPhoto || null,
+          anbiyam: settings.parishPriestTitle || 'Parish Priest / Spiritual Director',
+          icon,
+          colorClass,
+          isAssigned: true
+        };
+      }
+    }
 
     if (assignedMember) {
       return {
@@ -59,7 +75,7 @@ export default function Login() {
       memberName: 'No Member Assigned Yet',
       email: defaultEmail,
       photo: null,
-      anbiyam: 'Click to login as Admin to assign',
+      anbiyam: 'Click to login',
       icon,
       colorClass,
       isAssigned: false
@@ -67,6 +83,7 @@ export default function Login() {
   };
 
   const roleCards = [
+    getAssignedCard('Parish Priest', 'Parish Priest (Director)', UserCheck, 'bg-purple-50 border-purple-200 text-purple-950 hover:bg-purple-100 shadow-purple-100', 'priest@church.org'),
     getAssignedCard('Youth Leader', 'Youth Leader (President)', Crown, 'bg-indigo-50 border-indigo-200 text-indigo-950 hover:bg-indigo-100 shadow-indigo-100', 'Youth Leader'),
     getAssignedCard('Secretary', 'Secretary (Records)', ShieldCheck, 'bg-amber-50 border-amber-200 text-amber-950 hover:bg-amber-100 shadow-amber-100', 'Secretary'),
     getAssignedCard('Treasurer', 'Treasurer (Accounts)', Wallet, 'bg-emerald-50 border-emerald-200 text-emerald-950 hover:bg-emerald-100 shadow-emerald-100', 'Treasurer'),
