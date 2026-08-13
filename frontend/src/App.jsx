@@ -45,7 +45,7 @@ function AppLayout() {
         }`}
       >
         <Navbar onToggleMobileSidebar={() => setIsMobileSidebarOpen(true)} />
-        <main className="flex-1 pb-12">
+        <main className="flex-1 pb-6">
           <Suspense fallback={<PageLoader />}>
             <Routes>
               <Route path="/" element={<Dashboard />} />
@@ -62,6 +62,10 @@ function AppLayout() {
             </Routes>
           </Suspense>
         </main>
+
+        <footer className="py-4 px-6 text-center text-xs text-slate-500 font-medium border-t border-slate-200/80 bg-white/50">
+          Copyright © Fransalian Youth 2026
+        </footer>
       </div>
     </div>
   );

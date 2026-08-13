@@ -310,7 +310,7 @@ const updateProfile = async (req, res) => {
         avatar: updatedUser ? updatedUser.avatar : '',
         bloodGroup: (updatedUser && updatedUser.bloodGroup) || bloodGroup || req.user?.bloodGroup || 'O+'
       },
-      message: 'Profile details (Username, Password & Blood Group) updated successfully!'
+      message: 'Profile updated successfully!'
     });
   } catch (error) {
     console.error('Error updating user profile:', error);

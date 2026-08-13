@@ -97,10 +97,34 @@ export default function Dashboard() {
     }
     return `https://${cleanUrl}`;
   };
+  const [watermarkSrc, setWatermarkSrc] = useState('/mary-help-of-christians.png');
+  const [watermarkFailed, setWatermarkFailed] = useState(false);
+
+  const handleWatermarkError = () => {
+    if (watermarkSrc === '/mary-help-of-christians.png') setWatermarkSrc('/mary-help-of-christians.jpg');
+    else if (watermarkSrc === '/mary-help-of-christians.jpg') setWatermarkSrc('/mary-help-of-christians.jpeg');
+    else if (watermarkSrc === '/mary-help-of-christians.jpeg') setWatermarkSrc('/mary-help-of-christians.webp');
+    else if (watermarkSrc === '/mary-help-of-christians.webp') setWatermarkSrc('/mary.png');
+    else if (watermarkSrc === '/mary.png') setWatermarkSrc('/mary.jpg');
+    else setWatermarkFailed(true);
+  };
 
   return (
-    <div className="space-y-6 pb-12">
-      {/* Welcome Banner */}
+    <div className="space-y-6 pb-12 relative min-h-screen">
+      {/* Mary Help of Christians Background Watermark */}
+      {!watermarkFailed && (
+        <div className="fixed inset-0 pointer-events-none flex items-center justify-center z-0 overflow-hidden select-none p-4 opacity-[0.08]">
+          <img
+            src={watermarkSrc}
+            alt="Mary Help of Christians Watermark"
+            onError={handleWatermarkError}
+            className="max-w-[90vw] max-h-[85vh] sm:max-w-[650px] sm:max-h-[650px] object-contain drop-shadow-2xl filter transition-opacity duration-500"
+          />
+        </div>
+      )}
+
+      <div className="relative z-10 space-y-6">
+        {/* Welcome Banner */}
       <div className="p-6 rounded-3xl bg-gradient-to-r from-indigo-900 via-indigo-800 to-slate-900 text-white shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-indigo-500/30 border border-indigo-400/40 text-amber-300 text-xs font-bold mb-2">
@@ -531,6 +555,7 @@ export default function Dashboard() {
           onClose={() => setLightboxPhoto(null)}
         />
       )}
+      </div>
     </div>
   );
 }

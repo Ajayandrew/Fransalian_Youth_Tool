@@ -139,7 +139,7 @@ export function AuthProvider({ children }) {
       if (fullName) updated.fullName = fullName;
       setUser(updated);
       localStorage.setItem('fy_user', JSON.stringify(updated));
-      toast.success('Your Profile (Email & Blood Group) have been updated!');
+      toast.success('Profile updated successfully!');
       return { success: true };
     }
   };

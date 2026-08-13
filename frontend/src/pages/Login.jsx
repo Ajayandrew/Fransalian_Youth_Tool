@@ -248,6 +248,10 @@ export default function Login() {
             </button>
           </form>
         </div>
+
+        <footer className="text-center text-xs text-slate-500 font-medium pt-4">
+          Copyright © Fransalian Youth 2026
+        </footer>
       </div>
 
       {/* Logo Lightbox Modal */}
