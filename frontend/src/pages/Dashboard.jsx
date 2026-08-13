@@ -389,7 +389,7 @@ export default function Dashboard() {
                       });
                     }
                   }}
-                  className={`w-24 h-24 sm:w-28 sm:h-28 rounded-full ${style.ring} overflow-hidden shadow-md flex items-center justify-center ${style.avatarBg} relative transition-transform duration-300 group-hover:scale-105 ${photoUrl ? 'cursor-pointer' : ''}`}
+                  className={`w-32 h-32 sm:w-36 sm:h-36 lg:w-40 lg:h-40 rounded-full ${style.ring} overflow-hidden shadow-lg flex items-center justify-center ${style.avatarBg} relative transition-all duration-300 group-hover:scale-105 ${photoUrl ? 'cursor-pointer' : ''}`}
                   title={photoUrl ? 'Click to enlarge photo' : leader.fullName}
                 >
                   {photoUrl ? (
@@ -404,12 +404,12 @@ export default function Dashboard() {
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                       />
                       <div className="absolute inset-0 bg-slate-900/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <ZoomIn className="w-6 h-6 text-white drop-shadow-md" />
+                        <ZoomIn className="w-8 h-8 text-white drop-shadow-md" />
                       </div>
                     </>
                   ) : (
                     <div className="flex flex-col items-center justify-center p-2 text-center">
-                      <UserCheck className={`w-10 h-10 ${style.iconColor}`} />
+                      <UserCheck className={`w-14 h-14 ${style.iconColor}`} />
                     </div>
                   )}
                 </div>
