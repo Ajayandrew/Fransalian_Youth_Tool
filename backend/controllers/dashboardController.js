@@ -99,6 +99,69 @@ const getDashboardStats = async (req, res) => {
       };
     });
 
+    // Key Leadership Team Construction
+    let currentSettings = memoryStore.settings || {};
+    if (!getIsInMemory()) {
+      try {
+        const SettingsModel = require('../models/Settings');
+        const dbSettings = await SettingsModel.findById('org_settings').lean();
+        if (dbSettings) currentSettings = { ...currentSettings, ...dbSettings };
+      } catch (err) {}
+    }
+
+    const priestMember = members.find(m => m.role === 'Parish Priest') || 
+                         members.find(m => m.role === 'Admin' && /father|priest|rev/i.test(m.fullName));
+    const leaderMember = members.find(m => m.role === 'Youth Leader');
+    const secretaryMember = members.find(m => m.role === 'Secretary');
+    const treasurerMember = members.find(m => m.role === 'Treasurer');
+
+    const leadership = [
+      {
+        id: priestMember?._id || 'priest_default',
+        roleKey: 'priest',
+        roleTitle: 'Parish Priest',
+        subTitle: currentSettings.parishPriestTitle || 'Parish Priest / Spiritual Director',
+        fullName: priestMember?.fullName || currentSettings.parishPriestName || 'Rev. Fr. Parish Priest',
+        photo: priestMember?.photo || currentSettings.parishPriestPhoto || '',
+        mobileNumber: priestMember?.mobileNumber || currentSettings.parishPriestPhone || currentSettings.contactPhone || '',
+        email: priestMember?.email || currentSettings.contactEmail || '',
+        anbiyamName: priestMember?.anbiyamName || currentSettings.churchName || 'Cathedral Parish'
+      },
+      {
+        id: leaderMember?._id || 'leader_default',
+        roleKey: 'leader',
+        roleTitle: 'Youth Leader',
+        subTitle: 'President / Youth Leader',
+        fullName: leaderMember?.fullName || 'Youth Leader',
+        photo: leaderMember?.photo || '',
+        mobileNumber: leaderMember?.mobileNumber || '',
+        email: leaderMember?.email || '',
+        anbiyamName: leaderMember?.anbiyamName || 'Youth Executive'
+      },
+      {
+        id: secretaryMember?._id || 'secretary_default',
+        roleKey: 'secretary',
+        roleTitle: 'Secretary',
+        subTitle: 'Youth Secretary',
+        fullName: secretaryMember?.fullName || 'Secretary',
+        photo: secretaryMember?.photo || '',
+        mobileNumber: secretaryMember?.mobileNumber || '',
+        email: secretaryMember?.email || '',
+        anbiyamName: secretaryMember?.anbiyamName || 'Youth Executive'
+      },
+      {
+        id: treasurerMember?._id || 'treasurer_default',
+        roleKey: 'treasurer',
+        roleTitle: 'Treasurer',
+        subTitle: 'Youth Treasurer',
+        fullName: treasurerMember?.fullName || 'Treasurer',
+        photo: treasurerMember?.photo || '',
+        mobileNumber: treasurerMember?.mobileNumber || '',
+        email: treasurerMember?.email || '',
+        anbiyamName: treasurerMember?.anbiyamName || 'Youth Executive'
+      }
+    ];
+
     return res.json({
       success: true,
       stats: {
@@ -114,6 +177,7 @@ const getDashboardStats = async (req, res) => {
         todayBirthdaysCount: todayBirthdays.length,
         upcomingEventsCount: upcomingEvents.length
       },
+      leadership,
       charts: {
         financialOverview,
         monthlyCollectionChart,

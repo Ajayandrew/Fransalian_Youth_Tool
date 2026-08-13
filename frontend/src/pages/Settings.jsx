@@ -18,6 +18,9 @@ export default function Settings() {
   const [logoPreview, setLogoPreview] = useState(globalSettings.churchLogo || '');
   const [showLogoModal, setShowLogoModal] = useState(false);
 
+  const [priestFile, setPriestFile] = useState(null);
+  const [priestPreview, setPriestPreview] = useState(globalSettings.parishPriestPhoto || '');
+
   const [profileEmail, setProfileEmail] = useState(user?.email || '');
   const [profileBloodGroup, setProfileBloodGroup] = useState(user?.bloodGroup || 'O+');
   const [newPasswordInput, setNewPasswordInput] = useState('');
@@ -32,6 +35,7 @@ export default function Settings() {
   useEffect(() => {
     setSettings({ ...globalSettings });
     setLogoPreview(globalSettings.churchLogo ? getImageUrl(globalSettings.churchLogo) : '');
+    setPriestPreview(globalSettings.parishPriestPhoto ? getImageUrl(globalSettings.parishPriestPhoto) : '');
   }, [globalSettings]);
 
   const handleLogoFileChange = (e) => {
@@ -42,18 +46,28 @@ export default function Settings() {
     }
   };
 
+  const handlePriestFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setPriestFile(file);
+      setPriestPreview(URL.createObjectURL(file));
+    }
+  };
+
   const handleSave = async (e) => {
     e.preventDefault();
     if (!canEdit) return toast.error('Only Admin can update organization settings.');
 
     try {
-      if (logoFile) {
+      if (logoFile || priestFile) {
         const payload = new FormData();
         Object.keys(settings).forEach(key => {
-          if (key === 'churchLogo') return;
+          if (key === 'churchLogo' && logoFile) return;
+          if (key === 'parishPriestPhoto' && priestFile) return;
           payload.append(key, settings[key]);
         });
-        payload.append('churchLogo', logoFile);
+        if (logoFile) payload.append('churchLogo', logoFile);
+        if (priestFile) payload.append('parishPriestPhoto', priestFile);
         await updateGlobalSettings(payload);
       } else {
         await updateGlobalSettings(settings);
@@ -311,6 +325,76 @@ export default function Settings() {
                 value={settings.contactPhone || ''}
                 onChange={(e) => setSettings({ ...settings, contactPhone: e.target.value })}
                 className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Parish Priest Details Setup */}
+        <div className="bg-white rounded-3xl border border-amber-200/80 p-6 shadow-xs space-y-4">
+          <h2 className="text-xs font-black uppercase tracking-wider text-amber-700 flex items-center gap-2">
+            <UserCheck className="w-4 h-4 text-amber-600" /> Parish Priest Profile & Highlight Setup
+          </h2>
+          <p className="text-xs text-slate-500 font-medium">Configure the Parish Priest / Spiritual Director name, title, photo, and phone to display on the Dashboard.</p>
+
+          <div className="p-4 rounded-2xl bg-amber-50/50 border border-amber-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center space-x-4">
+              <div className="w-16 h-16 rounded-2xl bg-white border border-amber-300 flex items-center justify-center overflow-hidden shadow-xs">
+                {priestPreview ? (
+                  <img src={priestPreview} alt="Parish Priest" className="w-full h-full object-cover" />
+                ) : (
+                  <UserCheck className="w-8 h-8 text-amber-600" />
+                )}
+              </div>
+              <div>
+                <h4 className="font-bold text-slate-900 text-xs">{settings.parishPriestName || 'Rev. Fr. Parish Priest'}</h4>
+                <p className="text-[11px] text-amber-800 font-medium">{settings.parishPriestTitle || 'Parish Priest / Spiritual Director'}</p>
+              </div>
+            </div>
+
+            {canEdit && (
+              <label className="py-2 px-3.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold cursor-pointer flex items-center space-x-1.5 shadow-sm transition">
+                <Upload className="w-3.5 h-3.5" />
+                <span>Upload Priest Photo</span>
+                <input type="file" accept="image/*" name="parishPriestPhoto" onChange={handlePriestFileChange} className="hidden" />
+              </label>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-semibold">
+            <div>
+              <label className="block text-slate-600 mb-1">Parish Priest Full Name</label>
+              <input
+                type="text"
+                disabled={!canEdit}
+                value={settings.parishPriestName || ''}
+                onChange={(e) => setSettings({ ...settings, parishPriestName: e.target.value })}
+                placeholder="e.g. Rev. Fr. Anthony Raj"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500/20 focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-slate-600 mb-1">Designation / Title</label>
+              <input
+                type="text"
+                disabled={!canEdit}
+                value={settings.parishPriestTitle || ''}
+                onChange={(e) => setSettings({ ...settings, parishPriestTitle: e.target.value })}
+                placeholder="e.g. Parish Priest / Youth Director"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500/20 focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-slate-600 mb-1">Priest Direct Mobile / Contact</label>
+              <input
+                type="text"
+                disabled={!canEdit}
+                value={settings.parishPriestPhone || ''}
+                onChange={(e) => setSettings({ ...settings, parishPriestPhone: e.target.value })}
+                placeholder="e.g. +91 98765 43210"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500/20 focus:outline-none"
               />
             </div>
           </div>

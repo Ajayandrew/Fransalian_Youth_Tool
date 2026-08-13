@@ -24,7 +24,7 @@ const memberSchema = new mongoose.Schema({
   activeStatus: { type: String, enum: ['Active', 'Inactive'], default: 'Active' },
   role: { 
     type: String, 
-    enum: ['Admin', 'Youth Leader', 'Treasurer', 'Secretary', 'Vice President', 'Joint Secretary', 'Youth Member'], 
+    enum: ['Admin', 'Parish Priest', 'Youth Leader', 'Treasurer', 'Secretary', 'Vice President', 'Joint Secretary', 'Youth Member'], 
     default: 'Youth Member' 
   },
   photo: { type: String, default: '' },

@@ -15,6 +15,10 @@ const defaultSettings = {
   contactEmail: 'youth@church.org',
   contactPhone: '+91 98765 43210',
   churchLogo: '',
+  parishPriestName: 'Rev. Fr. Parish Priest',
+  parishPriestPhoto: '',
+  parishPriestPhone: '',
+  parishPriestTitle: 'Parish Priest / Spiritual Director',
   subscriptionAmount: 50,
   darkMode: false,
   youtubeUrl: '',
@@ -43,9 +47,23 @@ const getSettings = async (req, res) => {
 
 const updateSettings = async (req, res) => {
   try {
-    const data = req.body;
-    if (req.file) {
-      data.churchLogo = req.file.dataUrl || `/uploads/${req.file.filename}`;
+    const data = { ...req.body };
+    if (req.files && Array.isArray(req.files)) {
+      req.files.forEach(f => {
+        const photoUrl = f.dataUrl || `/uploads/${f.filename}`;
+        if (f.fieldname === 'parishPriestPhoto') {
+          data.parishPriestPhoto = photoUrl;
+        } else if (f.fieldname === 'churchLogo') {
+          data.churchLogo = photoUrl;
+        }
+      });
+    } else if (req.file) {
+      const photoUrl = req.file.dataUrl || `/uploads/${req.file.filename}`;
+      if (req.file.fieldname === 'parishPriestPhoto') {
+        data.parishPriestPhoto = photoUrl;
+      } else {
+        data.churchLogo = photoUrl;
+      }
     }
 
     let updated = null;

@@ -5,7 +5,7 @@ const { authMiddleware, checkRole } = require('../middleware/auth');
 const upload = require('../middleware/upload');
 
 router.get('/', authMiddleware, getSettings);
-router.post('/', authMiddleware, checkRole(['Admin']), upload.single('churchLogo'), updateSettings);
+router.post('/', authMiddleware, checkRole(['Admin']), upload.any(), updateSettings);
 router.post('/anbiyams', authMiddleware, checkRole(['Admin', 'Youth Leader', 'Secretary', 'Treasurer']), addAnbiyam);
 router.post('/reset-data', authMiddleware, checkRole(['Admin', 'Treasurer', 'Secretary', 'Youth Leader']), resetData);
 

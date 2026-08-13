@@ -39,6 +39,29 @@ const uploadMiddleware = (fieldname) => {
   };
 };
 
+const uploadAnyMiddleware = () => {
+  return (req, res, next) => {
+    rawMulter.any()(req, res, (err) => {
+      if (err) return next(err);
+      if (req.files && req.files.length > 0) {
+        req.files.forEach(file => {
+          const ext = path.extname(file.originalname) || '.jpg';
+          const filename = `${file.fieldname}-${Date.now()}-${Math.round(Math.random() * 1E9)}${ext}`;
+          file.filename = filename;
+          const localPath = path.join(uploadDir, filename);
+          try {
+            fs.writeFileSync(localPath, file.buffer);
+          } catch (e) {}
+          const mime = file.mimetype || 'image/jpeg';
+          file.dataUrl = `data:${mime};base64,${file.buffer.toString('base64')}`;
+        });
+      }
+      next();
+    });
+  };
+};
+
 module.exports = {
-  single: uploadMiddleware
+  single: uploadMiddleware,
+  any: uploadAnyMiddleware
 };

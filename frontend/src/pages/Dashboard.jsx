@@ -18,7 +18,12 @@ import {
   Facebook,
   Instagram,
   ExternalLink,
-  LogOut
+  LogOut,
+  ShieldCheck,
+  Award,
+  Phone,
+  UserCheck,
+  ZoomIn
 } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, LineChart, Line } from 'recharts';
 import { Link } from 'react-router-dom';
@@ -26,6 +31,7 @@ import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
 import { useDataCache } from '../context/DataContext';
 import { getImageUrl } from '../utils/urlUtils';
+import PhotoLightboxModal from '../components/PhotoLightboxModal';
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
@@ -60,6 +66,8 @@ export default function Dashboard() {
     upcomingEvents: []
   });
 
+  const [leadership, setLeadership] = useState([]);
+  const [lightboxPhoto, setLightboxPhoto] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -70,6 +78,7 @@ export default function Dashboard() {
           setStats(data.stats || stats);
           setCharts(data.charts || charts);
           setRecentActivity(data.recentActivity || recentActivity);
+          if (data.leadership) setLeadership(data.leadership);
         }
       } catch (err) {
         console.error('Failed to load dashboard stats:', err);
@@ -299,6 +308,139 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Key Leadership Team & Office Bearers (Highlighted before Social Media) */}
+      <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+          <div>
+            <h3 className="text-base font-black text-slate-900 flex items-center space-x-2">
+              <Award className="w-5 h-5 text-indigo-600" />
+              <span>Parish & Youth Leadership Team</span>
+            </h3>
+            <p className="text-xs text-slate-500 font-medium mt-0.5">Key spiritual & youth office bearers serving our community</p>
+          </div>
+          <span className="px-3 py-1 text-[10px] font-black uppercase tracking-wider rounded-full bg-amber-100 text-amber-900 border border-amber-300 self-start sm:self-auto shadow-2xs">
+            Office Bearers
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          {(leadership.length > 0 ? leadership : [
+            { roleKey: 'priest', roleTitle: 'Parish Priest', subTitle: settings.parishPriestTitle || 'Parish Priest / Spiritual Director', fullName: settings.parishPriestName || 'Rev. Fr. Parish Priest', photo: settings.parishPriestPhoto, mobileNumber: settings.parishPriestPhone || settings.contactPhone },
+            { roleKey: 'leader', roleTitle: 'Youth Leader', subTitle: 'President / Youth Leader', fullName: 'Youth Leader', photo: '' },
+            { roleKey: 'secretary', roleTitle: 'Secretary', subTitle: 'Youth Secretary', fullName: 'Secretary', photo: '' },
+            { roleKey: 'treasurer', roleTitle: 'Treasurer', subTitle: 'Youth Treasurer', fullName: 'Treasurer', photo: '' }
+          ]).map((leader, idx) => {
+            const roleStyles = {
+              priest: {
+                bg: 'bg-gradient-to-b from-amber-500/10 via-amber-500/5 to-white',
+                border: 'border-amber-300/80 hover:border-amber-400',
+                badge: 'bg-amber-100 text-amber-900 border-amber-300',
+                ring: 'ring-4 ring-amber-400/30',
+                iconColor: 'text-amber-600',
+                avatarBg: 'bg-amber-100 text-amber-800'
+              },
+              leader: {
+                bg: 'bg-gradient-to-b from-indigo-500/10 via-indigo-500/5 to-white',
+                border: 'border-indigo-200/90 hover:border-indigo-400',
+                badge: 'bg-indigo-100 text-indigo-900 border-indigo-300',
+                ring: 'ring-4 ring-indigo-400/30',
+                iconColor: 'text-indigo-600',
+                avatarBg: 'bg-indigo-100 text-indigo-800'
+              },
+              secretary: {
+                bg: 'bg-gradient-to-b from-sky-500/10 via-sky-500/5 to-white',
+                border: 'border-sky-200/90 hover:border-sky-400',
+                badge: 'bg-sky-100 text-sky-900 border-sky-300',
+                ring: 'ring-4 ring-sky-400/30',
+                iconColor: 'text-sky-600',
+                avatarBg: 'bg-sky-100 text-sky-800'
+              },
+              treasurer: {
+                bg: 'bg-gradient-to-b from-emerald-500/10 via-emerald-500/5 to-white',
+                border: 'border-emerald-200/90 hover:border-emerald-400',
+                badge: 'bg-emerald-100 text-emerald-900 border-emerald-300',
+                ring: 'ring-4 ring-emerald-400/30',
+                iconColor: 'text-emerald-600',
+                avatarBg: 'bg-emerald-100 text-emerald-800'
+              }
+            };
+
+            const style = roleStyles[leader.roleKey] || roleStyles.leader;
+            const photoUrl = leader.photo ? getImageUrl(leader.photo) : '';
+
+            return (
+              <div
+                key={leader.id || idx}
+                className={`p-5 rounded-2xl border ${style.border} ${style.bg} transition-all duration-300 hover:shadow-lg flex flex-col items-center text-center relative group space-y-3.5`}
+              >
+                {/* Role Badge */}
+                <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${style.badge} shadow-2xs`}>
+                  {leader.roleTitle}
+                </span>
+
+                {/* Highlighted Avatar Photo */}
+                <div
+                  onClick={() => {
+                    if (photoUrl) {
+                      setLightboxPhoto({
+                        url: photoUrl,
+                        title: leader.fullName,
+                        subtitle: `${leader.roleTitle} • ${settings.youthName || 'Fransalian Youth'}`
+                      });
+                    }
+                  }}
+                  className={`w-24 h-24 sm:w-28 sm:h-28 rounded-full ${style.ring} overflow-hidden shadow-md flex items-center justify-center ${style.avatarBg} relative transition-transform duration-300 group-hover:scale-105 ${photoUrl ? 'cursor-pointer' : ''}`}
+                  title={photoUrl ? 'Click to enlarge photo' : leader.fullName}
+                >
+                  {photoUrl ? (
+                    <>
+                      <img
+                        src={photoUrl}
+                        alt={leader.fullName}
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300';
+                        }}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                      />
+                      <div className="absolute inset-0 bg-slate-900/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <ZoomIn className="w-6 h-6 text-white drop-shadow-md" />
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center p-2 text-center">
+                      <UserCheck className={`w-10 h-10 ${style.iconColor}`} />
+                    </div>
+                  )}
+                </div>
+
+                {/* Name & Details */}
+                <div className="w-full space-y-1">
+                  <h4 className="text-sm font-black text-slate-900 tracking-tight truncate px-1" title={leader.fullName}>
+                    {leader.fullName}
+                  </h4>
+                  <p className="text-[11px] font-bold text-slate-500 truncate">{leader.subTitle}</p>
+                </div>
+
+                {/* Contact or Anbiyam Footer */}
+                {(leader.mobileNumber || leader.anbiyamName) && (
+                  <div className="pt-2 border-t border-slate-200/60 w-full text-[11px] font-medium text-slate-600 flex items-center justify-center gap-1.5 truncate">
+                    {leader.mobileNumber ? (
+                      <span className="flex items-center gap-1 text-slate-700 font-bold">
+                        <Phone className="w-3 h-3 text-slate-400" />
+                        {leader.mobileNumber}
+                      </span>
+                    ) : (
+                      <span className="text-slate-500 font-medium">{leader.anbiyamName}</span>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Official Social Media Channels Banner (Placed at the bottom) */}
       <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
@@ -379,6 +521,16 @@ export default function Dashboard() {
           </a>
         </div>
       </div>
+
+      {/* Lightbox Photo Modal */}
+      {lightboxPhoto && (
+        <PhotoLightboxModal
+          photoUrl={lightboxPhoto.url}
+          title={lightboxPhoto.title}
+          subtitle={lightboxPhoto.subtitle}
+          onClose={() => setLightboxPhoto(null)}
+        />
+      )}
     </div>
   );
 }

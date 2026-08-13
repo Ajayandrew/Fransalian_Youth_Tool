@@ -17,6 +17,10 @@ const settingsSchema = new mongoose.Schema({
   youtubeUrl: { type: String, default: '' },
   facebookUrl: { type: String, default: '' },
   instagramUrl: { type: String, default: '' },
+  parishPriestName: { type: String, default: 'Rev. Fr. Parish Priest' },
+  parishPriestPhoto: { type: String, default: '' },
+  parishPriestPhone: { type: String, default: '' },
+  parishPriestTitle: { type: String, default: 'Parish Priest / Spiritual Director' },
   anbiyams: { type: [String], default: ['St. Francis Xavier Anbiyam', 'St. Antony Anbiyam', 'Mother Teresa Anbiyam', 'St. Jude Anbiyam'] }
 }, { timestamps: true });
 
