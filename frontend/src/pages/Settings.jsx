@@ -341,7 +341,7 @@ export default function Settings() {
             <div className="flex items-center space-x-4">
               <div className="w-16 h-16 rounded-2xl bg-white border border-amber-300 flex items-center justify-center overflow-hidden shadow-xs">
                 {priestPreview ? (
-                  <img src={priestPreview} alt="Parish Priest" className="w-full h-full object-cover" />
+                  <img src={priestPreview} alt="Parish Priest" className="w-full h-full object-cover object-top" />
                 ) : (
                   <UserCheck className="w-8 h-8 text-amber-600" />
                 )}

@@ -172,7 +172,7 @@ export default function Login() {
                         e.target.onerror = null;
                         e.target.src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200';
                       }}
-                      className="w-14 h-14 rounded-2xl object-cover border-2 border-white shadow-md flex-shrink-0"
+                      className="w-14 h-14 rounded-2xl object-cover object-top border-2 border-white shadow-md flex-shrink-0"
                     />
                   ) : (
                     <div className="p-3 rounded-2xl bg-white shadow-xs flex-shrink-0">

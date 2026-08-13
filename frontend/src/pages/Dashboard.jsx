@@ -401,7 +401,7 @@ export default function Dashboard() {
                           e.target.onerror = null;
                           e.target.src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300';
                         }}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                        className="w-full h-full object-cover object-top group-hover:scale-110 transition-transform duration-300"
                       />
                       <div className="absolute inset-0 bg-slate-900/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <ZoomIn className="w-8 h-8 text-white drop-shadow-md" />
