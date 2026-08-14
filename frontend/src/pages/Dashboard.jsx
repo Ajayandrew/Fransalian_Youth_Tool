@@ -32,6 +32,7 @@ import { useSettings } from '../context/SettingsContext';
 import { useDataCache } from '../context/DataContext';
 import { getImageUrl } from '../utils/urlUtils';
 import PhotoLightboxModal from '../components/PhotoLightboxModal';
+import DashboardSkeleton from '../components/DashboardSkeleton';
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
@@ -146,6 +147,10 @@ export default function Dashboard() {
     upcomingEvents: [],
     ...(recentActivity || {})
   };
+
+  if (loading) {
+    return <DashboardSkeleton />;
+  }
 
   return (
     <div className="space-y-6 pb-12">
