@@ -54,7 +54,14 @@ const updateSettings = async (req, res) => {
 
     for (const f of fileList) {
       const photoUrl = f.dataUrl || `/uploads/${f.filename}`;
-      if (f.fieldname === 'parishPriestPhoto') {
+      const name = (f.fieldname || '').toLowerCase();
+      if (name.includes('priest')) {
+        data.parishPriestPhoto = photoUrl;
+      } else if (name.includes('logo')) {
+        data.churchLogo = photoUrl;
+      } else if (name.includes('patron') || name.includes('mary')) {
+        data.patronPhoto = photoUrl;
+      } else if (f.fieldname === 'parishPriestPhoto') {
         data.parishPriestPhoto = photoUrl;
       } else if (f.fieldname === 'churchLogo') {
         data.churchLogo = photoUrl;

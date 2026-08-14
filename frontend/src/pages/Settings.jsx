@@ -41,27 +41,87 @@ export default function Settings() {
     setPatronPreview(globalSettings.patronPhoto ? getImageUrl(globalSettings.patronPhoto) : '');
   }, [globalSettings]);
 
-  const handleLogoFileChange = (e) => {
+  const handleLogoFileChange = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      setLogoFile(file);
-      setLogoPreview(URL.createObjectURL(file));
+    if (!file) return;
+    if (!canEdit) return toast.error('Only Admin can update organization settings.');
+
+    setLogoFile(file);
+    setLogoPreview(URL.createObjectURL(file));
+
+    const loadingToast = toast.loading('Uploading Church logo...');
+    try {
+      const payload = new FormData();
+      Object.keys(settings).forEach(key => {
+        if (key === 'churchLogo' || key === 'parishPriestPhoto' || key === 'patronPhoto') return;
+        payload.append(key, settings[key]);
+      });
+      payload.append('churchLogo', file);
+      const res = await updateGlobalSettings(payload);
+      toast.dismiss(loadingToast);
+      if (res && res.settings && res.settings.churchLogo) {
+        setLogoPreview(getImageUrl(res.settings.churchLogo));
+      }
+      toast.success('Church logo uploaded successfully!');
+    } catch (err) {
+      toast.dismiss(loadingToast);
+      toast.error('Failed to upload logo.');
     }
   };
 
-  const handlePriestFileChange = (e) => {
+  const handlePriestFileChange = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      setPriestFile(file);
-      setPriestPreview(URL.createObjectURL(file));
+    if (!file) return;
+    if (!canEdit) return toast.error('Only Admin can update organization settings.');
+
+    setPriestFile(file);
+    setPriestPreview(URL.createObjectURL(file));
+
+    const loadingToast = toast.loading('Uploading Priest photo...');
+    try {
+      const payload = new FormData();
+      Object.keys(settings).forEach(key => {
+        if (key === 'churchLogo' || key === 'parishPriestPhoto' || key === 'patronPhoto') return;
+        payload.append(key, settings[key]);
+      });
+      payload.append('parishPriestPhoto', file);
+      const res = await updateGlobalSettings(payload);
+      toast.dismiss(loadingToast);
+      if (res && res.settings && res.settings.parishPriestPhoto) {
+        setPriestPreview(getImageUrl(res.settings.parishPriestPhoto));
+      }
+      toast.success('Priest photo uploaded successfully!');
+    } catch (err) {
+      toast.dismiss(loadingToast);
+      toast.error('Failed to upload Priest photo.');
     }
   };
 
-  const handlePatronFileChange = (e) => {
+  const handlePatronFileChange = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      setPatronFile(file);
-      setPatronPreview(URL.createObjectURL(file));
+    if (!file) return;
+    if (!canEdit) return toast.error('Only Admin can update organization settings.');
+
+    setPatronFile(file);
+    setPatronPreview(URL.createObjectURL(file));
+
+    const loadingToast = toast.loading('Uploading Mary Help of Christians portrait...');
+    try {
+      const payload = new FormData();
+      Object.keys(settings).forEach(key => {
+        if (key === 'churchLogo' || key === 'parishPriestPhoto' || key === 'patronPhoto') return;
+        payload.append(key, settings[key]);
+      });
+      payload.append('patronPhoto', file);
+      const res = await updateGlobalSettings(payload);
+      toast.dismiss(loadingToast);
+      if (res && res.settings && res.settings.patronPhoto) {
+        setPatronPreview(getImageUrl(res.settings.patronPhoto));
+      }
+      toast.success('Mary Help of Christians image uploaded & saved successfully!');
+    } catch (err) {
+      toast.dismiss(loadingToast);
+      toast.error('Failed to upload Mary Help of Christians image.');
     }
   };
 
