@@ -21,6 +21,7 @@ const settingsSchema = new mongoose.Schema({
   parishPriestPhoto: { type: String, default: '' },
   parishPriestPhone: { type: String, default: '' },
   parishPriestTitle: { type: String, default: 'Parish Priest / Spiritual Director' },
+  patronPhoto: { type: String, default: '' },
   anbiyams: { type: [String], default: ['St. Francis Xavier Anbiyam', 'St. Antony Anbiyam', 'Mother Teresa Anbiyam', 'St. Jude Anbiyam'] }
 }, { timestamps: true });
 

@@ -120,6 +120,10 @@ export default function Dashboard() {
     else setMaryPatronImage('https://images.unsplash.com/photo-1548625361-18da90e740fa?w=500');
   };
 
+  const patronDisplaySrc = settings?.patronPhoto
+    ? getImageUrl(settings.patronPhoto)
+    : maryPatronImage;
+
   return (
     <div className="space-y-6 pb-12 relative min-h-screen">
       <div className="relative z-10 space-y-6">
@@ -167,7 +171,7 @@ export default function Dashboard() {
           <div
             onClick={() =>
               setLightboxPhoto({
-                url: maryPatronImage,
+                url: patronDisplaySrc,
                 title: 'Mary, Help of Christians',
                 subtitle: `Patroness & Heavenly Mother • ${settings.youthName || 'Fransalian Youth Movement'}`
               })
@@ -176,7 +180,7 @@ export default function Dashboard() {
             title="Click to view sacred portrait of Mary Help of Christians"
           >
             <img
-              src={maryPatronImage}
+              src={patronDisplaySrc}
               alt="Mary Help of Christians"
               onError={handleMaryImgError}
               className="w-full h-full object-cover object-top rounded-xl group-hover/img:scale-110 transition-transform duration-300"
@@ -207,7 +211,7 @@ export default function Dashboard() {
           <button
             onClick={() =>
               setLightboxPhoto({
-                url: maryPatronImage,
+                url: patronDisplaySrc,
                 title: 'Mary, Help of Christians',
                 subtitle: `Patroness & Heavenly Mother • ${settings.youthName || 'Fransalian Youth Movement'}`
               })

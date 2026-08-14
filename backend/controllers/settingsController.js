@@ -20,6 +20,7 @@ const defaultSettings = {
   parishPriestPhoto: '',
   parishPriestPhone: '',
   parishPriestTitle: 'Parish Priest / Spiritual Director',
+  patronPhoto: '',
   subscriptionAmount: 50,
   darkMode: false,
   youtubeUrl: '',
@@ -57,6 +58,8 @@ const updateSettings = async (req, res) => {
         data.parishPriestPhoto = photoUrl;
       } else if (f.fieldname === 'churchLogo') {
         data.churchLogo = photoUrl;
+      } else if (f.fieldname === 'patronPhoto') {
+        data.patronPhoto = photoUrl;
       }
     }
 
