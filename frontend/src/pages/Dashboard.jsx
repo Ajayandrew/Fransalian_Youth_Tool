@@ -110,6 +110,16 @@ export default function Dashboard() {
     return user?.fullName || 'Parish Member';
   };
 
+  const [maryPatronImage, setMaryPatronImage] = useState('/mary-help-of-christians.png');
+  const handleMaryImgError = () => {
+    if (maryPatronImage === '/mary-help-of-christians.png') setMaryPatronImage('/mary-help-of-christians.jpg');
+    else if (maryPatronImage === '/mary-help-of-christians.jpg') setMaryPatronImage('/mary-help-of-christians.jpeg');
+    else if (maryPatronImage === '/mary-help-of-christians.jpeg') setMaryPatronImage('/mary-help-of-christians.webp');
+    else if (maryPatronImage === '/mary-help-of-christians.webp') setMaryPatronImage('/mary.png');
+    else if (maryPatronImage === '/mary.png') setMaryPatronImage('/mary.jpg');
+    else setMaryPatronImage('https://images.unsplash.com/photo-1548625361-18da90e740fa?w=500');
+  };
+
   return (
     <div className="space-y-6 pb-12 relative min-h-screen">
       <div className="relative z-10 space-y-6">
@@ -144,6 +154,69 @@ export default function Dashboard() {
               <span>Logout</span>
             </button>
           )}
+        </div>
+      </div>
+
+      {/* Sacred Patron Banner Card: Mary Help of Christians */}
+      <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-blue-950 text-white border border-amber-400/30 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-5 relative overflow-hidden group">
+        {/* Background Ambient Glow */}
+        <div className="absolute -right-10 -bottom-10 w-48 h-48 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
+
+        <div className="flex items-center space-x-4 z-10">
+          {/* Framed Image Avatar */}
+          <div
+            onClick={() =>
+              setLightboxPhoto({
+                url: maryPatronImage,
+                title: 'Mary, Help of Christians',
+                subtitle: `Patroness & Heavenly Mother • ${settings.youthName || 'Fransalian Youth Movement'}`
+              })
+            }
+            className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl ring-2 ring-amber-400/80 shadow-xl overflow-hidden bg-white/10 p-1 flex-shrink-0 cursor-pointer hover:scale-105 transition-transform duration-300 relative group/img"
+            title="Click to view sacred portrait of Mary Help of Christians"
+          >
+            <img
+              src={maryPatronImage}
+              alt="Mary Help of Christians"
+              onError={handleMaryImgError}
+              className="w-full h-full object-cover object-top rounded-xl group-hover/img:scale-110 transition-transform duration-300"
+            />
+            <div className="absolute inset-0 bg-slate-900/30 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center rounded-xl">
+              <ZoomIn className="w-5 h-5 text-amber-300 drop-shadow-md" />
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <div className="inline-flex items-center space-x-1.5 px-3 py-0.5 rounded-full bg-amber-400/20 border border-amber-400/40 text-amber-300 text-[10px] font-black uppercase tracking-wider">
+              <Sparkles className="w-3 h-3 text-amber-400" />
+              <span>Celestial Patroness & Heavenly Protectress</span>
+            </div>
+            <h2 className="text-base sm:text-lg font-black text-amber-100 tracking-tight">
+              Mary, Help of Christians
+            </h2>
+            <p className="text-xs text-indigo-200 font-medium italic max-w-xl">
+              "Mother of Christ, guide and protect our youth in faith, wisdom, and fellowship. Pray for us!"
+            </p>
+          </div>
+        </div>
+
+        <div className="flex sm:flex-col items-end justify-between sm:justify-center w-full sm:w-auto border-t sm:border-t-0 border-white/10 pt-3 sm:pt-0 gap-2 z-10">
+          <span className="px-3 py-1 rounded-xl bg-amber-400/20 border border-amber-400/40 text-amber-300 text-[11px] font-bold">
+            Feast Day: May 24th
+          </span>
+          <button
+            onClick={() =>
+              setLightboxPhoto({
+                url: maryPatronImage,
+                title: 'Mary, Help of Christians',
+                subtitle: `Patroness & Heavenly Mother • ${settings.youthName || 'Fransalian Youth Movement'}`
+              })
+            }
+            className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-indigo-950 font-black text-xs transition flex items-center gap-1.5 shadow-md cursor-pointer"
+          >
+            <ZoomIn className="w-3.5 h-3.5" />
+            <span>View Portrait</span>
+          </button>
         </div>
       </div>
 
