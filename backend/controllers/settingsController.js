@@ -52,6 +52,13 @@ const updateSettings = async (req, res) => {
     const data = { ...req.body };
     const fileList = req.files && Array.isArray(req.files) ? req.files : (req.file ? [req.file] : []);
 
+    if (typeof data.anbiyams === 'string') {
+      data.anbiyams = data.anbiyams.split(',').map(s => s.trim()).filter(Boolean);
+    }
+    if (data.subscriptionAmount !== undefined) {
+      data.subscriptionAmount = Number(data.subscriptionAmount) || 50;
+    }
+
     for (const f of fileList) {
       const photoUrl = f.dataUrl || `/uploads/${f.filename}`;
       const name = (f.fieldname || '').toLowerCase();

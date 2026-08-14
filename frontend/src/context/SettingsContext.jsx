@@ -44,13 +44,15 @@ export const SettingsProvider = ({ children }) => {
     try {
       let res;
       if (formDataOrObject instanceof FormData) {
-        res = await axios.post('/api/settings', formDataOrObject);
+        res = await axios.post('/api/settings', formDataOrObject, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
       } else {
         res = await axios.post('/api/settings', formDataOrObject);
       }
 
       if (res.data && res.data.settings) {
-        setSettings({ ...defaultSettings, ...res.data.settings });
+        setSettings(prev => ({ ...defaultSettings, ...prev, ...res.data.settings }));
       }
       return res.data;
     } catch (err) {

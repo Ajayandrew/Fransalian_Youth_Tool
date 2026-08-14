@@ -76,7 +76,13 @@ export default function Settings() {
           if (key === 'churchLogo' && logoFile) return;
           if (key === 'parishPriestPhoto' && priestFile) return;
           if (key === 'patronPhoto' && patronFile) return;
-          payload.append(key, settings[key]);
+          if (settings[key] !== null && settings[key] !== undefined) {
+            if (Array.isArray(settings[key])) {
+              payload.append(key, settings[key].join(','));
+            } else {
+              payload.append(key, settings[key]);
+            }
+          }
         });
         if (logoFile) payload.append('churchLogo', logoFile);
         if (priestFile) payload.append('parishPriestPhoto', priestFile);
@@ -87,7 +93,8 @@ export default function Settings() {
       }
       toast.success('Organization Settings saved successfully!');
     } catch (err) {
-      toast.error('Failed to update organization settings.');
+      console.error('Settings save error:', err);
+      toast.error(err.response?.data?.message || 'Failed to update organization settings.');
     }
   };
 
