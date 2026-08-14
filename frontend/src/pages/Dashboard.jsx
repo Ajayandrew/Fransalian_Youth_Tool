@@ -350,26 +350,14 @@ export default function Dashboard() {
           </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          {(leadership.length > 0 ? [
-            { roleKey: 'patroness', roleTitle: 'Patroness', subTitle: 'Celestial Patroness & Protectress', fullName: 'Mary, Help of Christians', photo: patronDisplaySrc, mobileNumber: 'Feast Day: May 24th' },
-            ...leadership
-          ] : [
-            { roleKey: 'patroness', roleTitle: 'Patroness', subTitle: 'Celestial Patroness & Protectress', fullName: 'Mary, Help of Christians', photo: patronDisplaySrc, mobileNumber: 'Feast Day: May 24th' },
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          {(leadership.length > 0 ? leadership : [
             { roleKey: 'priest', roleTitle: 'Parish Priest', subTitle: settings.parishPriestTitle || 'Parish Priest / Spiritual Director', fullName: settings.parishPriestName || 'Rev. Fr. Parish Priest', photo: settings.parishPriestPhoto, mobileNumber: settings.parishPriestPhone || settings.contactPhone },
             { roleKey: 'leader', roleTitle: 'Youth Leader', subTitle: 'President / Youth Leader', fullName: 'Youth Leader', photo: '' },
             { roleKey: 'secretary', roleTitle: 'Secretary', subTitle: 'Youth Secretary', fullName: 'Secretary', photo: '' },
             { roleKey: 'treasurer', roleTitle: 'Treasurer', subTitle: 'Youth Treasurer', fullName: 'Treasurer', photo: '' }
           ]).map((leader, idx) => {
             const roleStyles = {
-              patroness: {
-                bg: 'bg-gradient-to-b from-blue-500/10 via-amber-500/5 to-white',
-                border: 'border-blue-300/80 hover:border-blue-400 shadow-sm',
-                badge: 'bg-blue-100 text-blue-900 border-blue-300',
-                ring: 'ring-4 ring-amber-400/50',
-                iconColor: 'text-amber-600',
-                avatarBg: 'bg-blue-100 text-blue-800'
-              },
               priest: {
                 bg: 'bg-gradient-to-b from-amber-500/10 via-amber-500/5 to-white',
                 border: 'border-amber-300/80 hover:border-amber-400',
