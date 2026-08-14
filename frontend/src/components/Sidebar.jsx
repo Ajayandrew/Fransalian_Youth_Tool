@@ -23,7 +23,8 @@ import { getImageUrl } from '../utils/urlUtils';
 
 export default function Sidebar({ isOpen, setIsOpen, isMobileOpen, setIsMobileOpen }) {
   const { user } = useAuth();
-  const { settings } = useSettings();
+  const { settings: rawSettings } = useSettings();
+  const settings = rawSettings || {};
   const [showLogoModal, setShowLogoModal] = useState(false);
 
   const [sidebarMarySrc, setSidebarMarySrc] = useState('/mary-help-of-christians.png');

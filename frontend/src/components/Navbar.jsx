@@ -12,7 +12,8 @@ import toast from 'react-hot-toast';
 export default function Navbar({ onToggleMobileSidebar }) {
   const { user, logout, updateUserProfile } = useAuth();
   const { darkMode, toggleDarkMode } = useTheme();
-  const { settings } = useSettings();
+  const { settings: rawSettings } = useSettings();
+  const settings = rawSettings || {};
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [showLogoModal, setShowLogoModal] = useState(false);
   const [showAccountModal, setShowAccountModal] = useState(false);

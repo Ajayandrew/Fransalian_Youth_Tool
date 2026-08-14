@@ -70,7 +70,7 @@ export const SettingsProvider = ({ children }) => {
 export const useSettings = () => {
   const context = useContext(SettingsContext);
   if (!context) {
-    throw new Error('useSettings must be used within a SettingsProvider');
+    return { settings: defaultSettings, loading: false, refreshSettings: () => {}, updateSettings: async () => {} };
   }
-  return context;
+  return { ...context, settings: context.settings || defaultSettings };
 };
