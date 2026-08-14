@@ -126,41 +126,26 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6 pb-12 relative min-h-screen">
+      {/* Centered Background Watermark (Fits all screen sizes, subtle opacity, non-repeating) */}
+      <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-0 overflow-hidden select-none p-4">
+        <img
+          src={patronDisplaySrc}
+          alt="Mary Help of Christians Watermark"
+          onError={handleMaryImgError}
+          className="max-w-[85vw] max-h-[80vh] sm:max-w-[70vw] sm:max-h-[75vh] md:max-w-[55vw] md:max-h-[70vh] object-contain opacity-[0.06] transition-opacity duration-500 filter brightness-95"
+        />
+      </div>
+
       <div className="relative z-10 space-y-6">
         {/* Welcome Banner */}
       <div className="p-6 rounded-3xl bg-gradient-to-r from-indigo-900 via-indigo-800 to-slate-900 text-white shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center space-x-3.5">
-          {/* Mary Help of Christians Corner Emblem */}
-          <div
-            onClick={() =>
-              setLightboxPhoto({
-                url: patronDisplaySrc,
-                title: 'Mary, Help of Christians',
-                subtitle: `Patroness & Celestial Mother • ${settings.youthName || 'Fransalian Youth Movement'}`
-              })
-            }
-            className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl ring-2 ring-amber-400/80 shadow-md overflow-hidden bg-white/10 p-0.5 flex-shrink-0 cursor-pointer hover:scale-105 transition-transform duration-300 relative group/emblem"
-            title="Click to view Mary Help of Christians portrait"
-          >
-            <img
-              src={patronDisplaySrc}
-              alt="Mary Help of Christians"
-              onError={handleMaryImgError}
-              className="w-full h-full object-cover object-top rounded-xl group-hover/emblem:scale-110 transition-transform duration-300"
-            />
-            <div className="absolute inset-0 bg-slate-900/30 opacity-0 group-hover/emblem:opacity-100 transition-opacity flex items-center justify-center rounded-xl">
-              <ZoomIn className="w-4 h-4 text-amber-300 drop-shadow-md" />
-            </div>
+        <div>
+          <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-indigo-500/30 border border-indigo-400/40 text-amber-300 text-xs font-bold mb-2">
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>{settings.youthName || 'Youth Movement'}</span>
           </div>
-
-          <div>
-            <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-indigo-500/30 border border-indigo-400/40 text-amber-300 text-xs font-bold mb-2">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>{settings.youthName || 'Youth Movement'}</span>
-            </div>
-            <h1 className="text-xl sm:text-2xl font-black text-white">Welcome, {getWelcomeName()}!</h1>
-            <p className="text-xs text-indigo-200 mt-1 font-medium">{settings.churchName || 'Cathedral Parish'} • Dues, Accounts, Attendance & Events</p>
-          </div>
+          <h1 className="text-xl sm:text-2xl font-black text-white">Welcome, {getWelcomeName()}!</h1>
+          <p className="text-xs text-indigo-200 mt-1 font-medium">{settings.churchName || 'Cathedral Parish'} • Dues, Accounts, Attendance & Events</p>
         </div>
 
         <div className="flex items-center space-x-2">
