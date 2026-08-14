@@ -161,69 +161,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Sacred Patron Banner Card: Mary Help of Christians */}
-      <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-blue-950 text-white border border-amber-400/30 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-5 relative overflow-hidden group">
-        {/* Background Ambient Glow */}
-        <div className="absolute -right-10 -bottom-10 w-48 h-48 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
-
-        <div className="flex items-center space-x-4 z-10">
-          {/* Framed Image Avatar */}
-          <div
-            onClick={() =>
-              setLightboxPhoto({
-                url: patronDisplaySrc,
-                title: 'Mary, Help of Christians',
-                subtitle: `Patroness & Heavenly Mother • ${settings.youthName || 'Fransalian Youth Movement'}`
-              })
-            }
-            className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl ring-2 ring-amber-400/80 shadow-xl overflow-hidden bg-white/10 p-1 flex-shrink-0 cursor-pointer hover:scale-105 transition-transform duration-300 relative group/img"
-            title="Click to view sacred portrait of Mary Help of Christians"
-          >
-            <img
-              src={patronDisplaySrc}
-              alt="Mary Help of Christians"
-              onError={handleMaryImgError}
-              className="w-full h-full object-cover object-top rounded-xl group-hover/img:scale-110 transition-transform duration-300"
-            />
-            <div className="absolute inset-0 bg-slate-900/30 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center rounded-xl">
-              <ZoomIn className="w-5 h-5 text-amber-300 drop-shadow-md" />
-            </div>
-          </div>
-
-          <div className="space-y-1">
-            <div className="inline-flex items-center space-x-1.5 px-3 py-0.5 rounded-full bg-amber-400/20 border border-amber-400/40 text-amber-300 text-[10px] font-black uppercase tracking-wider">
-              <Sparkles className="w-3 h-3 text-amber-400" />
-              <span>Celestial Patroness & Heavenly Protectress</span>
-            </div>
-            <h2 className="text-base sm:text-lg font-black text-amber-100 tracking-tight">
-              Mary, Help of Christians
-            </h2>
-            <p className="text-xs text-indigo-200 font-medium italic max-w-xl">
-              "Mother of Christ, guide and protect our youth in faith, wisdom, and fellowship. Pray for us!"
-            </p>
-          </div>
-        </div>
-
-        <div className="flex sm:flex-col items-end justify-between sm:justify-center w-full sm:w-auto border-t sm:border-t-0 border-white/10 pt-3 sm:pt-0 gap-2 z-10">
-          <span className="px-3 py-1 rounded-xl bg-amber-400/20 border border-amber-400/40 text-amber-300 text-[11px] font-bold">
-            Feast Day: May 24th
-          </span>
-          <button
-            onClick={() =>
-              setLightboxPhoto({
-                url: patronDisplaySrc,
-                title: 'Mary, Help of Christians',
-                subtitle: `Patroness & Heavenly Mother • ${settings.youthName || 'Fransalian Youth Movement'}`
-              })
-            }
-            className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-indigo-950 font-black text-xs transition flex items-center gap-1.5 shadow-md cursor-pointer"
-          >
-            <ZoomIn className="w-3.5 h-3.5" />
-            <span>View Portrait</span>
-          </button>
-        </div>
-      </div>
-
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Total Youth Members */}
@@ -413,14 +350,26 @@ export default function Dashboard() {
           </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {(leadership.length > 0 ? leadership : [
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          {(leadership.length > 0 ? [
+            { roleKey: 'patroness', roleTitle: 'Patroness', subTitle: 'Celestial Patroness & Protectress', fullName: 'Mary, Help of Christians', photo: patronDisplaySrc, mobileNumber: 'Feast Day: May 24th' },
+            ...leadership
+          ] : [
+            { roleKey: 'patroness', roleTitle: 'Patroness', subTitle: 'Celestial Patroness & Protectress', fullName: 'Mary, Help of Christians', photo: patronDisplaySrc, mobileNumber: 'Feast Day: May 24th' },
             { roleKey: 'priest', roleTitle: 'Parish Priest', subTitle: settings.parishPriestTitle || 'Parish Priest / Spiritual Director', fullName: settings.parishPriestName || 'Rev. Fr. Parish Priest', photo: settings.parishPriestPhoto, mobileNumber: settings.parishPriestPhone || settings.contactPhone },
             { roleKey: 'leader', roleTitle: 'Youth Leader', subTitle: 'President / Youth Leader', fullName: 'Youth Leader', photo: '' },
             { roleKey: 'secretary', roleTitle: 'Secretary', subTitle: 'Youth Secretary', fullName: 'Secretary', photo: '' },
             { roleKey: 'treasurer', roleTitle: 'Treasurer', subTitle: 'Youth Treasurer', fullName: 'Treasurer', photo: '' }
           ]).map((leader, idx) => {
             const roleStyles = {
+              patroness: {
+                bg: 'bg-gradient-to-b from-blue-500/10 via-amber-500/5 to-white',
+                border: 'border-blue-300/80 hover:border-blue-400 shadow-sm',
+                badge: 'bg-blue-100 text-blue-900 border-blue-300',
+                ring: 'ring-4 ring-amber-400/50',
+                iconColor: 'text-amber-600',
+                avatarBg: 'bg-blue-100 text-blue-800'
+              },
               priest: {
                 bg: 'bg-gradient-to-b from-amber-500/10 via-amber-500/5 to-white',
                 border: 'border-amber-300/80 hover:border-amber-400',

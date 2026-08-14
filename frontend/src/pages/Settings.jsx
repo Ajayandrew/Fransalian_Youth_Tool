@@ -343,44 +343,6 @@ export default function Settings() {
           </div>
         </div>
 
-        {/* Mary Help of Christians Patron Portrait Setup */}
-        <div className="bg-white rounded-3xl border border-indigo-200/80 p-6 shadow-xs space-y-4">
-          <h2 className="text-xs font-black uppercase tracking-wider text-indigo-700 flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-indigo-600" /> Celestial Image Setup (Mary Help of Christians)
-          </h2>
-          <p className="text-xs text-slate-500 font-medium">Upload or update Mother Mary's portrait displayed on the Dashboard's Sacred Hero Card.</p>
-
-          <div className="p-4 rounded-2xl bg-gradient-to-r from-indigo-50/70 via-blue-50/50 to-indigo-50/70 border border-indigo-200 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center space-x-4">
-              <div
-                className="w-16 h-16 rounded-2xl bg-white border border-indigo-300 flex items-center justify-center overflow-hidden shadow-xs cursor-pointer group"
-                onClick={() => (patronPreview || settings.patronPhoto) && setShowPatronModal(true)}
-                title={(patronPreview || settings.patronPhoto) ? "Click to view full size portrait" : ""}
-              >
-                {patronPreview ? (
-                  <img src={patronPreview} alt="Mary Help of Christians" className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform" />
-                ) : (
-                  <Sparkles className="w-8 h-8 text-amber-500" />
-                )}
-              </div>
-              <div>
-                <h4 className="font-bold text-slate-900 text-xs">Mary, Help of Christians (Patroness)</h4>
-                <p className="text-[11px] text-indigo-700 font-medium">
-                  {settings.patronPhoto ? 'Custom Patron Image Uploaded' : 'Using default sacred portrait artwork'}
-                </p>
-              </div>
-            </div>
-
-            {canEdit && (
-              <label className="py-2 px-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold cursor-pointer flex items-center space-x-1.5 shadow-sm transition whitespace-nowrap">
-                <Upload className="w-3.5 h-3.5" />
-                <span>Upload Patron Image</span>
-                <input type="file" accept="image/*" name="patronPhoto" onChange={handlePatronFileChange} className="hidden" />
-              </label>
-            )}
-          </div>
-        </div>
-
 
 
         {/* Parish Priest Details Setup */}
