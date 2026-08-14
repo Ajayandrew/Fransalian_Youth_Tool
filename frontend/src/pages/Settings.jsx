@@ -227,65 +227,32 @@ export default function Settings() {
             <Church className="w-4 h-4 text-indigo-600" /> Organization & Parish Profile
           </h2>
 
-          {/* Church Logo & Patroness Image Upload Row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Church Logo Upload */}
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-4">
-              <div className="flex items-center space-x-3.5">
-                <div
-                  className="w-14 h-14 rounded-2xl bg-white border border-slate-200 flex items-center justify-center overflow-hidden shadow-xs cursor-pointer group"
-                  onClick={() => (logoPreview || settings.churchLogo) && setShowLogoModal(true)}
-                  title={(logoPreview || settings.churchLogo) ? "Click to view logo" : ""}
-                >
-                  {logoPreview ? (
-                    <img src={logoPreview} alt="Parish Logo" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-                  ) : (
-                    <Church className="w-7 h-7 text-indigo-600" />
-                  )}
-                </div>
-                <div>
-                  <h4 className="font-bold text-slate-900 text-xs">Parish / Youth Logo</h4>
-                  <p className="text-[11px] text-slate-500 font-medium">Official Crest Image</p>
-                </div>
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center space-x-4">
+              <div
+                className="w-16 h-16 rounded-2xl bg-white border border-slate-200 flex items-center justify-center overflow-hidden shadow-xs cursor-pointer group"
+                onClick={() => (logoPreview || settings.churchLogo) && setShowLogoModal(true)}
+                title={(logoPreview || settings.churchLogo) ? "Click to view full size and download logo" : ""}
+              >
+                {logoPreview ? (
+                  <img src={logoPreview} alt="Parish Logo" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                ) : (
+                  <Church className="w-8 h-8 text-indigo-600" />
+                )}
               </div>
-
-              {canEdit && (
-                <label className="py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold cursor-pointer flex items-center space-x-1.5 shadow-sm transition whitespace-nowrap">
-                  <Upload className="w-3.5 h-3.5" />
-                  <span>Upload</span>
-                  <input type="file" accept="image/*" onChange={handleLogoFileChange} className="hidden" />
-                </label>
-              )}
+              <div>
+                <h4 className="font-bold text-slate-900 text-xs">Church / Association Logo</h4>
+                <p className="text-[11px] text-slate-500 font-medium">Upload custom crest image or paste direct image URL</p>
+              </div>
             </div>
 
-            {/* Patroness Image Upload (Mary Help of Christians) */}
-            <div className="p-4 rounded-2xl bg-amber-50/50 border border-amber-200 flex items-center justify-between gap-4">
-              <div className="flex items-center space-x-3.5">
-                <div
-                  className="w-14 h-14 rounded-2xl bg-white border border-amber-300 flex items-center justify-center overflow-hidden shadow-xs cursor-pointer group"
-                  onClick={() => (patronPreview || settings.patronPhoto) && setShowPatronModal(true)}
-                  title={(patronPreview || settings.patronPhoto) ? "Click to view full portrait" : ""}
-                >
-                  {patronPreview ? (
-                    <img src={patronPreview} alt="Mary Help of Christians" className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform" />
-                  ) : (
-                    <Sparkles className="w-7 h-7 text-amber-500" />
-                  )}
-                </div>
-                <div>
-                  <h4 className="font-bold text-slate-900 text-xs">Mary, Help of Christians</h4>
-                  <p className="text-[11px] text-amber-700 font-medium">Patroness Emblem</p>
-                </div>
-              </div>
-
-              {canEdit && (
-                <label className="py-2 px-3 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold cursor-pointer flex items-center space-x-1.5 shadow-sm transition whitespace-nowrap">
-                  <Upload className="w-3.5 h-3.5" />
-                  <span>Upload</span>
-                  <input type="file" accept="image/*" name="patronPhoto" onChange={handlePatronFileChange} className="hidden" />
-                </label>
-              )}
-            </div>
+            {canEdit && (
+              <label className="py-2 px-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold cursor-pointer flex items-center space-x-1.5 shadow-sm transition">
+                <Upload className="w-3.5 h-3.5" />
+                <span>Upload Logo File</span>
+                <input type="file" accept="image/*" onChange={handleLogoFileChange} className="hidden" />
+              </label>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-semibold">
