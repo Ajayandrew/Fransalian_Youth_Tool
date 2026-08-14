@@ -26,6 +26,20 @@ export default function Sidebar({ isOpen, setIsOpen, isMobileOpen, setIsMobileOp
   const { settings } = useSettings();
   const [showLogoModal, setShowLogoModal] = useState(false);
 
+  const [sidebarMarySrc, setSidebarMarySrc] = useState('/mary-help-of-christians.png');
+  const handleSidebarMaryError = () => {
+    if (sidebarMarySrc === '/mary-help-of-christians.png') setSidebarMarySrc('/mary-help-of-christians.jpg');
+    else if (sidebarMarySrc === '/mary-help-of-christians.jpg') setSidebarMarySrc('/mary-help-of-christians.jpeg');
+    else if (sidebarMarySrc === '/mary-help-of-christians.jpeg') setSidebarMarySrc('/mary-help-of-christians.webp');
+    else if (sidebarMarySrc === '/mary-help-of-christians.webp') setSidebarMarySrc('/mary.png');
+    else if (sidebarMarySrc === '/mary.png') setSidebarMarySrc('/mary.jpg');
+    else setSidebarMarySrc('https://images.unsplash.com/photo-1548625361-18da90e740fa?w=500');
+  };
+
+  const maryImage = settings?.patronPhoto
+    ? getImageUrl(settings.patronPhoto)
+    : sidebarMarySrc;
+
   const navItems = [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/' },
     { label: 'Youth Members', icon: Users, path: '/members' },
@@ -50,12 +64,22 @@ export default function Sidebar({ isOpen, setIsOpen, isMobileOpen, setIsMobileOp
       )}
 
       <aside
-        className={`fixed top-0 left-0 z-50 h-screen transition-all duration-300 bg-white border-r border-slate-200 flex flex-col shadow-sm ${
+        className={`fixed top-0 left-0 z-50 h-screen transition-all duration-300 bg-white border-r border-slate-200 flex flex-col shadow-sm relative overflow-hidden ${
           isMobileOpen ? 'translate-x-0 w-64' : '-translate-x-full md:translate-x-0'
         } ${isOpen ? 'md:w-64' : 'md:w-20'}`}
       >
+        {/* Sidebar Background Watermark: Mary Help of Christians */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0 overflow-hidden select-none p-2">
+          <img
+            src={maryImage}
+            alt="Mary Help of Christians Sidebar Watermark"
+            onError={handleSidebarMaryError}
+            className="w-full max-h-[60vh] object-contain opacity-[0.08] filter brightness-95"
+          />
+        </div>
+
         {/* Header */}
-        <div className="h-16 px-4 flex items-center justify-between border-b border-slate-100">
+        <div className="h-16 px-4 flex items-center justify-between border-b border-slate-100 relative z-10">
           <div
             className="flex items-center space-x-3 overflow-hidden cursor-pointer group"
             onClick={() => settings.churchLogo && setShowLogoModal(true)}
@@ -86,7 +110,7 @@ export default function Sidebar({ isOpen, setIsOpen, isMobileOpen, setIsMobileOp
 
         {/* User Role Badge */}
         {(isOpen || isMobileOpen) && user && (
-          <div className="mx-3 my-3 p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center space-x-2">
+          <div className="mx-3 my-3 p-2.5 rounded-xl bg-slate-50/90 backdrop-blur-xs border border-slate-200 flex items-center space-x-2 relative z-10">
             <ShieldCheck className="w-4 h-4 text-indigo-600 flex-shrink-0" />
             <div className="truncate">
               <p className="text-xs text-slate-900 font-bold leading-tight truncate">{user.fullName}</p>
@@ -96,7 +120,7 @@ export default function Sidebar({ isOpen, setIsOpen, isMobileOpen, setIsMobileOp
         )}
 
         {/* Menu Navigation */}
-        <div className="flex-1 overflow-y-auto py-2 px-3 space-y-1">
+        <div className="flex-1 overflow-y-auto py-2 px-3 space-y-1 relative z-10">
           {navItems.map((item) => {
             const Icon = item.icon;
             return (
@@ -108,7 +132,7 @@ export default function Sidebar({ isOpen, setIsOpen, isMobileOpen, setIsMobileOp
                   `flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-150 ${
                     isActive
                       ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
-                      : 'text-slate-600 hover:text-indigo-600 hover:bg-slate-100'
+                      : 'text-slate-600 hover:text-indigo-600 hover:bg-slate-100/90'
                   }`
                 }
               >
@@ -120,7 +144,7 @@ export default function Sidebar({ isOpen, setIsOpen, isMobileOpen, setIsMobileOp
         </div>
 
         {/* Desktop Collapse Button */}
-        <div className="hidden md:block p-3 border-t border-slate-100">
+        <div className="hidden md:block p-3 border-t border-slate-100 relative z-10">
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="w-full py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold flex items-center justify-center space-x-2 transition"
