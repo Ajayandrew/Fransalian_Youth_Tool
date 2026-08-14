@@ -71,22 +71,24 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
     const fetchDashboard = async () => {
       try {
         const data = await fetchWithCache('dashboard', '/api/dashboard/stats');
-        if (data && data.success) {
-          setStats(data.stats || stats);
-          setCharts(data.charts || charts);
-          setRecentActivity(data.recentActivity || recentActivity);
+        if (isMounted && data && data.success) {
+          if (data.stats) setStats(data.stats);
+          if (data.charts) setCharts(data.charts);
+          if (data.recentActivity) setRecentActivity(data.recentActivity);
           if (data.leadership) setLeadership(data.leadership);
         }
       } catch (err) {
         console.error('Failed to load dashboard stats:', err);
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
     fetchDashboard();
+    return () => { isMounted = false; };
   }, []);
 
   const ensureAbsoluteUrl = (url, fallback) => {
@@ -97,6 +99,7 @@ export default function Dashboard() {
     }
     return `https://${cleanUrl}`;
   };
+
   const getWelcomeName = () => {
     if (user?.role === 'Parish Priest') {
       if (settings?.parishPriestName && settings.parishPriestName.trim()) {
@@ -110,34 +113,52 @@ export default function Dashboard() {
     return user?.fullName || 'Parish Member';
   };
 
-  const [maryPatronImage, setMaryPatronImage] = useState('/mary-help-of-christians.png');
-  const handleMaryImgError = () => {
-    if (maryPatronImage === '/mary-help-of-christians.png') setMaryPatronImage('/mary-help-of-christians.jpg');
-    else if (maryPatronImage === '/mary-help-of-christians.jpg') setMaryPatronImage('/mary-help-of-christians.jpeg');
-    else if (maryPatronImage === '/mary-help-of-christians.jpeg') setMaryPatronImage('/mary-help-of-christians.webp');
-    else if (maryPatronImage === '/mary-help-of-christians.webp') setMaryPatronImage('/mary.png');
-    else if (maryPatronImage === '/mary.png') setMaryPatronImage('/mary.jpg');
-    else setMaryPatronImage('https://images.unsplash.com/photo-1548625361-18da90e740fa?w=500');
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px] text-slate-500 font-bold text-xs tracking-wide">
+        <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin mr-3" />
+        <span>Loading Dashboard...</span>
+      </div>
+    );
+  }
+
+  const safeStats = {
+    totalMembers: 0,
+    activeMembers: 0,
+    monthlySubscriptionCollection: 0,
+    totalIncome: 0,
+    totalExpense: 0,
+    currentBalance: 0,
+    todayBirthdaysCount: 0,
+    upcomingEventsCount: 0,
+    combinedCollections: 0,
+    totalSubsPaid: 0,
+    totalSecretOff: 0,
+    ...(stats || {})
   };
 
-  const patronDisplaySrc = settings?.patronPhoto
-    ? getImageUrl(settings.patronPhoto)
-    : maryPatronImage;
+  const safeCharts = {
+    financialOverview: [
+      { name: 'Income', amount: 0 },
+      { name: 'Expenses', amount: 0 },
+      { name: 'Balance', amount: 0 }
+    ],
+    monthlyCollectionChart: [],
+    attendanceOverview: [],
+    ...(charts || {})
+  };
+
+  const safeRecentActivity = {
+    newMembers: [],
+    recentPayments: [],
+    upcomingBirthdays: [],
+    upcomingEvents: [],
+    ...(recentActivity || {})
+  };
 
   return (
-    <div className="space-y-6 pb-12 relative min-h-screen">
-      {/* Centered Background Watermark (Fits all screen sizes, subtle opacity, non-repeating) */}
-      <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-0 overflow-hidden select-none p-4">
-        <img
-          src={patronDisplaySrc}
-          alt="Mary Help of Christians Watermark"
-          onError={handleMaryImgError}
-          className="max-w-[85vw] max-h-[80vh] sm:max-w-[70vw] sm:max-h-[75vh] md:max-w-[55vw] md:max-h-[70vh] object-contain opacity-[0.06] transition-opacity duration-500 filter brightness-95"
-        />
-      </div>
-
-      <div className="relative z-10 space-y-6">
-        {/* Welcome Banner */}
+    <div className="space-y-6 pb-12">
+      {/* Welcome Banner */}
       <div className="p-6 rounded-3xl bg-gradient-to-r from-indigo-900 via-indigo-800 to-slate-900 text-white shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-indigo-500/30 border border-indigo-400/40 text-amber-300 text-xs font-bold mb-2">
@@ -182,8 +203,8 @@ export default function Dashboard() {
             </div>
           </div>
           <div>
-            <h3 className="text-2xl font-black text-slate-900">{stats.totalMembers}</h3>
-            <p className="text-[11px] text-emerald-600 font-bold mt-0.5">{stats.activeMembers} Active Registered</p>
+            <h3 className="text-2xl font-black text-slate-900">{safeStats.totalMembers}</h3>
+            <p className="text-[11px] text-emerald-600 font-bold mt-0.5">{safeStats.activeMembers} Active Registered</p>
           </div>
         </div>
 
@@ -196,7 +217,7 @@ export default function Dashboard() {
             </div>
           </div>
           <div>
-            <h3 className="text-2xl font-black text-emerald-600">₹{(stats.combinedCollections || ((stats.totalSubsPaid || 0) + (stats.totalSecretOff || 0))).toLocaleString()}</h3>
+            <h3 className="text-2xl font-black text-emerald-600">₹{(safeStats.combinedCollections || ((safeStats.totalSubsPaid || 0) + (safeStats.totalSecretOff || 0))).toLocaleString()}</h3>
             <p className="text-[11px] text-slate-600 font-extrabold mt-0.5">
               Paid Subs + Secret Offering
             </p>
@@ -212,7 +233,7 @@ export default function Dashboard() {
             </div>
           </div>
           <div>
-            <h3 className="text-2xl font-black text-slate-900">₹{(stats.currentBalance || 0).toLocaleString()}</h3>
+            <h3 className="text-2xl font-black text-slate-900">₹{(safeStats.currentBalance || 0).toLocaleString()}</h3>
             <p className="text-[11px] text-emerald-600 font-bold mt-0.5">Total Income - Expenses</p>
           </div>
         </div>
@@ -226,8 +247,8 @@ export default function Dashboard() {
             </div>
           </div>
           <div>
-            <h3 className="text-2xl font-black text-slate-900">{stats.upcomingEventsCount}</h3>
-            <p className="text-[11px] text-slate-500 mt-0.5">{stats.todayBirthdaysCount} Birthdays Today</p>
+            <h3 className="text-2xl font-black text-slate-900">{safeStats.upcomingEventsCount}</h3>
+            <p className="text-[11px] text-slate-500 mt-0.5">{safeStats.todayBirthdaysCount} Birthdays Today</p>
           </div>
         </div>
       </div>
@@ -246,7 +267,7 @@ export default function Dashboard() {
 
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={charts.financialOverview}>
+              <BarChart data={safeCharts.financialOverview}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis dataKey="name" stroke="#64748b" fontSize={11} tickLine={false} />
                 <YAxis stroke="#64748b" fontSize={11} tickLine={false} />
@@ -269,7 +290,7 @@ export default function Dashboard() {
 
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={charts.monthlyCollectionChart}>
+              <LineChart data={safeCharts.monthlyCollectionChart}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis dataKey="month" stroke="#64748b" fontSize={11} tickLine={false} />
                 <YAxis stroke="#64748b" fontSize={11} tickLine={false} />
@@ -294,7 +315,7 @@ export default function Dashboard() {
           </div>
 
           <div className="divide-y divide-slate-100 text-xs">
-            {(recentActivity.newMembers || []).map((m) => (
+            {(safeRecentActivity.newMembers || []).map((m) => (
               <div key={m._id} className="py-3 flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <img
@@ -330,7 +351,7 @@ export default function Dashboard() {
           </div>
 
           <div className="space-y-3">
-            {(recentActivity.upcomingEvents || []).map((evt) => (
+            {(safeRecentActivity.upcomingEvents || []).map((evt) => (
               <div key={evt._id} className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs">
                 <div>
                   <h4 className="font-bold text-slate-900">{evt.eventName}</h4>
@@ -568,7 +589,6 @@ export default function Dashboard() {
           onClose={() => setLightboxPhoto(null)}
         />
       )}
-      </div>
     </div>
   );
 }
