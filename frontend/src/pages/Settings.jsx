@@ -389,6 +389,31 @@ export default function Settings() {
               </label>
             )}
           </div>
+
+          {/* Watermark Opacity Slider */}
+          <div className="pt-3 border-t border-indigo-100/80 space-y-2">
+            <div className="flex items-center justify-between text-xs font-bold">
+              <label className="text-slate-700">Watermark Opacity Level ({settings.watermarkOpacity ?? 18}%)</label>
+              <span className="px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800 text-[10px] font-black">
+                {settings.watermarkOpacity ?? 18}% Opacity
+              </span>
+            </div>
+            <div className="flex items-center space-x-3">
+              <span className="text-[10px] font-bold text-slate-400">5% (Light)</span>
+              <input
+                type="range"
+                min="5"
+                max="50"
+                step="1"
+                disabled={!canEdit}
+                value={settings.watermarkOpacity ?? 18}
+                onChange={(e) => setSettings({ ...settings, watermarkOpacity: Number(e.target.value) })}
+                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+              />
+              <span className="text-[10px] font-bold text-slate-400">50% (Dark)</span>
+            </div>
+            <p className="text-[10px] text-slate-400 font-medium">Adjust opacity from light (5%) to strong (50%). Changes take effect live on Dashboard upon saving.</p>
+          </div>
         </div>
 
         {/* Parish Priest Details Setup */}

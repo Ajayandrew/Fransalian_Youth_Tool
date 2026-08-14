@@ -21,6 +21,7 @@ const defaultSettings = {
   parishPriestPhone: '',
   parishPriestTitle: 'Parish Priest / Spiritual Director',
   dashboardWatermarkUrl: '',
+  watermarkOpacity: 18,
   subscriptionAmount: 50,
   darkMode: false,
   youtubeUrl: '',

@@ -22,6 +22,7 @@ const settingsSchema = new mongoose.Schema({
   parishPriestPhone: { type: String, default: '' },
   parishPriestTitle: { type: String, default: 'Parish Priest / Spiritual Director' },
   dashboardWatermarkUrl: { type: String, default: '' },
+  watermarkOpacity: { type: Number, default: 18 },
   anbiyams: { type: [String], default: ['St. Francis Xavier Anbiyam', 'St. Antony Anbiyam', 'Mother Teresa Anbiyam', 'St. Jude Anbiyam'] }
 }, { timestamps: true });
 

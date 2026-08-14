@@ -111,12 +111,15 @@ export default function Dashboard() {
     <div className="space-y-6 pb-12 relative min-h-screen">
       {/* Dynamic Cloudinary/MongoDB Background Watermark */}
       {watermarkImgUrl && !watermarkFailed && (
-        <div className="fixed inset-0 pointer-events-none flex items-center justify-center z-0 overflow-hidden select-none p-4 opacity-[0.06]">
+        <div
+          className="fixed inset-0 pointer-events-none flex items-center justify-center z-0 overflow-hidden select-none p-4 transition-opacity duration-500"
+          style={{ opacity: (settings?.watermarkOpacity ?? 18) / 100 }}
+        >
           <img
             src={watermarkImgUrl}
             alt="Dashboard Watermark"
             onError={handleWatermarkError}
-            className="max-w-[90vw] max-h-[85vh] sm:max-w-[650px] sm:max-h-[650px] object-contain drop-shadow-2xl filter transition-opacity duration-500"
+            className="max-w-[90vw] max-h-[85vh] sm:max-w-[650px] sm:max-h-[650px] object-contain drop-shadow-2xl filter"
           />
         </div>
       )}
