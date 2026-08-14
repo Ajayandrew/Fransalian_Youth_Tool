@@ -1,5 +1,6 @@
 const { getIsInMemory } = require('../config/db');
 const memoryStore = require('../store/memoryStore');
+const { uploadToCloudinary } = require('../config/cloudinary');
 
 const Settings = require('../models/Settings');
 
@@ -19,6 +20,7 @@ const defaultSettings = {
   parishPriestPhoto: '',
   parishPriestPhone: '',
   parishPriestTitle: 'Parish Priest / Spiritual Director',
+  dashboardWatermarkUrl: '',
   subscriptionAmount: 50,
   darkMode: false,
   youtubeUrl: '',
@@ -48,21 +50,20 @@ const getSettings = async (req, res) => {
 const updateSettings = async (req, res) => {
   try {
     const data = { ...req.body };
-    if (req.files && Array.isArray(req.files)) {
-      req.files.forEach(f => {
+    const fileList = req.files && Array.isArray(req.files) ? req.files : (req.file ? [req.file] : []);
+
+    for (const f of fileList) {
+      if (f.fieldname === 'dashboardWatermark') {
+        const fileSource = f.buffer || f.dataUrl;
+        const cloudinaryUrl = await uploadToCloudinary(fileSource, 'fransalian_youth/watermarks');
+        data.dashboardWatermarkUrl = cloudinaryUrl;
+      } else {
         const photoUrl = f.dataUrl || `/uploads/${f.filename}`;
         if (f.fieldname === 'parishPriestPhoto') {
           data.parishPriestPhoto = photoUrl;
         } else if (f.fieldname === 'churchLogo') {
           data.churchLogo = photoUrl;
         }
-      });
-    } else if (req.file) {
-      const photoUrl = req.file.dataUrl || `/uploads/${req.file.filename}`;
-      if (req.file.fieldname === 'parishPriestPhoto') {
-        data.parishPriestPhoto = photoUrl;
-      } else {
-        data.churchLogo = photoUrl;
       }
     }
 

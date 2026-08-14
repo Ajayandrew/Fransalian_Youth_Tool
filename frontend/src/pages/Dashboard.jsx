@@ -97,26 +97,24 @@ export default function Dashboard() {
     }
     return `https://${cleanUrl}`;
   };
-  const [watermarkSrc, setWatermarkSrc] = useState('/mary-help-of-christians.png');
   const [watermarkFailed, setWatermarkFailed] = useState(false);
 
+  const watermarkImgUrl = settings?.dashboardWatermarkUrl
+    ? getImageUrl(settings.dashboardWatermarkUrl)
+    : '';
+
   const handleWatermarkError = () => {
-    if (watermarkSrc === '/mary-help-of-christians.png') setWatermarkSrc('/mary-help-of-christians.jpg');
-    else if (watermarkSrc === '/mary-help-of-christians.jpg') setWatermarkSrc('/mary-help-of-christians.jpeg');
-    else if (watermarkSrc === '/mary-help-of-christians.jpeg') setWatermarkSrc('/mary-help-of-christians.webp');
-    else if (watermarkSrc === '/mary-help-of-christians.webp') setWatermarkSrc('/mary.png');
-    else if (watermarkSrc === '/mary.png') setWatermarkSrc('/mary.jpg');
-    else setWatermarkFailed(true);
+    setWatermarkFailed(true);
   };
 
   return (
     <div className="space-y-6 pb-12 relative min-h-screen">
-      {/* Mary Help of Christians Background Watermark */}
-      {!watermarkFailed && (
-        <div className="fixed inset-0 pointer-events-none flex items-center justify-center z-0 overflow-hidden select-none p-4 opacity-[0.08]">
+      {/* Dynamic Cloudinary/MongoDB Background Watermark */}
+      {watermarkImgUrl && !watermarkFailed && (
+        <div className="fixed inset-0 pointer-events-none flex items-center justify-center z-0 overflow-hidden select-none p-4 opacity-[0.06]">
           <img
-            src={watermarkSrc}
-            alt="Mary Help of Christians Watermark"
+            src={watermarkImgUrl}
+            alt="Dashboard Watermark"
             onError={handleWatermarkError}
             className="max-w-[90vw] max-h-[85vh] sm:max-w-[650px] sm:max-h-[650px] object-contain drop-shadow-2xl filter transition-opacity duration-500"
           />

@@ -14,6 +14,7 @@ const defaultSettings = {
   contactEmail: 'youth@church.org',
   contactPhone: '+91 98765 43210',
   churchLogo: '',
+  dashboardWatermarkUrl: '',
   subscriptionAmount: 50,
   darkMode: false
 };

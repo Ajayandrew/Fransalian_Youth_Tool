@@ -45,6 +45,11 @@ const uploadAnyMiddleware = () => {
       if (err) return next(err);
       if (req.files && req.files.length > 0) {
         req.files.forEach(file => {
+          if (file.fieldname === 'dashboardWatermark') {
+            const mime = file.mimetype || 'image/jpeg';
+            file.dataUrl = `data:${mime};base64,${file.buffer.toString('base64')}`;
+            return;
+          }
           const ext = path.extname(file.originalname) || '.jpg';
           const filename = `${file.fieldname}-${Date.now()}-${Math.round(Math.random() * 1E9)}${ext}`;
           file.filename = filename;
