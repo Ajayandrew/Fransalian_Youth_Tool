@@ -135,6 +135,21 @@ const login = async (req, res) => {
       }
       resolvedName = mMatch?.fullName || user.role || 'Office Bearer';
     }
+
+    if (user.role === 'Parish Priest') {
+      const Settings = require('../models/Settings');
+      let currentSettings = memoryStore.settings;
+      if (!getIsInMemory()) {
+        try {
+          const dbSet = await Settings.findById('org_settings');
+          if (dbSet) currentSettings = dbSet;
+        } catch (e) {}
+      }
+      if (currentSettings && currentSettings.parishPriestName && currentSettings.parishPriestName.trim()) {
+        resolvedName = currentSettings.parishPriestName.trim();
+      }
+    }
+
     user.fullName = resolvedName;
 
     // Persist/Sync User record with correct role in database
@@ -190,7 +205,21 @@ const me = async (req, res) => {
       return res.status(404).json({ success: false, message: 'User not found.' });
     }
 
-    const resolvedName = user.fullName || req.user?.fullName || user.role || 'Office Bearer';
+    let resolvedName = user.fullName || req.user?.fullName || user.role || 'Office Bearer';
+
+    if (user.role === 'Parish Priest') {
+      const Settings = require('../models/Settings');
+      let currentSettings = memoryStore.settings;
+      if (!getIsInMemory()) {
+        try {
+          const dbSet = await Settings.findById('org_settings');
+          if (dbSet) currentSettings = dbSet;
+        } catch (e) {}
+      }
+      if (currentSettings && currentSettings.parishPriestName && currentSettings.parishPriestName.trim()) {
+        resolvedName = currentSettings.parishPriestName.trim();
+      }
+    }
 
     return res.json({
       success: true,

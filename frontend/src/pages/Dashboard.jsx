@@ -107,6 +107,19 @@ export default function Dashboard() {
     setWatermarkFailed(true);
   };
 
+  const getWelcomeName = () => {
+    if (user?.role === 'Parish Priest') {
+      if (settings?.parishPriestName && settings.parishPriestName.trim()) {
+        return settings.parishPriestName;
+      }
+      if (user?.fullName && user.fullName !== 'Parish Priest') {
+        return user.fullName;
+      }
+      return 'Rev. Fr. Parish Priest';
+    }
+    return user?.fullName || 'Parish Member';
+  };
+
   return (
     <div className="space-y-6 pb-12 relative min-h-screen">
       {/* Dynamic Cloudinary/MongoDB Background Watermark */}
@@ -132,7 +145,7 @@ export default function Dashboard() {
             <Sparkles className="w-3.5 h-3.5" />
             <span>{settings.youthName || 'Youth Movement'}</span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-black text-white">Welcome, {user?.fullName || 'Parish Member'}!</h1>
+          <h1 className="text-xl sm:text-2xl font-black text-white">Welcome, {getWelcomeName()}!</h1>
           <p className="text-xs text-indigo-200 mt-1 font-medium">{settings.churchName || 'Cathedral Parish'} • Dues, Accounts, Attendance & Events</p>
         </div>
 
