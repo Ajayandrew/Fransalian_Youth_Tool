@@ -113,15 +113,6 @@ export default function Dashboard() {
     return user?.fullName || 'Parish Member';
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px] text-slate-500 font-bold text-xs tracking-wide">
-        <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin mr-3" />
-        <span>Loading Dashboard...</span>
-      </div>
-    );
-  }
-
   const safeStats = {
     totalMembers: 0,
     activeMembers: 0,
