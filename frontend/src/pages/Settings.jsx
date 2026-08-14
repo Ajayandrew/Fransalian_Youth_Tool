@@ -23,6 +23,8 @@ export default function Settings() {
   const [patronPreview, setPatronPreview] = useState(globalSettings.patronPhoto || '');
   const [showPatronModal, setShowPatronModal] = useState(false);
 
+  const [savingSettings, setSavingSettings] = useState(false);
+
   const [profileEmail, setProfileEmail] = useState(user?.email || '');
   const [profileBloodGroup, setProfileBloodGroup] = useState(user?.bloodGroup || 'O+');
   const [newPasswordInput, setNewPasswordInput] = useState('');
@@ -41,38 +43,105 @@ export default function Settings() {
     setPatronPreview(globalSettings.patronPhoto ? getImageUrl(globalSettings.patronPhoto) : '');
   }, [globalSettings]);
 
-  const handleLogoFileChange = (e) => {
+  const handleLogoFileChange = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      setLogoFile(file);
-      setLogoPreview(URL.createObjectURL(file));
+    if (!file) return;
+    if (!canEdit) return toast.error('Only Admin can update organization settings.');
+
+    setLogoFile(file);
+    setLogoPreview(URL.createObjectURL(file));
+
+    const loadingToast = toast.loading('Uploading Church logo...');
+    try {
+      const payload = new FormData();
+      Object.keys(settings).forEach(key => {
+        if (key === '_id' || key === 'createdAt' || key === 'updatedAt' || key === '__v') return;
+        if (key === 'churchLogo' || key === 'parishPriestPhoto' || key === 'patronPhoto') return;
+        payload.append(key, settings[key]);
+      });
+      payload.append('churchLogo', file);
+      const res = await updateGlobalSettings(payload);
+      toast.dismiss(loadingToast);
+      if (res && res.settings && res.settings.churchLogo) {
+        setLogoPreview(getImageUrl(res.settings.churchLogo));
+      }
+      toast.success('Church logo uploaded successfully!');
+    } catch (err) {
+      toast.dismiss(loadingToast);
+      toast.error('Failed to upload logo.');
     }
   };
 
-  const handlePriestFileChange = (e) => {
+  const handlePriestFileChange = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      setPriestFile(file);
-      setPriestPreview(URL.createObjectURL(file));
+    if (!file) return;
+    if (!canEdit) return toast.error('Only Admin can update organization settings.');
+
+    setPriestFile(file);
+    setPriestPreview(URL.createObjectURL(file));
+
+    const loadingToast = toast.loading('Uploading Priest photo...');
+    try {
+      const payload = new FormData();
+      Object.keys(settings).forEach(key => {
+        if (key === '_id' || key === 'createdAt' || key === 'updatedAt' || key === '__v') return;
+        if (key === 'churchLogo' || key === 'parishPriestPhoto' || key === 'patronPhoto') return;
+        payload.append(key, settings[key]);
+      });
+      payload.append('parishPriestPhoto', file);
+      const res = await updateGlobalSettings(payload);
+      toast.dismiss(loadingToast);
+      if (res && res.settings && res.settings.parishPriestPhoto) {
+        setPriestPreview(getImageUrl(res.settings.parishPriestPhoto));
+      }
+      toast.success('Priest photo uploaded successfully!');
+    } catch (err) {
+      toast.dismiss(loadingToast);
+      toast.error('Failed to upload Priest photo.');
     }
   };
 
-  const handlePatronFileChange = (e) => {
+  const handlePatronFileChange = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      setPatronFile(file);
-      setPatronPreview(URL.createObjectURL(file));
+    if (!file) return;
+    if (!canEdit) return toast.error('Only Admin can update organization settings.');
+
+    setPatronFile(file);
+    setPatronPreview(URL.createObjectURL(file));
+
+    const loadingToast = toast.loading('Uploading Dashboard Watermark Image...');
+    try {
+      const payload = new FormData();
+      Object.keys(settings).forEach(key => {
+        if (key === '_id' || key === 'createdAt' || key === 'updatedAt' || key === '__v') return;
+        if (key === 'churchLogo' || key === 'parishPriestPhoto' || key === 'patronPhoto') return;
+        payload.append(key, settings[key]);
+      });
+      payload.append('patronPhoto', file);
+      const res = await updateGlobalSettings(payload);
+      toast.dismiss(loadingToast);
+      if (res && res.settings && res.settings.patronPhoto) {
+        setPatronPreview(getImageUrl(res.settings.patronPhoto));
+      }
+      toast.success('Dashboard Watermark Image uploaded & saved successfully!');
+    } catch (err) {
+      toast.dismiss(loadingToast);
+      toast.error('Failed to upload Watermark image.');
     }
   };
 
   const handleSave = async (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     if (!canEdit) return toast.error('Only Admin can update organization settings.');
+
+    const loadingToast = toast.loading('Saving Organization Settings...');
+    setSavingSettings(true);
 
     try {
       if (logoFile || priestFile || patronFile) {
         const payload = new FormData();
         Object.keys(settings).forEach(key => {
+          if (key === '_id' || key === 'createdAt' || key === 'updatedAt' || key === '__v') return;
           if (key === 'churchLogo' && logoFile) return;
           if (key === 'parishPriestPhoto' && priestFile) return;
           if (key === 'patronPhoto' && patronFile) return;
@@ -89,12 +158,21 @@ export default function Settings() {
         if (patronFile) payload.append('patronPhoto', patronFile);
         await updateGlobalSettings(payload);
       } else {
-        await updateGlobalSettings(settings);
+        const cleanSettings = { ...settings };
+        delete cleanSettings._id;
+        delete cleanSettings.createdAt;
+        delete cleanSettings.updatedAt;
+        delete cleanSettings.__v;
+        await updateGlobalSettings(cleanSettings);
       }
+      toast.dismiss(loadingToast);
       toast.success('Organization Settings saved successfully!');
     } catch (err) {
+      toast.dismiss(loadingToast);
       console.error('Settings save error:', err);
       toast.error(err.response?.data?.message || 'Failed to update organization settings.');
+    } finally {
+      setSavingSettings(false);
     }
   };
 
@@ -160,10 +238,13 @@ export default function Settings() {
 
         {canEdit && (
           <button
+            type="button"
             onClick={handleSave}
-            className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-2 transition shadow-md shadow-indigo-600/30"
+            disabled={savingSettings}
+            className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-bold text-xs flex items-center gap-2 transition shadow-md shadow-indigo-600/30 cursor-pointer disabled:cursor-not-allowed"
           >
-            <Save className="w-4 h-4" /> Save Settings
+            <Save className="w-4 h-4" />
+            <span>{savingSettings ? 'Saving...' : 'Save Settings'}</span>
           </button>
         )}
       </div>

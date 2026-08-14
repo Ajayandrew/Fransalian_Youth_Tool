@@ -50,6 +50,11 @@ const getSettings = async (req, res) => {
 const updateSettings = async (req, res) => {
   try {
     const data = { ...req.body };
+    delete data._id;
+    delete data.createdAt;
+    delete data.updatedAt;
+    delete data.__v;
+
     const fileList = req.files && Array.isArray(req.files) ? req.files : (req.file ? [req.file] : []);
 
     if (typeof data.anbiyams === 'string') {
