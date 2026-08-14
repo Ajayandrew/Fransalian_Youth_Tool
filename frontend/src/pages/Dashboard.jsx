@@ -97,16 +97,6 @@ export default function Dashboard() {
     }
     return `https://${cleanUrl}`;
   };
-  const [watermarkFailed, setWatermarkFailed] = useState(false);
-
-  const watermarkImgUrl = settings?.dashboardWatermarkUrl
-    ? getImageUrl(settings.dashboardWatermarkUrl)
-    : '';
-
-  const handleWatermarkError = () => {
-    setWatermarkFailed(true);
-  };
-
   const getWelcomeName = () => {
     if (user?.role === 'Parish Priest') {
       if (settings?.parishPriestName && settings.parishPriestName.trim()) {
@@ -122,21 +112,6 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6 pb-12 relative min-h-screen">
-      {/* Dynamic Cloudinary/MongoDB Background Watermark */}
-      {watermarkImgUrl && !watermarkFailed && (
-        <div
-          className="fixed inset-0 pointer-events-none flex items-center justify-center z-0 overflow-hidden select-none p-4 transition-opacity duration-500"
-          style={{ opacity: (settings?.watermarkOpacity ?? 18) / 100 }}
-        >
-          <img
-            src={watermarkImgUrl}
-            alt="Dashboard Watermark"
-            onError={handleWatermarkError}
-            className="max-w-[90vw] max-h-[85vh] sm:max-w-[650px] sm:max-h-[650px] object-contain drop-shadow-2xl filter"
-          />
-        </div>
-      )}
-
       <div className="relative z-10 space-y-6">
         {/* Welcome Banner */}
       <div className="p-6 rounded-3xl bg-gradient-to-r from-indigo-900 via-indigo-800 to-slate-900 text-white shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">

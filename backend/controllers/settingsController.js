@@ -20,8 +20,6 @@ const defaultSettings = {
   parishPriestPhoto: '',
   parishPriestPhone: '',
   parishPriestTitle: 'Parish Priest / Spiritual Director',
-  dashboardWatermarkUrl: '',
-  watermarkOpacity: 18,
   subscriptionAmount: 50,
   darkMode: false,
   youtubeUrl: '',
@@ -54,17 +52,11 @@ const updateSettings = async (req, res) => {
     const fileList = req.files && Array.isArray(req.files) ? req.files : (req.file ? [req.file] : []);
 
     for (const f of fileList) {
-      if (f.fieldname === 'dashboardWatermark') {
-        const fileSource = f.buffer || f.dataUrl;
-        const cloudinaryUrl = await uploadToCloudinary(fileSource, 'fransalian_youth/watermarks');
-        data.dashboardWatermarkUrl = cloudinaryUrl;
-      } else {
-        const photoUrl = f.dataUrl || `/uploads/${f.filename}`;
-        if (f.fieldname === 'parishPriestPhoto') {
-          data.parishPriestPhoto = photoUrl;
-        } else if (f.fieldname === 'churchLogo') {
-          data.churchLogo = photoUrl;
-        }
+      const photoUrl = f.dataUrl || `/uploads/${f.filename}`;
+      if (f.fieldname === 'parishPriestPhoto') {
+        data.parishPriestPhoto = photoUrl;
+      } else if (f.fieldname === 'churchLogo') {
+        data.churchLogo = photoUrl;
       }
     }
 

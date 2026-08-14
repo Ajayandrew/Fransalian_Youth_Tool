@@ -19,10 +19,6 @@ export default function Settings() {
   const [priestFile, setPriestFile] = useState(null);
   const [priestPreview, setPriestPreview] = useState(globalSettings.parishPriestPhoto || '');
 
-  const [watermarkFile, setWatermarkFile] = useState(null);
-  const [watermarkPreview, setWatermarkPreview] = useState(globalSettings.dashboardWatermarkUrl || '');
-  const [showWatermarkModal, setShowWatermarkModal] = useState(false);
-
   const [profileEmail, setProfileEmail] = useState(user?.email || '');
   const [profileBloodGroup, setProfileBloodGroup] = useState(user?.bloodGroup || 'O+');
   const [newPasswordInput, setNewPasswordInput] = useState('');
@@ -38,7 +34,6 @@ export default function Settings() {
     setSettings({ ...globalSettings });
     setLogoPreview(globalSettings.churchLogo ? getImageUrl(globalSettings.churchLogo) : '');
     setPriestPreview(globalSettings.parishPriestPhoto ? getImageUrl(globalSettings.parishPriestPhoto) : '');
-    setWatermarkPreview(globalSettings.dashboardWatermarkUrl ? getImageUrl(globalSettings.dashboardWatermarkUrl) : '');
   }, [globalSettings]);
 
   const handleLogoFileChange = (e) => {
@@ -57,30 +52,20 @@ export default function Settings() {
     }
   };
 
-  const handleWatermarkFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setWatermarkFile(file);
-      setWatermarkPreview(URL.createObjectURL(file));
-    }
-  };
-
   const handleSave = async (e) => {
     e.preventDefault();
     if (!canEdit) return toast.error('Only Admin can update organization settings.');
 
     try {
-      if (logoFile || priestFile || watermarkFile) {
+      if (logoFile || priestFile) {
         const payload = new FormData();
         Object.keys(settings).forEach(key => {
           if (key === 'churchLogo' && logoFile) return;
           if (key === 'parishPriestPhoto' && priestFile) return;
-          if (key === 'dashboardWatermarkUrl' && watermarkFile) return;
           payload.append(key, settings[key]);
         });
         if (logoFile) payload.append('churchLogo', logoFile);
         if (priestFile) payload.append('parishPriestPhoto', priestFile);
-        if (watermarkFile) payload.append('dashboardWatermark', watermarkFile);
         await updateGlobalSettings(payload);
       } else {
         await updateGlobalSettings(settings);
@@ -343,78 +328,7 @@ export default function Settings() {
           </div>
         </div>
 
-        {/* Dashboard Watermark Image Setup (Cloudinary & MongoDB) */}
-        <div className="bg-white rounded-3xl border border-indigo-200/80 p-6 shadow-xs space-y-4">
-          <h2 className="text-xs font-black uppercase tracking-wider text-indigo-700 flex items-center gap-2">
-            <ImageIcon className="w-4 h-4 text-indigo-600" /> Dashboard Watermark Background Setup
-          </h2>
-          <p className="text-xs text-slate-500 font-medium">
-            Upload or replace the watermark image displayed centered behind all Dashboard content with 6% opacity. Image will be stored in Cloudinary and URL saved in MongoDB.
-          </p>
 
-          <div className="p-4 rounded-2xl bg-indigo-50/50 border border-indigo-200 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center space-x-4">
-              <div
-                className={`w-16 h-16 rounded-2xl bg-white border border-indigo-200 flex items-center justify-center overflow-hidden shadow-xs ${
-                  (watermarkPreview || settings.dashboardWatermarkUrl) ? 'cursor-pointer group' : ''
-                }`}
-                onClick={() => (watermarkPreview || settings.dashboardWatermarkUrl) && setShowWatermarkModal(true)}
-                title={(watermarkPreview || settings.dashboardWatermarkUrl) ? 'Click to preview watermark image' : ''}
-              >
-                {(watermarkPreview || settings.dashboardWatermarkUrl) ? (
-                  <img
-                    src={watermarkPreview || settings.dashboardWatermarkUrl}
-                    alt="Dashboard Watermark Preview"
-                    className="w-full h-full object-contain p-1 group-hover:scale-105 transition-transform"
-                  />
-                ) : (
-                  <ImageIcon className="w-8 h-8 text-indigo-400" />
-                )}
-              </div>
-              <div>
-                <h4 className="font-bold text-slate-900 text-xs">
-                  {(watermarkPreview || settings.dashboardWatermarkUrl) ? 'Active Watermark Image' : 'No Watermark Image Uploaded'}
-                </h4>
-                <p className="text-[11px] text-indigo-700 font-medium truncate max-w-sm">
-                  {settings.dashboardWatermarkUrl ? `Cloudinary URL: ${settings.dashboardWatermarkUrl}` : 'Upload file to store on Cloudinary & Mongo DB'}
-                </p>
-              </div>
-            </div>
-
-            {canEdit && (
-              <label className="py-2 px-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold cursor-pointer flex items-center space-x-1.5 shadow-sm transition whitespace-nowrap">
-                <Upload className="w-3.5 h-3.5" />
-                <span>Upload / Replace Watermark</span>
-                <input type="file" accept="image/*" name="dashboardWatermark" onChange={handleWatermarkFileChange} className="hidden" />
-              </label>
-            )}
-          </div>
-
-          {/* Watermark Opacity Slider */}
-          <div className="pt-3 border-t border-indigo-100/80 space-y-2">
-            <div className="flex items-center justify-between text-xs font-bold">
-              <label className="text-slate-700">Watermark Opacity Level ({settings.watermarkOpacity ?? 18}%)</label>
-              <span className="px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800 text-[10px] font-black">
-                {settings.watermarkOpacity ?? 18}% Opacity
-              </span>
-            </div>
-            <div className="flex items-center space-x-3">
-              <span className="text-[10px] font-bold text-slate-400">5% (Light)</span>
-              <input
-                type="range"
-                min="5"
-                max="50"
-                step="1"
-                disabled={!canEdit}
-                value={settings.watermarkOpacity ?? 18}
-                onChange={(e) => setSettings({ ...settings, watermarkOpacity: Number(e.target.value) })}
-                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
-              />
-              <span className="text-[10px] font-bold text-slate-400">50% (Dark)</span>
-            </div>
-            <p className="text-[10px] text-slate-400 font-medium">Adjust opacity from light (5%) to strong (50%). Changes take effect live on Dashboard upon saving.</p>
-          </div>
-        </div>
 
         {/* Parish Priest Details Setup */}
         <div className="bg-white rounded-3xl border border-amber-200/80 p-6 shadow-xs space-y-4">
@@ -584,16 +498,6 @@ export default function Settings() {
           title={`${settings.churchName || 'Parish'} Crest Logo`}
           subtitle={settings.youthName || 'Youth Association'}
           onClose={() => setShowLogoModal(false)}
-        />
-      )}
-
-      {/* Watermark Lightbox Modal */}
-      {showWatermarkModal && (watermarkPreview || settings.dashboardWatermarkUrl) && (
-        <PhotoLightboxModal
-          photoUrl={watermarkPreview || settings.dashboardWatermarkUrl}
-          title="Dashboard Background Watermark Image"
-          subtitle="Cloudinary & MongoDB Stored Watermark (6% opacity)"
-          onClose={() => setShowWatermarkModal(false)}
         />
       )}
     </div>
