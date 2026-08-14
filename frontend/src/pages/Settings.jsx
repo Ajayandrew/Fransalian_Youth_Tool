@@ -19,10 +19,6 @@ export default function Settings() {
   const [priestFile, setPriestFile] = useState(null);
   const [priestPreview, setPriestPreview] = useState(globalSettings.parishPriestPhoto || '');
 
-  const [patronFile, setPatronFile] = useState(null);
-  const [patronPreview, setPatronPreview] = useState(globalSettings.patronPhoto || '');
-  const [showPatronModal, setShowPatronModal] = useState(false);
-
   const [savingSettings, setSavingSettings] = useState(false);
 
   const [profileEmail, setProfileEmail] = useState(user?.email || '');
@@ -40,7 +36,6 @@ export default function Settings() {
     setSettings({ ...globalSettings });
     setLogoPreview(globalSettings.churchLogo ? getImageUrl(globalSettings.churchLogo) : '');
     setPriestPreview(globalSettings.parishPriestPhoto ? getImageUrl(globalSettings.parishPriestPhoto) : '');
-    setPatronPreview(globalSettings.patronPhoto ? getImageUrl(globalSettings.patronPhoto) : '');
   }, [globalSettings]);
 
   const handleLogoFileChange = async (e) => {
@@ -56,7 +51,7 @@ export default function Settings() {
       const payload = new FormData();
       Object.keys(settings).forEach(key => {
         if (key === '_id' || key === 'createdAt' || key === 'updatedAt' || key === '__v') return;
-        if (key === 'churchLogo' || key === 'parishPriestPhoto' || key === 'patronPhoto') return;
+        if (key === 'churchLogo' || key === 'parishPriestPhoto') return;
         payload.append(key, settings[key]);
       });
       payload.append('churchLogo', file);
@@ -85,7 +80,7 @@ export default function Settings() {
       const payload = new FormData();
       Object.keys(settings).forEach(key => {
         if (key === '_id' || key === 'createdAt' || key === 'updatedAt' || key === '__v') return;
-        if (key === 'churchLogo' || key === 'parishPriestPhoto' || key === 'patronPhoto') return;
+        if (key === 'churchLogo' || key === 'parishPriestPhoto') return;
         payload.append(key, settings[key]);
       });
       payload.append('parishPriestPhoto', file);
@@ -101,35 +96,6 @@ export default function Settings() {
     }
   };
 
-  const handlePatronFileChange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    if (!canEdit) return toast.error('Only Admin can update organization settings.');
-
-    setPatronFile(file);
-    setPatronPreview(URL.createObjectURL(file));
-
-    const loadingToast = toast.loading('Uploading Sidebar Watermark image...');
-    try {
-      const payload = new FormData();
-      Object.keys(settings).forEach(key => {
-        if (key === '_id' || key === 'createdAt' || key === 'updatedAt' || key === '__v') return;
-        if (key === 'churchLogo' || key === 'parishPriestPhoto' || key === 'patronPhoto') return;
-        payload.append(key, settings[key]);
-      });
-      payload.append('patronPhoto', file);
-      const res = await updateGlobalSettings(payload);
-      toast.dismiss(loadingToast);
-      if (res && res.settings && res.settings.patronPhoto) {
-        setPatronPreview(getImageUrl(res.settings.patronPhoto));
-      }
-      toast.success('Sidebar Watermark image updated successfully!');
-    } catch (err) {
-      toast.dismiss(loadingToast);
-      toast.error('Failed to upload Watermark image.');
-    }
-  };
-
   const handleSave = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
     if (!canEdit) return toast.error('Only Admin can update organization settings.');
@@ -138,13 +104,12 @@ export default function Settings() {
     setSavingSettings(true);
 
     try {
-      if (logoFile || priestFile || patronFile) {
+      if (logoFile || priestFile) {
         const payload = new FormData();
         Object.keys(settings).forEach(key => {
           if (key === '_id' || key === 'createdAt' || key === 'updatedAt' || key === '__v') return;
           if (key === 'churchLogo' && logoFile) return;
           if (key === 'parishPriestPhoto' && priestFile) return;
-          if (key === 'patronPhoto' && patronFile) return;
           if (settings[key] !== null && settings[key] !== undefined) {
             if (Array.isArray(settings[key])) {
               payload.append(key, settings[key].join(','));
@@ -155,7 +120,6 @@ export default function Settings() {
         });
         if (logoFile) payload.append('churchLogo', logoFile);
         if (priestFile) payload.append('parishPriestPhoto', priestFile);
-        if (patronFile) payload.append('patronPhoto', patronFile);
         await updateGlobalSettings(payload);
       } else {
         const cleanSettings = { ...settings };
@@ -315,65 +279,32 @@ export default function Settings() {
             <Church className="w-4 h-4 text-indigo-600" /> Organization & Parish Profile
           </h2>
 
-          {/* Church Logo & Patroness Watermark Upload Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Church Logo */}
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-4">
-              <div className="flex items-center space-x-3.5">
-                <div
-                  className="w-14 h-14 rounded-2xl bg-white border border-slate-200 flex items-center justify-center overflow-hidden shadow-xs cursor-pointer group"
-                  onClick={() => (logoPreview || settings.churchLogo) && setShowLogoModal(true)}
-                  title={(logoPreview || settings.churchLogo) ? "Click to view logo" : ""}
-                >
-                  {logoPreview ? (
-                    <img src={logoPreview} alt="Parish Logo" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-                  ) : (
-                    <Church className="w-7 h-7 text-indigo-600" />
-                  )}
-                </div>
-                <div>
-                  <h4 className="font-bold text-slate-900 text-xs">Parish / Youth Logo</h4>
-                  <p className="text-[11px] text-slate-500 font-medium">Official Crest Image</p>
-                </div>
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center space-x-4">
+              <div
+                className="w-16 h-16 rounded-2xl bg-white border border-slate-200 flex items-center justify-center overflow-hidden shadow-xs cursor-pointer group"
+                onClick={() => (logoPreview || settings.churchLogo) && setShowLogoModal(true)}
+                title={(logoPreview || settings.churchLogo) ? "Click to view full size and download logo" : ""}
+              >
+                {logoPreview ? (
+                  <img src={logoPreview} alt="Parish Logo" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                ) : (
+                  <Church className="w-8 h-8 text-indigo-600" />
+                )}
               </div>
-
-              {canEdit && (
-                <label className="py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold cursor-pointer flex items-center space-x-1.5 shadow-sm transition whitespace-nowrap">
-                  <Upload className="w-3.5 h-3.5" />
-                  <span>Upload</span>
-                  <input type="file" accept="image/*" onChange={handleLogoFileChange} className="hidden" />
-                </label>
-              )}
+              <div>
+                <h4 className="font-bold text-slate-900 text-xs">Church / Association Logo</h4>
+                <p className="text-[11px] text-slate-500 font-medium">Upload custom crest image or paste direct image URL</p>
+              </div>
             </div>
 
-            {/* Mary Help of Christians Watermark */}
-            <div className="p-4 rounded-2xl bg-amber-50/50 border border-amber-200 flex items-center justify-between gap-4">
-              <div className="flex items-center space-x-3.5">
-                <div
-                  className="w-14 h-14 rounded-2xl bg-white border border-amber-300 flex items-center justify-center overflow-hidden shadow-xs cursor-pointer group"
-                  onClick={() => (patronPreview || settings.patronPhoto) && setShowPatronModal(true)}
-                  title={(patronPreview || settings.patronPhoto) ? "Click to view full portrait" : ""}
-                >
-                  {patronPreview ? (
-                    <img src={patronPreview} alt="Watermark Preview" className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform" />
-                  ) : (
-                    <Sparkles className="w-7 h-7 text-amber-500" />
-                  )}
-                </div>
-                <div>
-                  <h4 className="font-bold text-slate-900 text-xs">Mary, Help of Christians</h4>
-                  <p className="text-[11px] text-amber-700 font-medium">Sidebar Watermark Image</p>
-                </div>
-              </div>
-
-              {canEdit && (
-                <label className="py-2 px-3 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold cursor-pointer flex items-center space-x-1.5 shadow-sm transition whitespace-nowrap">
-                  <Upload className="w-3.5 h-3.5" />
-                  <span>Upload</span>
-                  <input type="file" accept="image/*" name="patronPhoto" onChange={handlePatronFileChange} className="hidden" />
-                </label>
-              )}
-            </div>
+            {canEdit && (
+              <label className="py-2 px-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold cursor-pointer flex items-center space-x-1.5 shadow-sm transition">
+                <Upload className="w-3.5 h-3.5" />
+                <span>Upload Logo File</span>
+                <input type="file" accept="image/*" onChange={handleLogoFileChange} className="hidden" />
+              </label>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-semibold">
@@ -634,16 +565,6 @@ export default function Settings() {
           title={`${settings.churchName || 'Parish'} Crest Logo`}
           subtitle={settings.youthName || 'Youth Association'}
           onClose={() => setShowLogoModal(false)}
-        />
-      )}
-
-      {/* Patron Lightbox Modal */}
-      {showPatronModal && (patronPreview || settings.patronPhoto) && (
-        <PhotoLightboxModal
-          photoUrl={patronPreview || settings.patronPhoto}
-          title="Mary Help of Christians"
-          subtitle={`Heavenly Mother • ${settings.youthName || 'Fransalian Youth Movement'}`}
-          onClose={() => setShowPatronModal(false)}
         />
       )}
     </div>

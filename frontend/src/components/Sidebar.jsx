@@ -27,20 +27,6 @@ export default function Sidebar({ isOpen, setIsOpen, isMobileOpen, setIsMobileOp
   const settings = rawSettings || {};
   const [showLogoModal, setShowLogoModal] = useState(false);
 
-  const [sidebarMarySrc, setSidebarMarySrc] = useState('/mary-help-of-christians.png');
-  const handleSidebarMaryError = () => {
-    if (sidebarMarySrc === '/mary-help-of-christians.png') setSidebarMarySrc('/mary-help-of-christians.jpg');
-    else if (sidebarMarySrc === '/mary-help-of-christians.jpg') setSidebarMarySrc('/mary-help-of-christians.jpeg');
-    else if (sidebarMarySrc === '/mary-help-of-christians.jpeg') setSidebarMarySrc('/mary-help-of-christians.webp');
-    else if (sidebarMarySrc === '/mary-help-of-christians.webp') setSidebarMarySrc('/mary.png');
-    else if (sidebarMarySrc === '/mary.png') setSidebarMarySrc('/mary.jpg');
-    else setSidebarMarySrc('https://images.unsplash.com/photo-1548625361-18da90e740fa?w=500');
-  };
-
-  const maryImage = settings?.patronPhoto
-    ? getImageUrl(settings.patronPhoto)
-    : sidebarMarySrc;
-
   const navItems = [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/' },
     { label: 'Youth Members', icon: Users, path: '/members' },
@@ -65,22 +51,12 @@ export default function Sidebar({ isOpen, setIsOpen, isMobileOpen, setIsMobileOp
       )}
 
       <aside
-        className={`fixed top-0 left-0 z-50 h-screen transition-all duration-300 bg-white border-r border-slate-200 flex flex-col shadow-sm relative overflow-hidden ${
+        className={`fixed top-0 left-0 z-50 h-screen transition-all duration-300 bg-white border-r border-slate-200 flex flex-col shadow-sm ${
           isMobileOpen ? 'translate-x-0 w-64' : '-translate-x-full md:translate-x-0'
         } ${isOpen ? 'md:w-64' : 'md:w-20'}`}
       >
-        {/* Sidebar Background Watermark: Mary Help of Christians */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0 overflow-hidden select-none p-2">
-          <img
-            src={maryImage}
-            alt="Mary Help of Christians Sidebar Watermark"
-            onError={handleSidebarMaryError}
-            className="w-full max-h-[60vh] object-contain opacity-[0.08] filter brightness-95"
-          />
-        </div>
-
         {/* Header */}
-        <div className="h-16 px-4 flex items-center justify-between border-b border-slate-100 relative z-10">
+        <div className="h-16 px-4 flex items-center justify-between border-b border-slate-100">
           <div
             className="flex items-center space-x-3 overflow-hidden cursor-pointer group"
             onClick={() => settings.churchLogo && setShowLogoModal(true)}
