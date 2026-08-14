@@ -41,87 +41,27 @@ export default function Settings() {
     setPatronPreview(globalSettings.patronPhoto ? getImageUrl(globalSettings.patronPhoto) : '');
   }, [globalSettings]);
 
-  const handleLogoFileChange = async (e) => {
+  const handleLogoFileChange = (e) => {
     const file = e.target.files[0];
-    if (!file) return;
-    if (!canEdit) return toast.error('Only Admin can update organization settings.');
-
-    setLogoFile(file);
-    setLogoPreview(URL.createObjectURL(file));
-
-    const loadingToast = toast.loading('Uploading Church logo...');
-    try {
-      const payload = new FormData();
-      Object.keys(settings).forEach(key => {
-        if (key === 'churchLogo' || key === 'parishPriestPhoto' || key === 'patronPhoto') return;
-        payload.append(key, settings[key]);
-      });
-      payload.append('churchLogo', file);
-      const res = await updateGlobalSettings(payload);
-      toast.dismiss(loadingToast);
-      if (res && res.settings && res.settings.churchLogo) {
-        setLogoPreview(getImageUrl(res.settings.churchLogo));
-      }
-      toast.success('Church logo uploaded successfully!');
-    } catch (err) {
-      toast.dismiss(loadingToast);
-      toast.error('Failed to upload logo.');
+    if (file) {
+      setLogoFile(file);
+      setLogoPreview(URL.createObjectURL(file));
     }
   };
 
-  const handlePriestFileChange = async (e) => {
+  const handlePriestFileChange = (e) => {
     const file = e.target.files[0];
-    if (!file) return;
-    if (!canEdit) return toast.error('Only Admin can update organization settings.');
-
-    setPriestFile(file);
-    setPriestPreview(URL.createObjectURL(file));
-
-    const loadingToast = toast.loading('Uploading Priest photo...');
-    try {
-      const payload = new FormData();
-      Object.keys(settings).forEach(key => {
-        if (key === 'churchLogo' || key === 'parishPriestPhoto' || key === 'patronPhoto') return;
-        payload.append(key, settings[key]);
-      });
-      payload.append('parishPriestPhoto', file);
-      const res = await updateGlobalSettings(payload);
-      toast.dismiss(loadingToast);
-      if (res && res.settings && res.settings.parishPriestPhoto) {
-        setPriestPreview(getImageUrl(res.settings.parishPriestPhoto));
-      }
-      toast.success('Priest photo uploaded successfully!');
-    } catch (err) {
-      toast.dismiss(loadingToast);
-      toast.error('Failed to upload Priest photo.');
+    if (file) {
+      setPriestFile(file);
+      setPriestPreview(URL.createObjectURL(file));
     }
   };
 
-  const handlePatronFileChange = async (e) => {
+  const handlePatronFileChange = (e) => {
     const file = e.target.files[0];
-    if (!file) return;
-    if (!canEdit) return toast.error('Only Admin can update organization settings.');
-
-    setPatronFile(file);
-    setPatronPreview(URL.createObjectURL(file));
-
-    const loadingToast = toast.loading('Uploading Mary Help of Christians portrait...');
-    try {
-      const payload = new FormData();
-      Object.keys(settings).forEach(key => {
-        if (key === 'churchLogo' || key === 'parishPriestPhoto' || key === 'patronPhoto') return;
-        payload.append(key, settings[key]);
-      });
-      payload.append('patronPhoto', file);
-      const res = await updateGlobalSettings(payload);
-      toast.dismiss(loadingToast);
-      if (res && res.settings && res.settings.patronPhoto) {
-        setPatronPreview(getImageUrl(res.settings.patronPhoto));
-      }
-      toast.success('Mary Help of Christians image uploaded & saved successfully!');
-    } catch (err) {
-      toast.dismiss(loadingToast);
-      toast.error('Failed to upload Mary Help of Christians image.');
+    if (file) {
+      setPatronFile(file);
+      setPatronPreview(URL.createObjectURL(file));
     }
   };
 
@@ -406,9 +346,9 @@ export default function Settings() {
         {/* Mary Help of Christians Patron Portrait Setup */}
         <div className="bg-white rounded-3xl border border-indigo-200/80 p-6 shadow-xs space-y-4">
           <h2 className="text-xs font-black uppercase tracking-wider text-indigo-700 flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-indigo-600" /> Celestial Patroness Image Setup (Mary Help of Christians)
+            <Sparkles className="w-4 h-4 text-indigo-600" /> Celestial Image Setup (Mary Help of Christians)
           </h2>
-          <p className="text-xs text-slate-500 font-medium">Upload or update Mother Mary's portrait displayed on the Dashboard's Sacred Patron Hero Card.</p>
+          <p className="text-xs text-slate-500 font-medium">Upload or update Mother Mary's portrait displayed on the Dashboard's Sacred Hero Card.</p>
 
           <div className="p-4 rounded-2xl bg-gradient-to-r from-indigo-50/70 via-blue-50/50 to-indigo-50/70 border border-indigo-200 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center space-x-4">
@@ -618,8 +558,8 @@ export default function Settings() {
       {showPatronModal && (patronPreview || settings.patronPhoto) && (
         <PhotoLightboxModal
           photoUrl={patronPreview || settings.patronPhoto}
-          title="Mary, Help of Christians"
-          subtitle={`Patroness & Heavenly Mother • ${settings.youthName || 'Fransalian Youth Movement'}`}
+          title="Mary Help of Christians"
+          subtitle={`Heavenly Mother • ${settings.youthName || 'Fransalian Youth Movement'}`}
           onClose={() => setShowPatronModal(false)}
         />
       )}
