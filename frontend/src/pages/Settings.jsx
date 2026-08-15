@@ -19,9 +19,6 @@ export default function Settings() {
   const [priestFile, setPriestFile] = useState(null);
   const [priestPreview, setPriestPreview] = useState(globalSettings.parishPriestPhoto || '');
 
-  const [patronFile, setPatronFile] = useState(null);
-  const [patronPreview, setPatronPreview] = useState(globalSettings.patronPhoto || '');
-
   const [savingSettings, setSavingSettings] = useState(false);
 
   const [profileEmail, setProfileEmail] = useState(user?.email || '');
@@ -39,7 +36,6 @@ export default function Settings() {
     setSettings({ ...globalSettings });
     setLogoPreview(globalSettings.churchLogo ? getImageUrl(globalSettings.churchLogo) : '');
     setPriestPreview(globalSettings.parishPriestPhoto ? getImageUrl(globalSettings.parishPriestPhoto) : '');
-    setPatronPreview(globalSettings.patronPhoto ? getImageUrl(globalSettings.patronPhoto) : '');
   }, [globalSettings]);
 
   const handleLogoFileChange = async (e) => {
@@ -55,7 +51,7 @@ export default function Settings() {
       const payload = new FormData();
       Object.keys(settings).forEach(key => {
         if (key === '_id' || key === 'createdAt' || key === 'updatedAt' || key === '__v') return;
-        if (key === 'churchLogo' || key === 'parishPriestPhoto' || key === 'patronPhoto') return;
+        if (key === 'churchLogo' || key === 'parishPriestPhoto') return;
         payload.append(key, settings[key]);
       });
       payload.append('churchLogo', file);
@@ -84,7 +80,7 @@ export default function Settings() {
       const payload = new FormData();
       Object.keys(settings).forEach(key => {
         if (key === '_id' || key === 'createdAt' || key === 'updatedAt' || key === '__v') return;
-        if (key === 'churchLogo' || key === 'parishPriestPhoto' || key === 'patronPhoto') return;
+        if (key === 'churchLogo' || key === 'parishPriestPhoto') return;
         payload.append(key, settings[key]);
       });
       payload.append('parishPriestPhoto', file);
@@ -100,35 +96,6 @@ export default function Settings() {
     }
   };
 
-  const handlePatronFileChange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    if (!canEdit) return toast.error('Only Admin can update organization settings.');
-
-    setPatronFile(file);
-    setPatronPreview(URL.createObjectURL(file));
-
-    const loadingToast = toast.loading('Uploading Sidebar background image...');
-    try {
-      const payload = new FormData();
-      Object.keys(settings).forEach(key => {
-        if (key === '_id' || key === 'createdAt' || key === 'updatedAt' || key === '__v') return;
-        if (key === 'churchLogo' || key === 'parishPriestPhoto' || key === 'patronPhoto') return;
-        payload.append(key, settings[key]);
-      });
-      payload.append('patronPhoto', file);
-      const res = await updateGlobalSettings(payload);
-      toast.dismiss(loadingToast);
-      if (res && res.settings && res.settings.patronPhoto) {
-        setPatronPreview(getImageUrl(res.settings.patronPhoto));
-      }
-      toast.success('Sidebar background image uploaded successfully!');
-    } catch (err) {
-      toast.dismiss(loadingToast);
-      toast.error('Failed to upload Sidebar background image.');
-    }
-  };
-
   const handleSave = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
     if (!canEdit) return toast.error('Only Admin can update organization settings.');
@@ -137,13 +104,12 @@ export default function Settings() {
     setSavingSettings(true);
 
     try {
-      if (logoFile || priestFile || patronFile) {
+      if (logoFile || priestFile) {
         const payload = new FormData();
         Object.keys(settings).forEach(key => {
           if (key === '_id' || key === 'createdAt' || key === 'updatedAt' || key === '__v') return;
           if (key === 'churchLogo' && logoFile) return;
           if (key === 'parishPriestPhoto' && priestFile) return;
-          if (key === 'patronPhoto' && patronFile) return;
           if (settings[key] !== null && settings[key] !== undefined) {
             if (Array.isArray(settings[key])) {
               payload.append(key, settings[key].join(','));
@@ -154,7 +120,6 @@ export default function Settings() {
         });
         if (logoFile) payload.append('churchLogo', logoFile);
         if (priestFile) payload.append('parishPriestPhoto', priestFile);
-        if (patronFile) payload.append('patronPhoto', patronFile);
         await updateGlobalSettings(payload);
       } else {
         const cleanSettings = { ...settings };
@@ -427,40 +392,6 @@ export default function Settings() {
                 className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
               />
             </div>
-          </div>
-        </div>
-
-        {/* Sidebar Background Watermark / Patron Photo Setup */}
-        <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
-          <h2 className="text-xs font-black uppercase tracking-wider text-indigo-600 flex items-center gap-2">
-            <ImageIcon className="w-4 h-4 text-indigo-600" /> Sidebar Background Watermark / Patron Image
-          </h2>
-          <p className="text-xs text-slate-500 font-medium">
-            Upload a custom patron photo (e.g. Mary Help of Christians / Saint Patron) to display as a subtle watermark background in the navigation sidebar.
-          </p>
-
-          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center space-x-4">
-              <div className="w-16 h-16 rounded-2xl bg-white border border-slate-200 flex items-center justify-center overflow-hidden shadow-xs">
-                {patronPreview ? (
-                  <img src={patronPreview} alt="Sidebar Background Watermark" className="w-full h-full object-contain filter grayscale contrast-125" />
-                ) : (
-                  <ImageIcon className="w-8 h-8 text-indigo-400" />
-                )}
-              </div>
-              <div>
-                <h4 className="font-bold text-slate-900 text-xs">Sidebar Watermark Photo</h4>
-                <p className="text-[11px] text-slate-500 font-medium">Appears faintly at the bottom of the left sidebar menu</p>
-              </div>
-            </div>
-
-            {canEdit && (
-              <label className="py-2 px-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold cursor-pointer flex items-center space-x-1.5 shadow-sm transition">
-                <Upload className="w-3.5 h-3.5" />
-                <span>Upload Background Image</span>
-                <input type="file" accept="image/*" onChange={handlePatronFileChange} className="hidden" />
-              </label>
-            )}
           </div>
         </div>
 
