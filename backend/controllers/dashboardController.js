@@ -20,12 +20,12 @@ const getDashboardStats = async (req, res) => {
       secretOfferings = memoryStore.secretOfferings || [];
     } else {
       [members, incomeList, expenseList, subs, events, attendance] = await Promise.all([
-        Member.find({}).lean(),
-        Income.find({}).lean(),
-        Expense.find({}).lean(),
-        Subscription.find({}).lean(),
-        Event.find({}).lean(),
-        Attendance.find({}).lean()
+        Member.find({}).select('_id memberId fullName dob activeStatus role anbiyamName photo mobileNumber email').lean(),
+        Income.find({}).select('amount category source').lean(),
+        Expense.find({}).select('amount').lean(),
+        Subscription.find({}).select('amount status month').lean(),
+        Event.find({}).select('_id eventName date time venue status').lean(),
+        Attendance.find({}).select('meetingName records').lean()
       ]);
       secretOfferings = memoryStore.secretOfferings || [];
     }

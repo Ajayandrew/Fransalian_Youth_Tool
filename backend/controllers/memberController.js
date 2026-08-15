@@ -12,7 +12,7 @@ const calcAge = (dobString) => {
   return Math.abs(ageDate.getUTCFullYear() - 1970);
 };
 
-const ensureMemberIds = (membersList) => {
+const ensureMemberIds = (membersList, persist = false) => {
   if (!Array.isArray(membersList)) return [];
   let counter = 1;
   const usedIds = new Set(
@@ -38,7 +38,7 @@ const ensureMemberIds = (membersList) => {
     }
   });
 
-  if (modified) {
+  if (modified && persist) {
     try {
       savePersistentStore();
     } catch (e) {}
@@ -66,15 +66,20 @@ const getMembers = async (req, res) => {
     if (getIsInMemory()) {
       list = [...memoryStore.members];
     } else {
-      list = await Member.find({}).lean();
-      if (list.length === 0 && memoryStore.members.length > 0) {
+      const dbQuery = {};
+      if (gender && gender !== 'All') dbQuery.gender = gender;
+      if (anbiyam && anbiyam !== 'All') dbQuery.anbiyamName = anbiyam;
+      if (activeStatus && activeStatus !== 'All') dbQuery.activeStatus = activeStatus;
+
+      list = await Member.find(dbQuery).lean();
+      if (list.length === 0 && memoryStore.members.length > 0 && Object.keys(dbQuery).length === 0) {
         // Sync persistent memoryStore items to MongoDB Atlas if DB was empty
         await Member.insertMany(memoryStore.members).catch(() => {});
         list = await Member.find({}).lean();
       }
     }
 
-    list = ensureMemberIds(list);
+    list = ensureMemberIds(list, false);
 
     if (search) {
       const rawQ = search.trim().toLowerCase();
@@ -92,9 +97,11 @@ const getMembers = async (req, res) => {
       );
     }
 
-    if (gender && gender !== 'All') list = list.filter(m => m.gender === gender);
-    if (anbiyam && anbiyam !== 'All') list = list.filter(m => m.anbiyamName === anbiyam);
-    if (activeStatus && activeStatus !== 'All') list = list.filter(m => m.activeStatus === activeStatus);
+    if (getIsInMemory()) {
+      if (gender && gender !== 'All') list = list.filter(m => m.gender === gender);
+      if (anbiyam && anbiyam !== 'All') list = list.filter(m => m.anbiyamName === anbiyam);
+      if (activeStatus && activeStatus !== 'All') list = list.filter(m => m.activeStatus === activeStatus);
+    }
 
     if (bloodGroup) {
       const targetBg = bloodGroup.trim().replace(/\s+/g, '+').toUpperCase();

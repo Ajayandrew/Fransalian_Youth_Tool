@@ -18,21 +18,32 @@ const getSubscriptions = async (req, res) => {
     } else {
       const Member = require('../models/Member');
       [subsList, membersList] = await Promise.all([
-        Subscription.find({}).lean(),
-        Member.find({}).lean()
+        Subscription.find({ month: targetMonth }).lean(),
+        Member.find({}).select('_id fullName').lean()
       ]);
     }
 
     const defaultSubsAmount = (memoryStore.settings?.subscriptionAmount) || 50;
 
-    // Map all members for the target month
-    const memberSubMatrix = membersList.map(m => {
-      const existing = subsList.find(s =>
-        ( (s.memberId && s.memberId.toString() === m._id.toString()) ||
-          (s.memberName && s.memberName.trim().toLowerCase() === m.fullName.trim().toLowerCase()) ) &&
-        (s.month && s.month.trim().toLowerCase() === targetMonth.trim().toLowerCase())
-      );
+    // Create O(1) fast lookup map for subscriptions in target month
+    const normTargetMonth = targetMonth.trim().toLowerCase();
+    const subMapByMemberId = new Map();
+    const subMapByName = new Map();
 
+    for (let i = 0; i < subsList.length; i++) {
+      const s = subsList[i];
+      if (s.month && s.month.trim().toLowerCase() === normTargetMonth) {
+        if (s.memberId) subMapByMemberId.set(s.memberId.toString(), s);
+        if (s.memberName) subMapByName.set(s.memberName.trim().toLowerCase(), s);
+      }
+    }
+
+    // Map all members for the target month with O(1) Map lookup
+    const memberSubMatrix = membersList.map(m => {
+      const mIdStr = m._id ? m._id.toString() : '';
+      const mNameNorm = m.fullName ? m.fullName.trim().toLowerCase() : '';
+
+      const existing = subMapByMemberId.get(mIdStr) || subMapByName.get(mNameNorm);
       const isPaid = existing && (existing.status || '').toLowerCase() === 'paid';
 
       return {

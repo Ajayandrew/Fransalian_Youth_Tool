@@ -17,7 +17,7 @@ const getFinanceSummary = async (req, res) => {
       [incomeList, expenseList, subscriptions] = await Promise.all([
         Income.find({}).lean(),
         Expense.find({}).lean(),
-        Subscription.find({}).lean()
+        Subscription.find({}).select('amount status').lean()
       ]);
       secretOfferings = memoryStore.secretOfferings || [];
     }

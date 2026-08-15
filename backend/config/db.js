@@ -16,10 +16,11 @@ const connectDB = async () => {
   const uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/francisalian_youth_db';
   
   const mongooseOptions = {
-    serverSelectionTimeoutMS: 8000,
+    serverSelectionTimeoutMS: 2500,
+    connectTimeoutMS: 2500,
     maxPoolSize: 50,
-    minPoolSize: 10,
-    socketTimeoutMS: 45000,
+    minPoolSize: 5,
+    socketTimeoutMS: 30000,
   };
 
   try {
@@ -32,14 +33,13 @@ const connectDB = async () => {
     
     // Fallback DNS servers for Windows SRV resolution
     try {
-      dns.setServers(['8.8.8.8', '1.1.1.1']);
+      if (dns.setServers) dns.setServers(['8.8.8.8', '1.1.1.1']);
       const conn = await mongoose.connect(uri, mongooseOptions);
       console.log(`[Database] MongoDB Atlas Connected Successfully (via DNS Resolver): ${conn.connection.host}`);
       isInMemoryMode = false;
       return true;
     } catch (err2) {
-      console.warn(`[Database Warning] Could not connect to MongoDB Atlas: ${err2.message}`);
-      console.warn('[Database] Operating with active in-memory data store for maximum reliability.');
+      console.warn(`[Database Warning] Operating with active in-memory data store for maximum reliability.`);
       isInMemoryMode = true;
       return false;
     }
