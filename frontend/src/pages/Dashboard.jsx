@@ -323,7 +323,7 @@ export default function Dashboard() {
                       e.target.onerror = null;
                       e.target.src = 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=100';
                     }}
-                    className="w-9 h-9 rounded-xl object-cover"
+                    className="w-9 h-9 rounded-xl object-cover object-top"
                   />
                   <div>
                     <h4 className="font-bold text-slate-900">{m.fullName}</h4>

@@ -373,7 +373,7 @@ export default function Members() {
                           e.target.onerror = null;
                           e.target.src = 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=300';
                         }}
-                        className="w-14 h-14 rounded-2xl object-cover border border-slate-200 group-hover/photo:opacity-90 transition"
+                        className="w-14 h-14 rounded-2xl object-cover object-top border border-slate-200 group-hover/photo:opacity-90 transition"
                       />
                       <div className="absolute inset-0 bg-slate-900/40 rounded-2xl opacity-0 group-hover/photo:opacity-100 transition flex items-center justify-center text-white">
                         <Download className="w-4 h-4" />
@@ -514,7 +514,7 @@ export default function Members() {
                           e.target.onerror = null;
                           e.target.src = 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=100';
                         }}
-                        className="w-9 h-9 rounded-xl object-cover cursor-pointer hover:opacity-80"
+                        className="w-9 h-9 rounded-xl object-cover object-top cursor-pointer hover:opacity-80"
                         onClick={() => handleOpenPhotoLightbox(m)}
                       />
                       <span className="hover:text-indigo-600 cursor-pointer" onClick={() => setSelectedProfileMember(m)}>{m.fullName}</span>
@@ -588,7 +588,7 @@ export default function Members() {
                       e.target.onerror = null;
                       e.target.src = 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=200';
                     }}
-                    className="w-16 h-16 rounded-2xl object-cover border border-slate-300 cursor-pointer"
+                    className="w-16 h-16 rounded-2xl object-cover object-top border border-slate-300 cursor-pointer"
                     onClick={() => {
                       if (photoPreview) setSelectedLightboxPhoto({ url: photoPreview, title: formData.fullName || 'Photo' });
                     }}

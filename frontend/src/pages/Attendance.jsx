@@ -540,7 +540,7 @@ export default function Attendance() {
                               e.target.onerror = null;
                               e.target.src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100';
                             }}
-                            className="w-8 h-8 rounded-full object-cover border border-slate-200"
+                            className="w-8 h-8 rounded-full object-cover object-top border border-slate-200"
                           />
                           <div>
                             <p className="font-bold text-slate-900">{m.fullName}</p>

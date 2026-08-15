@@ -255,7 +255,7 @@ function BirthdaysContent() {
                 <img
                   src={getImageUrl(m.photo) || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200'}
                   alt={m.fullName || 'Member'}
-                  className="w-14 h-14 rounded-xl object-cover border-2 border-amber-400"
+                  className="w-14 h-14 rounded-xl object-cover object-top border-2 border-amber-400"
                 />
                 <div>
                   <span className="text-[10px] font-black text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-md">
@@ -383,7 +383,7 @@ function BirthdaysContent() {
                             e.target.onerror = null;
                             e.target.src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200';
                           }}
-                          className="w-16 h-16 rounded-2xl object-cover border-2 border-amber-400 shadow-md group-hover/img:scale-105 group-hover/img:rotate-3 transition-transform"
+                          className="w-16 h-16 rounded-2xl object-cover object-top border-2 border-amber-400 shadow-md group-hover/img:scale-105 group-hover/img:rotate-3 transition-transform"
                         />
                         {isToday && (
                           <span className="absolute -top-2 -right-2 bg-amber-500 text-slate-950 p-1 rounded-full text-xs shadow-md animate-bounce">

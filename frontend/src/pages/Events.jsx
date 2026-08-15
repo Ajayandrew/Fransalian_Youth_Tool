@@ -238,7 +238,7 @@ export default function Events() {
                     e.target.onerror = null;
                     e.target.src = 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=600';
                   }}
-                  className="w-full h-full object-cover opacity-85 group-hover:scale-105 transition-transform duration-300"
+                  className="w-full h-full object-cover object-top opacity-85 group-hover:scale-105 transition-transform duration-300"
                 />
                 <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-black uppercase text-indigo-700 shadow-xs">
                   {evt.category || 'Youth Meeting'}

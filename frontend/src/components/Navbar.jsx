@@ -138,7 +138,7 @@ export default function Navbar({ onToggleMobileSidebar }) {
                 <img
                   src={getImageUrl(user.avatar || user.photo) || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100'}
                   alt={user.fullName}
-                  className="w-8 h-8 rounded-xl object-cover border border-slate-200 group-hover:border-indigo-400"
+                  className="w-8 h-8 rounded-xl object-cover object-top border border-slate-200 group-hover:border-indigo-400"
                 />
                 <div className="hidden sm:block text-left">
                   <p className="text-xs font-bold text-slate-900 leading-tight group-hover:text-indigo-600">{user.fullName}</p>

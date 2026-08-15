@@ -120,7 +120,7 @@ export default function BirthdayCelebrationModal({ member, onClose, onTriggerBur
                     e.target.onerror = null;
                     e.target.src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600';
                   }}
-                  className="relative w-32 h-32 sm:w-36 sm:h-36 rounded-full object-cover border-4 border-amber-300 shadow-2xl group-hover:scale-105 transition-transform"
+                  className="relative w-32 h-32 sm:w-36 sm:h-36 rounded-full object-cover object-top border-4 border-amber-300 shadow-2xl group-hover:scale-105 transition-transform"
                 />
 
                 {/* Hover Zoom Overlay */}

@@ -56,7 +56,7 @@ export default function MemberIDCardModal({ member, onClose }) {
                 e.target.onerror = null;
                 e.target.src = 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=300';
               }}
-              className="w-20 h-20 rounded-2xl object-cover border-2 border-white/80 shadow-md"
+              className="w-20 h-20 rounded-2xl object-cover object-top border-2 border-white/80 shadow-md"
             />
             <div>
               <h3 className="text-base font-black leading-tight text-white">{member.fullName}</h3>
