@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Image as GalleryIcon, Plus, Eye, Tag, Calendar, Upload, X, Sparkles, Trash2 } from 'lucide-react';
+import { Image as GalleryIcon, Plus, Eye, Tag, Calendar, Upload, X, Sparkles, Trash2, Maximize2, Grid } from 'lucide-react';
 import toast from 'react-hot-toast';
 import PhotoLightboxModal from '../components/PhotoLightboxModal';
 import { useAuth } from '../context/AuthContext';
@@ -12,6 +12,7 @@ export default function Gallery() {
   const { fetchWithCache, invalidateCache } = useDataCache();
   const [albums, setAlbums] = useState([]);
   const [activeCategory, setActiveCategory] = useState('All');
+  const [fitMode, setFitMode] = useState('contain'); // 'contain' for full uncropped image, 'cover' for grid crop
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [showUploadModal, setShowUploadModal] = useState(false);
 
@@ -134,28 +135,58 @@ export default function Gallery() {
         {canEdit && (
           <button
             onClick={() => setShowUploadModal(true)}
-            className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-2 transition shadow-md shadow-indigo-600/20"
+            className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-2 transition shadow-md shadow-indigo-600/20 cursor-pointer"
           >
             <Plus className="w-4 h-4" /> Add Photo to Album
           </button>
         )}
       </div>
 
-      {/* Category Pills */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-        {categories.map(cat => (
+      {/* Category Pills & Layout Controls */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 scrollbar-none">
+          {categories.map(cat => (
+            <button
+              key={cat}
+              onClick={() => setActiveCategory(cat)}
+              className={`px-4 py-2 rounded-xl text-xs font-extrabold transition whitespace-nowrap cursor-pointer ${
+                activeCategory === cat
+                  ? 'bg-slate-900 text-white shadow-md'
+                  : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
+        {/* Layout Fit Mode Selector */}
+        <div className="flex items-center space-x-1 bg-slate-200/80 p-1 rounded-xl self-start sm:self-auto flex-shrink-0">
           <button
-            key={cat}
-            onClick={() => setActiveCategory(cat)}
-            className={`px-4 py-2 rounded-xl text-xs font-extrabold transition whitespace-nowrap ${
-              activeCategory === cat
-                ? 'bg-slate-900 text-white shadow-md'
-                : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
+            onClick={() => setFitMode('contain')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-extrabold flex items-center space-x-1.5 transition cursor-pointer ${
+              fitMode === 'contain'
+                ? 'bg-white text-indigo-600 shadow-sm'
+                : 'text-slate-600 hover:text-slate-900'
             }`}
+            title="Display complete image inside card without top crop"
           >
-            {cat}
+            <Maximize2 className="w-3.5 h-3.5" />
+            <span>Full Image (No Cut)</span>
           </button>
-        ))}
+          <button
+            onClick={() => setFitMode('cover')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-extrabold flex items-center space-x-1.5 transition cursor-pointer ${
+              fitMode === 'cover'
+                ? 'bg-white text-indigo-600 shadow-sm'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+            title="Top focused grid crop"
+          >
+            <Grid className="w-3.5 h-3.5" />
+            <span>Top Focus Grid</span>
+          </button>
+        </div>
       </div>
 
       {/* Photo Gallery Masonry Grid */}
@@ -165,7 +196,7 @@ export default function Gallery() {
             <div
               key={index}
               onClick={() => setSelectedPhoto(photo)}
-              className="group relative h-64 bg-slate-900 rounded-3xl overflow-hidden cursor-pointer shadow-xs hover:shadow-xl transition-all duration-300"
+              className="group relative h-64 bg-slate-950 rounded-3xl overflow-hidden cursor-pointer shadow-xs hover:shadow-xl transition-all duration-300 border border-slate-800"
             >
               <img
                 src={getImageUrl(photo.url)}
@@ -174,9 +205,13 @@ export default function Gallery() {
                   e.target.onerror = null;
                   e.target.src = 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=600';
                 }}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90 group-hover:opacity-100"
+                className={`w-full h-full ${
+                  fitMode === 'contain'
+                    ? 'object-contain p-2 bg-slate-950'
+                    : 'object-cover object-top'
+                } group-hover:scale-105 transition-all duration-500 opacity-90 group-hover:opacity-100`}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent opacity-80 group-hover:opacity-95 transition-opacity" />
 
               <div className="absolute bottom-0 left-0 right-0 p-4 text-white transform translate-y-1 group-hover:translate-y-0 transition-transform">
                 <span className="text-[10px] font-black uppercase tracking-wider text-amber-400 bg-amber-400/20 px-2 py-0.5 rounded-md backdrop-blur-xs">

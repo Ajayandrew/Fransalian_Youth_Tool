@@ -33,8 +33,14 @@ export default function PhotoLightboxModal({ photo, photoUrl: directUrl, title: 
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-sm">
-      <div className="relative max-w-3xl w-full bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-2xl p-4 space-y-4">
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md"
+      onClick={onClose}
+    >
+      <div 
+        className="relative max-w-4xl w-full bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-2xl p-4 sm:p-5 space-y-4"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header Actions */}
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div>
@@ -45,7 +51,7 @@ export default function PhotoLightboxModal({ photo, photoUrl: directUrl, title: 
           <div className="flex items-center space-x-2">
             <button
               onClick={handleDownload}
-              className="py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center space-x-1.5 shadow-sm transition"
+              className="py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center space-x-1.5 shadow-sm transition cursor-pointer"
             >
               <Download className="w-4 h-4" />
               <span>Download Photo</span>
@@ -54,7 +60,7 @@ export default function PhotoLightboxModal({ photo, photoUrl: directUrl, title: 
             {onViewProfile && (
               <button
                 onClick={onViewProfile}
-                className="py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold flex items-center space-x-1.5 shadow-sm transition"
+                className="py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold flex items-center space-x-1.5 shadow-sm transition cursor-pointer"
               >
                 <Eye className="w-4 h-4" />
                 <span>View Full Profile</span>
@@ -63,7 +69,7 @@ export default function PhotoLightboxModal({ photo, photoUrl: directUrl, title: 
 
             <button
               onClick={onClose}
-              className="p-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition"
+              className="p-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -71,11 +77,13 @@ export default function PhotoLightboxModal({ photo, photoUrl: directUrl, title: 
         </div>
 
         {/* Large Photo Display */}
-        <div className="w-full max-h-[70vh] rounded-2xl overflow-hidden bg-slate-100 flex items-center justify-center border border-slate-200">
+        <div className="w-full max-h-[75vh] min-h-[300px] rounded-2xl overflow-hidden bg-slate-950 flex items-center justify-center border border-slate-800 p-2 relative group">
           <img
             src={url}
             alt={title || 'Photo'}
-            className="w-full max-h-[70vh] object-contain rounded-2xl"
+            onClick={() => window.open(url, '_blank')}
+            title="Click to view raw full size photo in new tab"
+            className="w-full max-h-[72vh] object-contain rounded-xl shadow-lg cursor-zoom-in group-hover:scale-[1.01] transition-transform duration-300"
           />
         </div>
       </div>
