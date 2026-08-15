@@ -51,12 +51,20 @@ export default function Sidebar({ isOpen, setIsOpen, isMobileOpen, setIsMobileOp
       )}
 
       <aside
-        className={`fixed top-0 left-0 z-50 h-screen transition-all duration-300 bg-white border-r border-slate-200 flex flex-col shadow-sm ${
+        className={`fixed top-0 left-0 z-50 h-screen transition-all duration-300 bg-white border-r border-slate-200 flex flex-col shadow-sm relative overflow-hidden ${
           isMobileOpen ? 'translate-x-0 w-64' : '-translate-x-full md:translate-x-0'
         } ${isOpen ? 'md:w-64' : 'md:w-20'}`}
       >
+        {/* Subtle Watermark Background Image (Mary Help of Christians / Patron) */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-[0.08] select-none flex items-end justify-center z-0">
+          <img
+            src={getImageUrl(settings.patronPhoto) || 'https://images.unsplash.com/photo-1548625149-fc4a29cf7092?w=600&q=80'}
+            alt="Mary Help of Christians Watermark"
+            className="w-full h-3/4 object-contain object-bottom filter grayscale contrast-125 transition-all duration-300"
+          />
+        </div>
         {/* Header */}
-        <div className="h-16 px-4 flex items-center justify-between border-b border-slate-100">
+        <div className="h-16 px-4 flex items-center justify-between border-b border-slate-100 relative z-10">
           <div
             className="flex items-center space-x-3 overflow-hidden cursor-pointer group"
             onClick={() => settings.churchLogo && setShowLogoModal(true)}
