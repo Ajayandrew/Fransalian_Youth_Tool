@@ -11,7 +11,7 @@ const galleryAlbumSchema = new mongoose.Schema({
   albumTitle: { type: String, required: true },
   category: { 
     type: String, 
-    enum: ['Youth Meeting', 'Retreat', 'Christmas', 'Camp', 'Sports', 'Feast', 'General'],
+    enum: ['Youth Meeting', 'Retreat', 'Christmas', 'Camp', 'Sports', 'Feast', 'Spiritual', 'Cultural', 'Choir', 'General'],
     default: 'General'
   },
   description: { type: String, default: '' },

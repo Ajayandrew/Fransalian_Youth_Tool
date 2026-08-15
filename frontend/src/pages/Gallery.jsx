@@ -253,7 +253,12 @@ export default function Gallery() {
                   <option value="Cultural">Cultural</option>
                   <option value="Spiritual">Spiritual</option>
                   <option value="Sports">Sports</option>
+                  <option value="Youth Meeting">Youth Meeting</option>
+                  <option value="Retreat">Retreat</option>
+                  <option value="Feast">Feast</option>
+                  <option value="Camp">Camp</option>
                   <option value="Choir">Choir</option>
+                  <option value="Christmas">Christmas</option>
                   <option value="General">General</option>
                 </select>
               </div>
