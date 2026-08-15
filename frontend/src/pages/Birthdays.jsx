@@ -62,10 +62,16 @@ class BirthdaysErrorBoundary extends React.Component {
 }
 
 function BirthdaysContent() {
-  const { fetchWithCache } = useDataCache();
+  const { fetchWithCache, cache } = useDataCache();
+  const cachedMembers = cache['members{}'];
   const confettiRef = useRef(null);
-  const [members, setMembers] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [members, setMembers] = useState(() => {
+    if (cachedMembers && (cachedMembers.members || Array.isArray(cachedMembers))) {
+      return Array.isArray(cachedMembers) ? cachedMembers : cachedMembers.members || [];
+    }
+    return [];
+  });
+  const [loading, setLoading] = useState(() => !cachedMembers);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [filterMode, setFilterMode] = useState('all'); // 'all', 'today'
   const [searchQuery, setSearchQuery] = useState('');
@@ -82,7 +88,7 @@ function BirthdaysContent() {
 
   useEffect(() => {
     const fetchMembers = async () => {
-      setLoading(true);
+      if (!cachedMembers) setLoading(true);
       try {
         const data = await fetchWithCache('members', '/api/members');
         if (data && Array.isArray(data.members)) {

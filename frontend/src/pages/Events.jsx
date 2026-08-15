@@ -9,9 +9,10 @@ import { getImageUrl } from '../utils/urlUtils';
 
 export default function Events() {
   const { hasRole } = useAuth();
-  const { fetchWithCache, invalidateCache } = useDataCache();
+  const { fetchWithCache, invalidateCache, cache } = useDataCache();
+  const cachedEvents = cache['events{}'];
   const [activeTab, setActiveTab] = useState('upcoming');
-  const [eventsList, setEventsList] = useState([]);
+  const [eventsList, setEventsList] = useState(() => cachedEvents?.events || []);
   const [showModal, setShowModal] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
   const [selectedBanner, setSelectedBanner] = useState(null);

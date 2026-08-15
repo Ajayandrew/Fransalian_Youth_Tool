@@ -8,7 +8,7 @@ import { useDataCache } from '../context/DataContext';
 
 export default function Subscriptions() {
   const { hasRole } = useAuth();
-  const { fetchWithCache, invalidateCache } = useDataCache();
+  const { fetchWithCache, invalidateCache, cache } = useDataCache();
   
   // Calculate real-time current month string (e.g., "August 2026")
   const realTimeCurrentMonth = `${new Date().toLocaleString('en-US', { month: 'long' })} ${new Date().getFullYear()}`;
@@ -18,19 +18,28 @@ export default function Subscriptions() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All'); // 'All' | 'Paid' | 'Pending'
 
-  const [subscriptionsData, setSubscriptionsData] = useState({
+  const cachedSubKey = `subscriptions${JSON.stringify({ month: selectedMonth, year: selectedYear })}`;
+  const cachedSub = cache[cachedSubKey];
+  const cachedMembers = cache['members{}'];
+
+  const [subscriptionsData, setSubscriptionsData] = useState(() => cachedSub || {
     summary: {
-      totalMembers: 4,
-      paidCount: 3,
-      pendingCount: 1,
-      expectedCollection: 200,
-      totalCollected: 150,
-      pendingCollection: 50
+      totalMembers: 0,
+      paidCount: 0,
+      pendingCount: 0,
+      expectedCollection: 0,
+      totalCollected: 0,
+      pendingCollection: 0
     },
     subscriptions: []
   });
 
-  const [membersList, setMembersList] = useState([]);
+  const [membersList, setMembersList] = useState(() => {
+    if (cachedMembers && (cachedMembers.members || Array.isArray(cachedMembers))) {
+      return Array.isArray(cachedMembers) ? cachedMembers : cachedMembers.members || [];
+    }
+    return [];
+  });
   const [showModal, setShowModal] = useState(false);
   const [payMemberName, setPayMemberName] = useState('');
   const [payAmount, setPayAmount] = useState(50);

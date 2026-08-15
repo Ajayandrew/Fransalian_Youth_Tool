@@ -9,11 +9,12 @@ import PhotoLightboxModal from '../components/PhotoLightboxModal';
 
 export default function Finance() {
   const { hasRole } = useAuth();
-  const { fetchWithCache, invalidateCache } = useDataCache();
+  const { fetchWithCache, invalidateCache, cache } = useDataCache();
+  const cachedFinance = cache['finance{}'];
   const [activeTab, setActiveTab] = useState('all');
   const [search, setSearch] = useState('');
   const [selectedReceipt, setSelectedReceipt] = useState(null);
-  const [financeData, setFinanceData] = useState({
+  const [financeData, setFinanceData] = useState(() => cachedFinance || {
     summary: {
       totalIncome: 0,
       totalExpense: 0,

@@ -37,9 +37,11 @@ import DashboardSkeleton from '../components/DashboardSkeleton';
 export default function Dashboard() {
   const { user, logout } = useAuth();
   const { settings } = useSettings();
-  const { fetchWithCache } = useDataCache();
+  const { fetchWithCache, cache } = useDataCache();
+  const cachedDashboard = cache['dashboard{}'];
+
   const isYouthMember = !user?.role || user?.role === 'Youth Member';
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState(() => cachedDashboard?.stats || {
     totalMembers: 0,
     activeMembers: 0,
     monthlySubscriptionCollection: 0,
@@ -50,7 +52,7 @@ export default function Dashboard() {
     upcomingEventsCount: 0
   });
 
-  const [charts, setCharts] = useState({
+  const [charts, setCharts] = useState(() => cachedDashboard?.charts || {
     financialOverview: [
       { name: 'Income', amount: 0 },
       { name: 'Expenses', amount: 0 },
@@ -60,16 +62,16 @@ export default function Dashboard() {
     attendanceOverview: []
   });
 
-  const [recentActivity, setRecentActivity] = useState({
+  const [recentActivity, setRecentActivity] = useState(() => cachedDashboard?.recentActivity || {
     newMembers: [],
     recentPayments: [],
     upcomingBirthdays: [],
     upcomingEvents: []
   });
 
-  const [leadership, setLeadership] = useState([]);
+  const [leadership, setLeadership] = useState(() => cachedDashboard?.leadership || []);
   const [lightboxPhoto, setLightboxPhoto] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => !cachedDashboard);
 
   useEffect(() => {
     let isMounted = true;

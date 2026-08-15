@@ -4,17 +4,17 @@ import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import { useAuth } from './context/AuthContext';
 
-const Dashboard = lazy(() => import('./pages/Dashboard'));
-const Login = lazy(() => import('./pages/Login'));
-const Members = lazy(() => import('./pages/Members'));
-const Subscriptions = lazy(() => import('./pages/Subscriptions'));
-const Finance = lazy(() => import('./pages/Finance'));
-const Attendance = lazy(() => import('./pages/Attendance'));
-const Events = lazy(() => import('./pages/Events'));
-const Gallery = lazy(() => import('./pages/Gallery'));
-const Birthdays = lazy(() => import('./pages/Birthdays'));
-const Reports = lazy(() => import('./pages/Reports'));
-const Settings = lazy(() => import('./pages/Settings'));
+import Dashboard from './pages/Dashboard';
+import Login from './pages/Login';
+import Members from './pages/Members';
+import Subscriptions from './pages/Subscriptions';
+import Finance from './pages/Finance';
+import Attendance from './pages/Attendance';
+import Events from './pages/Events';
+import Gallery from './pages/Gallery';
+import Birthdays from './pages/Birthdays';
+import Reports from './pages/Reports';
+import Settings from './pages/Settings';
 
 function PageLoader() {
   return (

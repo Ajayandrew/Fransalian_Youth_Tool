@@ -13,7 +13,9 @@ import QRScannerModal from '../components/QRScannerModal';
 
 export default function Attendance() {
   const { hasRole } = useAuth();
-  const { fetchWithCache, invalidateCache } = useDataCache();
+  const { fetchWithCache, invalidateCache, cache } = useDataCache();
+  const cachedMembers = cache['members{}'];
+  const cachedAttendance = cache['attendance{}'];
 
   // Mode: 'new' (taking new attendance) or 'view' (inspecting a saved past meeting)
   const [sessionMode, setSessionMode] = useState('new'); 
@@ -24,9 +26,19 @@ export default function Attendance() {
   const [meetingNotes, setMeetingNotes] = useState('Discussion on upcoming Feast day youth choir and stall.');
   const [search, setSearch] = useState('');
   
-  const [members, setMembers] = useState([]);
+  const [members, setMembers] = useState(() => {
+    if (cachedMembers && (cachedMembers.members || Array.isArray(cachedMembers))) {
+      return Array.isArray(cachedMembers) ? cachedMembers : cachedMembers.members || [];
+    }
+    return [];
+  });
   const [attendanceRecords, setAttendanceRecords] = useState({}); // { memberId: 'Present' | 'Absent' }
-  const [historyList, setHistoryList] = useState([]);
+  const [historyList, setHistoryList] = useState(() => {
+    if (cachedAttendance && (cachedAttendance.attendance || Array.isArray(cachedAttendance))) {
+      return Array.isArray(cachedAttendance) ? cachedAttendance : cachedAttendance.attendance || [];
+    }
+    return [];
+  });
   const [showQRModal, setShowQRModal] = useState(false);
   const [qrCodeInput, setQrCodeInput] = useState('');
 

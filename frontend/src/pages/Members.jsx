@@ -33,10 +33,17 @@ import { useSearchParams } from 'react-router-dom';
 export default function Members() {
   const { user, hasRole, updateUserRole } = useAuth();
   const { settings } = useSettings();
-  const { fetchWithCache, invalidateCache } = useDataCache();
+  const { fetchWithCache, invalidateCache, cache } = useDataCache();
+  const cachedMembers = cache['members{}'];
   const [searchParams] = useSearchParams();
-  const [members, setMembers] = useState([]);
-  const [loading, setLoading] = useState(true);
+
+  const [members, setMembers] = useState(() => {
+    if (cachedMembers && (cachedMembers.members || Array.isArray(cachedMembers))) {
+      return Array.isArray(cachedMembers) ? cachedMembers : cachedMembers.members || [];
+    }
+    return [];
+  });
+  const [loading, setLoading] = useState(() => !cachedMembers);
   const [viewMode, setViewMode] = useState('grid');
   const [search, setSearch] = useState(searchParams.get('search') || '');
   const [genderFilter, setGenderFilter] = useState('');

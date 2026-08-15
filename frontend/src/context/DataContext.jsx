@@ -65,6 +65,12 @@ export function DataProvider({ children }) {
     return fetchPromise;
   }, []);
 
+  React.useEffect(() => {
+    // Eager prefetch core app data in background on app startup
+    fetchWithCache('dashboard', '/api/dashboard/stats').catch(() => {});
+    fetchWithCache('members', '/api/members').catch(() => {});
+  }, [fetchWithCache]);
+
   const invalidateCache = useCallback((keyPrefix) => {
     Object.keys(cacheRef.current).forEach(k => {
       if (!keyPrefix || k.startsWith(keyPrefix)) {
