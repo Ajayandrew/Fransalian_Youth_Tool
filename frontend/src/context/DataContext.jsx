@@ -3,8 +3,25 @@ import axios from 'axios';
 
 const DataContext = createContext();
 
+const loadPersistedCache = () => {
+  try {
+    const raw = localStorage.getItem('fy_app_cache_v1');
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch (e) {
+    return {};
+  }
+};
+
+const savePersistedCache = (cacheObj) => {
+  try {
+    localStorage.setItem('fy_app_cache_v1', JSON.stringify(cacheObj));
+  } catch (e) {}
+};
+
 export function DataProvider({ children }) {
-  const cacheRef = React.useRef({});
+  const cacheRef = React.useRef(loadPersistedCache());
   const cacheTimeRef = React.useRef({});
   const inFlightRef = React.useRef({});
   const [loadingKeys, setLoadingKeys] = useState({});
@@ -30,6 +47,7 @@ export function DataProvider({ children }) {
             if (res.data) {
               cacheRef.current[cacheKey] = res.data;
               cacheTimeRef.current[cacheKey] = Date.now();
+              savePersistedCache(cacheRef.current);
             }
             return res.data;
           })
@@ -53,6 +71,7 @@ export function DataProvider({ children }) {
         if (res.data) {
           cacheRef.current[cacheKey] = res.data;
           cacheTimeRef.current[cacheKey] = Date.now();
+          savePersistedCache(cacheRef.current);
         }
         return res.data;
       })
@@ -78,6 +97,7 @@ export function DataProvider({ children }) {
         delete cacheTimeRef.current[k];
       }
     });
+    savePersistedCache(cacheRef.current);
   }, []);
 
   return (
