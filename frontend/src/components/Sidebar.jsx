@@ -51,7 +51,7 @@ export default function Sidebar({ isOpen, setIsOpen, isMobileOpen, setIsMobileOp
       )}
 
       <aside
-        className={`fixed top-0 left-0 z-50 h-screen transition-all duration-300 bg-white border-r border-slate-200 flex flex-col shadow-sm relative overflow-hidden ${
+        className={`fixed top-0 left-0 z-50 h-screen transition-all duration-300 bg-white border-r border-slate-200 flex flex-col shadow-sm overflow-hidden ${
           isMobileOpen ? 'translate-x-0 w-64' : '-translate-x-full md:translate-x-0'
         } ${isOpen ? 'md:w-64' : 'md:w-20'}`}
       >
