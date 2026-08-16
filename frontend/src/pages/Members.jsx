@@ -21,7 +21,7 @@ import {
   Upload,
   Trash,
   Eye,
-  Download,
+  ZoomIn,
   Droplet
 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -376,7 +376,7 @@ export default function Members() {
                         className="w-14 h-14 rounded-2xl object-cover object-top border border-slate-200 group-hover/photo:opacity-90 transition"
                       />
                       <div className="absolute inset-0 bg-slate-900/40 rounded-2xl opacity-0 group-hover/photo:opacity-100 transition flex items-center justify-center text-white">
-                        <Download className="w-4 h-4" />
+                        <ZoomIn className="w-4 h-4" />
                       </div>
                     </div>
                     <div>
@@ -736,6 +736,7 @@ export default function Members() {
           photoUrl={selectedLightboxPhoto.url}
           title={selectedLightboxPhoto.title}
           subtitle={selectedLightboxPhoto.subtitle}
+          allowDownload={false}
           onClose={() => setSelectedLightboxPhoto(null)}
           onViewProfile={() => {
             const mem = members.find(m => m.fullName === selectedLightboxPhoto.title);

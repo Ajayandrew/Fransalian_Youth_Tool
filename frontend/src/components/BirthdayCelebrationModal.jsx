@@ -256,6 +256,7 @@ export default function BirthdayCelebrationModal({ member, onClose, onTriggerBur
           photoUrl={photoUrl}
           title={`${member.fullName}'s Birthday Celebration Photo`}
           subtitle={`${member.role || 'Youth Member'} • ${dateStr}`}
+          allowDownload={false}
           onClose={() => setShowFullImage(false)}
         />
       )}

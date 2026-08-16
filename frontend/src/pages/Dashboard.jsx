@@ -584,6 +584,7 @@ export default function Dashboard() {
           photoUrl={lightboxPhoto.url}
           title={lightboxPhoto.title}
           subtitle={lightboxPhoto.subtitle}
+          allowDownload={false}
           onClose={() => setLightboxPhoto(null)}
         />
       )}

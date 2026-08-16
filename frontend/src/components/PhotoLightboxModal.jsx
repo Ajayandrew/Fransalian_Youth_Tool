@@ -3,7 +3,7 @@ import { X, Download, Eye } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getImageUrl } from '../utils/urlUtils';
 
-export default function PhotoLightboxModal({ photo, photoUrl: directUrl, title: directTitle, subtitle: directSubtitle, onClose, onViewProfile }) {
+export default function PhotoLightboxModal({ photo, photoUrl: directUrl, title: directTitle, subtitle: directSubtitle, onClose, onViewProfile, allowDownload = false }) {
   const rawUrl = directUrl || photo?.url || (typeof photo === 'string' ? photo : '');
   const url = getImageUrl(rawUrl);
   const title = directTitle || photo?.caption || photo?.albumTitle || photo?.title || 'Youth Photo';
@@ -49,13 +49,15 @@ export default function PhotoLightboxModal({ photo, photoUrl: directUrl, title: 
           </div>
 
           <div className="flex items-center space-x-2">
-            <button
-              onClick={handleDownload}
-              className="py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center space-x-1.5 shadow-sm transition cursor-pointer"
-            >
-              <Download className="w-4 h-4" />
-              <span>Download Photo</span>
-            </button>
+            {allowDownload && (
+              <button
+                onClick={handleDownload}
+                className="py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center space-x-1.5 shadow-sm transition cursor-pointer"
+              >
+                <Download className="w-4 h-4" />
+                <span>Download Photo</span>
+              </button>
+            )}
 
             {onViewProfile && (
               <button
@@ -81,9 +83,13 @@ export default function PhotoLightboxModal({ photo, photoUrl: directUrl, title: 
           <img
             src={url}
             alt={title || 'Photo'}
-            onClick={() => window.open(url, '_blank')}
-            title="Click to view raw full size photo in new tab"
-            className="w-full max-h-[72vh] object-contain rounded-xl shadow-lg cursor-zoom-in group-hover:scale-[1.01] transition-transform duration-300"
+            {...(allowDownload ? {
+              onClick: () => window.open(url, '_blank'),
+              title: "Click to view raw full size photo in new tab",
+              className: "w-full max-h-[72vh] object-contain rounded-xl shadow-lg cursor-zoom-in group-hover:scale-[1.01] transition-transform duration-300"
+            } : {
+              className: "w-full max-h-[72vh] object-contain rounded-xl shadow-lg select-none"
+            })}
           />
         </div>
       </div>

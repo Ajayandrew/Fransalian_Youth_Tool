@@ -250,6 +250,7 @@ export default function Gallery() {
       {selectedPhoto && (
         <PhotoLightboxModal
           photo={selectedPhoto}
+          allowDownload={true}
           onClose={() => setSelectedPhoto(null)}
         />
       )}

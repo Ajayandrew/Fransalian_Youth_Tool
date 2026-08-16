@@ -481,6 +481,7 @@ export default function Events() {
           photoUrl={selectedBanner.url}
           title={selectedBanner.title}
           subtitle={selectedBanner.subtitle}
+          allowDownload={true}
           onClose={() => setSelectedBanner(null)}
         />
       )}

@@ -456,6 +456,7 @@ export default function Finance() {
           photoUrl={selectedReceipt.url}
           title={selectedReceipt.title}
           subtitle={selectedReceipt.subtitle}
+          allowDownload={true}
           onClose={() => setSelectedReceipt(null)}
         />
       )}
