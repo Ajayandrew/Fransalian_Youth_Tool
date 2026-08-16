@@ -6,6 +6,48 @@ import toast from 'react-hot-toast';
 import { useSettings } from '../context/SettingsContext';
 import { getImageUrl } from '../utils/urlUtils';
 
+const getBase64DataUrl = (url) => {
+  return new Promise((resolve) => {
+    if (!url) return resolve('');
+    if (url.startsWith('data:')) return resolve(url);
+
+    const img = new Image();
+    img.crossOrigin = 'Anonymous';
+    img.onload = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth || img.width || 300;
+        canvas.height = img.naturalHeight || img.height || 300;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        resolve(canvas.toDataURL('image/png'));
+      } catch (e) {
+        fetch(url)
+          .then((res) => res.blob())
+          .then((blob) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result || url);
+            reader.onerror = () => resolve(url);
+            reader.readAsDataURL(blob);
+          })
+          .catch(() => resolve(url));
+      }
+    };
+    img.onerror = () => {
+      fetch(url)
+        .then((res) => res.blob())
+        .then((blob) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result || url);
+          reader.onerror = () => resolve(url);
+          reader.readAsDataURL(blob);
+        })
+        .catch(() => resolve(url));
+    };
+    img.src = url;
+  });
+};
+
 export default function MemberIDCardModal({ member, onClose }) {
   const { settings } = useSettings();
   const cardRef = useRef(null);
@@ -31,34 +73,23 @@ export default function MemberIDCardModal({ member, onClose }) {
 
     try {
       const cardElement = cardRef.current;
-      const imgElements = cardElement.querySelectorAll('img');
-      const originalSrcs = [];
+      const imgElements = Array.from(cardElement.querySelectorAll('img'));
+      const originalSrcs = imgElements.map((img) => img.src);
 
-      // Pre-convert images to base64 Data URLs to prevent canvas tainting
+      // Pre-convert images to base64 Data URLs safely
       for (let i = 0; i < imgElements.length; i++) {
         const img = imgElements[i];
-        originalSrcs.push(img.src);
-        if (img.src && !img.src.startsWith('data:')) {
+        if (img.src) {
           try {
-            const res = await fetch(img.src, { mode: 'cors' });
-            if (res.ok) {
-              const blob = await res.blob();
-              const dataUrl = await new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.onloadend = () => resolve(reader.result);
-                reader.onerror = () => resolve(img.src);
-                reader.readAsDataURL(blob);
-              });
-              img.src = dataUrl;
-            }
+            const dataUrl = await getBase64DataUrl(img.src);
+            if (dataUrl) img.src = dataUrl;
           } catch (e) {
-            img.setAttribute('crossOrigin', 'anonymous');
+            console.warn('Image convert skipped:', e);
           }
         }
       }
 
-      // Small delay to ensure browser renders converted base64 images
-      await new Promise((r) => setTimeout(r, 150));
+      await new Promise((r) => setTimeout(r, 100));
 
       const canvas = await html2canvas(cardElement, {
         scale: 3,
@@ -68,7 +99,7 @@ export default function MemberIDCardModal({ member, onClose }) {
         logging: false
       });
 
-      // Restore original image URLs
+      // Restore original image srcs
       imgElements.forEach((img, idx) => {
         if (originalSrcs[idx]) img.src = originalSrcs[idx];
       });
@@ -110,7 +141,6 @@ export default function MemberIDCardModal({ member, onClose }) {
               <img
                 src={getImageUrl(settings.churchLogo)}
                 alt="Logo"
-                crossOrigin="anonymous"
                 className="w-8 h-8 rounded-full object-contain flex-shrink-0"
               />
             ) : (
@@ -128,7 +158,6 @@ export default function MemberIDCardModal({ member, onClose }) {
             <img
               src={getImageUrl(member.photo) || 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=300'}
               alt={member.fullName}
-              crossOrigin="anonymous"
               onError={(e) => {
                 e.target.onerror = null;
                 e.target.src = 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=300';

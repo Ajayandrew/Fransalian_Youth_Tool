@@ -28,9 +28,16 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(sanitizeInput);
 
-// Static uploads with caching headers
-app.use('/uploads', express.static(path.join(__dirname, 'uploads'), { maxAge: '1d' }));
-app.use('/api/uploads', express.static(path.join(__dirname, 'uploads'), { maxAge: '1d' }));
+// Static uploads with caching headers and CORS access
+const staticOptions = {
+  maxAge: '1d',
+  setHeaders: (res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+  }
+};
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'), staticOptions));
+app.use('/api/uploads', express.static(path.join(__dirname, 'uploads'), staticOptions));
 
 // Connect to Database (with automatic fallback to in-memory store)
 connectDB();
