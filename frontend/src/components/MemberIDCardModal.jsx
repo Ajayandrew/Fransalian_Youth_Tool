@@ -72,9 +72,9 @@ export default function MemberIDCardModal({ member, onClose }) {
         <div ref={cardRef} className="p-5 rounded-2xl bg-gradient-to-b from-indigo-900 via-indigo-800 to-slate-900 text-white space-y-4 shadow-md text-center relative border border-indigo-700">
           <div className="flex items-center justify-center space-x-2 border-b border-indigo-700/60 pb-2">
             {settings.churchLogo ? (
-              <img src={getImageUrl(settings.churchLogo)} alt="Logo" className="w-7 h-7 rounded-lg object-cover border border-white/40 flex-shrink-0" />
+              <img src={getImageUrl(settings.churchLogo)} alt="Logo" className="w-8 h-8 rounded-full object-contain flex-shrink-0" />
             ) : (
-              <div className="w-7 h-7 rounded-lg bg-white text-indigo-900 font-black text-xs flex items-center justify-center">
+              <div className="w-8 h-8 rounded-full bg-white/20 text-white font-black text-xs flex items-center justify-center flex-shrink-0 border border-white/30">
                 {(settings.youthName || 'FY').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
               </div>
             )}

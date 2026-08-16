@@ -282,12 +282,12 @@ export default function Settings() {
           <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center space-x-4">
               <div
-                className="w-16 h-16 rounded-2xl bg-white border border-slate-200 flex items-center justify-center overflow-hidden shadow-xs cursor-pointer group"
+                className="w-16 h-16 rounded-full flex items-center justify-center overflow-hidden cursor-pointer group"
                 onClick={() => (logoPreview || settings.churchLogo) && setShowLogoModal(true)}
-                title={(logoPreview || settings.churchLogo) ? "Click to view full size and download logo" : ""}
+                title={(logoPreview || settings.churchLogo) ? "Click to view full size logo" : ""}
               >
                 {logoPreview ? (
-                  <img src={logoPreview} alt="Parish Logo" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                  <img src={logoPreview} alt="Parish Logo" className="w-full h-full object-contain rounded-full group-hover:scale-105 transition-transform" />
                 ) : (
                   <Church className="w-8 h-8 text-indigo-600" />
                 )}

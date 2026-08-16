@@ -130,9 +130,9 @@ export default function Login() {
             title={settings.churchLogo ? "Click to view and download logo" : ""}
           >
             {settings.churchLogo ? (
-              <img src={getImageUrl(settings.churchLogo)} alt="Logo" className="w-16 h-16 rounded-2xl object-cover border border-slate-200 shadow-md mx-auto mb-2 group-hover:scale-105 transition-transform" />
+              <img src={getImageUrl(settings.churchLogo)} alt="Logo" className="w-16 h-16 rounded-full object-contain mx-auto mb-2 group-hover:scale-105 transition-transform" />
             ) : (
-              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-indigo-600 shadow-lg shadow-indigo-600/30 text-white font-black text-2xl mb-2">
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-indigo-600 shadow-lg shadow-indigo-600/30 text-white font-black text-2xl mb-2">
                 {(settings.youthName || 'FY').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
               </div>
             )}

@@ -90,9 +90,9 @@ export default function Navbar({ onToggleMobileSidebar }) {
             title={settings.churchLogo ? "Click to view and download logo" : ""}
           >
             {settings.churchLogo ? (
-              <img src={getImageUrl(settings.churchLogo)} alt="Logo" className="w-8 h-8 rounded-xl object-cover border border-slate-200 shadow-xs group-hover:scale-105 transition-transform" />
+              <img src={getImageUrl(settings.churchLogo)} alt="Logo" className="w-8 h-8 rounded-full object-contain group-hover:scale-105 transition-transform" />
             ) : (
-              <div className="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center font-black text-white text-xs shadow-sm">
+              <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center font-black text-white text-xs shadow-sm">
                 {(settings.youthName || 'FY').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
               </div>
             )}
