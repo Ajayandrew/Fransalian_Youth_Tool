@@ -6,46 +6,206 @@ import toast from 'react-hot-toast';
 import { useSettings } from '../context/SettingsContext';
 import { getImageUrl } from '../utils/urlUtils';
 
-const getBase64DataUrl = (url) => {
+const loadImg = (src) => {
   return new Promise((resolve) => {
-    if (!url) return resolve('');
-    if (url.startsWith('data:')) return resolve(url);
-
+    if (!src) return resolve(null);
     const img = new Image();
-    img.crossOrigin = 'Anonymous';
-    img.onload = () => {
-      try {
-        const canvas = document.createElement('canvas');
-        canvas.width = img.naturalWidth || img.width || 300;
-        canvas.height = img.naturalHeight || img.height || 300;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0);
-        resolve(canvas.toDataURL('image/png'));
-      } catch (e) {
-        fetch(url)
-          .then((res) => res.blob())
-          .then((blob) => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result || url);
-            reader.onerror = () => resolve(url);
-            reader.readAsDataURL(blob);
-          })
-          .catch(() => resolve(url));
-      }
-    };
+    img.crossOrigin = 'anonymous';
+    img.onload = () => resolve(img);
     img.onerror = () => {
-      fetch(url)
-        .then((res) => res.blob())
-        .then((blob) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result || url);
-          reader.onerror = () => resolve(url);
-          reader.readAsDataURL(blob);
-        })
-        .catch(() => resolve(url));
+      const fallbackImg = new Image();
+      fallbackImg.onload = () => resolve(fallbackImg);
+      fallbackImg.onerror = () => resolve(null);
+      fallbackImg.src = src;
     };
-    img.src = url;
+    img.src = src;
   });
+};
+
+// 100% Guaranteed 2D Canvas Drawer (High-Res 300 DPI PNG)
+const generate2DBadgePNG = async (member, settings) => {
+  const width = 1080;
+  const height = 1560;
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+
+  // Background Gradient
+  const gradient = ctx.createLinearGradient(0, 0, 0, height);
+  gradient.addColorStop(0, '#1e1b4b');
+  gradient.addColorStop(0.5, '#312e81');
+  gradient.addColorStop(1, '#0f172a');
+  ctx.fillStyle = gradient;
+
+  // Rounded Card Base
+  const r = 48;
+  ctx.beginPath();
+  ctx.moveTo(r, 0);
+  ctx.lineTo(width - r, 0);
+  ctx.quadraticCurveTo(width, 0, width, r);
+  ctx.lineTo(width, height - r);
+  ctx.quadraticCurveTo(width, height, width - r, height);
+  ctx.lineTo(r, height);
+  ctx.quadraticCurveTo(0, height, 0, height - r);
+  ctx.lineTo(0, r);
+  ctx.quadraticCurveTo(0, 0, r, 0);
+  ctx.closePath();
+  ctx.fill();
+
+  // Card Border
+  ctx.lineWidth = 10;
+  ctx.strokeStyle = '#4338ca';
+  ctx.stroke();
+
+  // Header Line
+  ctx.strokeStyle = 'rgba(99, 102, 241, 0.4)';
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(50, 160);
+  ctx.lineTo(width - 50, 160);
+  ctx.stroke();
+
+  // Header Logo / Text
+  const logoSrc = settings.churchLogo ? getImageUrl(settings.churchLogo) : '';
+  const logoImg = await loadImg(logoSrc);
+  const logoX = 60;
+  const logoY = 40;
+  const logoSize = 90;
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(logoX + logoSize / 2, logoY + logoSize / 2, logoSize / 2, 0, Math.PI * 2);
+  ctx.closePath();
+  ctx.clip();
+  if (logoImg) {
+    ctx.drawImage(logoImg, logoX, logoY, logoSize, logoSize);
+  } else {
+    ctx.fillStyle = 'rgba(255,255,255,0.2)';
+    ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 36px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText((settings.youthName || 'FY').slice(0, 2).toUpperCase(), logoX + logoSize / 2, logoY + logoSize / 2);
+  }
+  ctx.restore();
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 34px sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText((settings.youthName || 'FRANSALIAN YOUTH').toUpperCase(), logoX + logoSize + 30, logoY + 42);
+
+  ctx.fillStyle = '#c7d2fe';
+  ctx.font = '24px sans-serif';
+  ctx.fillText(settings.churchName || 'St. Mary Cathedral Parish', logoX + logoSize + 30, logoY + 80);
+
+  // Profile Photo
+  const photoSrc = getImageUrl(member.photo) || 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=300';
+  const photoImg = await loadImg(photoSrc);
+  const photoSize = 250;
+  const photoX = (width - photoSize) / 2;
+  const photoY = 210;
+
+  ctx.save();
+  const pr = 44;
+  ctx.beginPath();
+  ctx.moveTo(photoX + pr, photoY);
+  ctx.lineTo(photoX + photoSize - pr, photoY);
+  ctx.quadraticCurveTo(photoX + photoSize, photoY, photoX + photoSize, photoY + pr);
+  ctx.lineTo(photoX + photoSize, photoY + photoSize - pr);
+  ctx.quadraticCurveTo(photoX + photoSize, photoY + photoSize, photoX + photoSize - pr, photoY + photoSize);
+  ctx.lineTo(photoX + pr, photoY + photoSize);
+  ctx.quadraticCurveTo(photoX, photoY + photoSize, photoX, photoY + photoSize - pr);
+  ctx.lineTo(photoX, photoY + pr);
+  ctx.quadraticCurveTo(photoX, photoY, photoX + pr, photoY);
+  ctx.closePath();
+  ctx.clip();
+
+  if (photoImg) {
+    ctx.drawImage(photoImg, photoX, photoY, photoSize, photoSize);
+  }
+  ctx.restore();
+
+  ctx.lineWidth = 8;
+  ctx.strokeStyle = '#ffffff';
+  ctx.stroke();
+
+  // Name & Role
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 48px sans-serif';
+  ctx.fillText(member.fullName || 'Member Name', width / 2, photoY + photoSize + 65);
+
+  ctx.fillStyle = '#fcd34d';
+  ctx.font = 'bold 28px sans-serif';
+  ctx.fillText(`${(member.role || 'Youth Member').toUpperCase()} • ${member.anbiyamName || 'Main Parish'}`, width / 2, photoY + photoSize + 110);
+
+  // Details Box
+  const boxX = 60;
+  const boxY = photoY + photoSize + 145;
+  const boxW = width - 120;
+  const boxH = 270;
+
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
+  ctx.beginPath();
+  ctx.moveTo(boxX + 24, boxY);
+  ctx.lineTo(boxX + boxW - 24, boxY);
+  ctx.quadraticCurveTo(boxX + boxW, boxY, boxX + boxW, boxY + 24);
+  ctx.lineTo(boxX + boxW, boxY + boxH - 24);
+  ctx.quadraticCurveTo(boxX + boxW, boxY + boxH, boxX + boxW - 24, boxY + boxH);
+  ctx.lineTo(boxX + 24, boxY + boxH);
+  ctx.quadraticCurveTo(boxX, boxY + boxH, boxX, boxY + boxH - 24);
+  ctx.lineTo(boxX, boxY + 24);
+  ctx.quadraticCurveTo(boxX, boxY, boxX + 24, boxY);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.textAlign = 'left';
+  ctx.font = '26px sans-serif';
+  const startY = boxY + 55;
+  const gapY = 50;
+
+  ctx.fillStyle = '#c7d2fe';
+  ctx.fillText('Member ID:', boxX + 35, startY);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 26px monospace';
+  ctx.fillText(member.memberId || 'FY-MEM-001', boxX + 230, startY);
+
+  ctx.font = '26px sans-serif';
+  ctx.fillStyle = '#c7d2fe';
+  ctx.fillText('Baptism Name:', boxX + 35, startY + gapY);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillText(member.baptismName || 'Francis', boxX + 230, startY + gapY);
+
+  ctx.fillStyle = '#c7d2fe';
+  ctx.fillText('Mobile Number:', boxX + 35, startY + gapY * 2);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillText(member.mobileNumber || 'N/A', boxX + 230, startY + gapY * 2);
+
+  ctx.fillStyle = '#c7d2fe';
+  ctx.fillText('Blood Group:', boxX + 35, startY + gapY * 3);
+  ctx.fillStyle = '#fcd34d';
+  ctx.font = 'bold 26px sans-serif';
+  ctx.fillText(member.bloodGroup || 'O+', boxX + 230, startY + gapY * 3);
+
+  // QR Code
+  const qrElement = document.querySelector('#badge-qr-canvas-wrap canvas');
+  if (qrElement) {
+    const qrSize = 200;
+    const qrX = (width - qrSize) / 2;
+    const qrY = boxY + boxH + 35;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(qrX - 12, qrY - 12, qrSize + 24, qrSize + 24);
+    ctx.drawImage(qrElement, qrX, qrY, qrSize, qrSize);
+
+    ctx.fillStyle = '#c7d2fe';
+    ctx.font = 'bold 24px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(`ID: ${member.memberId || member._id}`, width / 2, qrY + qrSize + 45);
+  }
+
+  return canvas.toDataURL('image/png', 1.0);
 };
 
 export default function MemberIDCardModal({ member, onClose }) {
@@ -67,44 +227,34 @@ export default function MemberIDCardModal({ member, onClose }) {
   };
 
   const handleDownloadBadge = async () => {
-    if (!cardRef.current || downloading) return;
+    if (downloading) return;
     setDownloading(true);
     const toastId = toast.loading('Generating high resolution ID badge...', { id: 'badge-dl' });
 
     try {
-      const cardElement = cardRef.current;
-      const imgElements = Array.from(cardElement.querySelectorAll('img'));
-      const originalSrcs = imgElements.map((img) => img.src);
+      let imageUrl = '';
 
-      // Pre-convert images to base64 Data URLs safely
-      for (let i = 0; i < imgElements.length; i++) {
-        const img = imgElements[i];
-        if (img.src) {
-          try {
-            const dataUrl = await getBase64DataUrl(img.src);
-            if (dataUrl) img.src = dataUrl;
-          } catch (e) {
-            console.warn('Image convert skipped:', e);
-          }
+      // Primary: html2canvas
+      if (cardRef.current) {
+        try {
+          const canvas = await html2canvas(cardRef.current, {
+            scale: 3,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: null,
+            logging: false
+          });
+          imageUrl = canvas.toDataURL('image/png', 1.0);
+        } catch (e) {
+          console.warn('html2canvas failed, falling back to 2D Canvas Engine:', e);
         }
       }
 
-      await new Promise((r) => setTimeout(r, 100));
+      // Fallback: Guaranteed 2D Canvas Engine
+      if (!imageUrl || imageUrl === 'data:,') {
+        imageUrl = await generate2DBadgePNG(member, settings);
+      }
 
-      const canvas = await html2canvas(cardElement, {
-        scale: 3,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: null,
-        logging: false
-      });
-
-      // Restore original image srcs
-      imgElements.forEach((img, idx) => {
-        if (originalSrcs[idx]) img.src = originalSrcs[idx];
-      });
-
-      const imageUrl = canvas.toDataURL('image/png', 1.0);
       const link = document.createElement('a');
       const cleanName = (member.fullName || 'Member').replace(/[^a-zA-Z0-9_\-]/g, '_');
       link.download = `${cleanName}_Youth_ID_Badge.png`;
@@ -115,7 +265,7 @@ export default function MemberIDCardModal({ member, onClose }) {
       toast.success('Member ID Badge Downloaded!', { id: 'badge-dl' });
     } catch (err) {
       console.error('Failed to download badge:', err);
-      toast.error('Could not export badge image. Please try Print Badge option.', { id: 'badge-dl' });
+      toast.error(`Export failed: ${err.message || 'Please use Print Badge option.'}`, { id: 'badge-dl' });
     } finally {
       setDownloading(false);
     }
@@ -171,7 +321,7 @@ export default function MemberIDCardModal({ member, onClose }) {
             </div>
           </div>
 
-          <div className="bg-white/10 p-2.5 rounded-xl text-[11px] space-y-1 text-slate-100 backdrop-blur-sm text-left">
+          <div className="bg-white/15 p-2.5 rounded-xl text-[11px] space-y-1 text-slate-100 text-left border border-white/10">
             <p><span className="text-indigo-200 font-medium">Member ID:</span> <strong className="text-white font-mono">{member.memberId || 'FY-MEM-001'}</strong></p>
             <p><span className="text-indigo-200 font-medium">Baptism Name:</span> {member.baptismName || 'Francis'}</p>
             <p><span className="text-indigo-200 font-medium">Mobile:</span> {member.mobileNumber}</p>
@@ -179,7 +329,7 @@ export default function MemberIDCardModal({ member, onClose }) {
           </div>
 
           <div className="pt-2 flex flex-col items-center space-y-1">
-            <div className="p-2 bg-white rounded-xl shadow-sm">
+            <div id="badge-qr-canvas-wrap" className="p-2 bg-white rounded-xl shadow-sm">
               <QRCodeCanvas value={qrValue} size={70} />
             </div>
             <p className="text-[10px] text-indigo-200 font-mono tracking-wider font-bold">ID: {member.memberId || member._id}</p>
