@@ -6,8 +6,16 @@ const Subscription = require('../models/Subscription');
 const Event = require('../models/Event');
 const Attendance = require('../models/Attendance');
 
+let cachedDashboardResult = null;
+let cachedDashboardTime = 0;
+const DASHBOARD_CACHE_TTL_MS = 5000; // 5 seconds cache
+
 const getDashboardStats = async (req, res) => {
   try {
+    const now = Date.now();
+    if (cachedDashboardResult && (now - cachedDashboardTime < DASHBOARD_CACHE_TTL_MS) && !req.query.force) {
+      return res.json(cachedDashboardResult);
+    }
     let members = [], incomeList = [], expenseList = [], subs = [], events = [], attendance = [], secretOfferings = [];
 
     if (getIsInMemory()) {
@@ -162,7 +170,7 @@ const getDashboardStats = async (req, res) => {
       }
     ];
 
-    return res.json({
+    const responsePayload = {
       success: true,
       stats: {
         totalMembers,
@@ -190,7 +198,12 @@ const getDashboardStats = async (req, res) => {
         upcomingBirthdays: upcomingBirthdays.slice(0, 5),
         upcomingEvents: upcomingEvents.slice(0, 5)
       }
-    });
+    };
+
+    cachedDashboardResult = responsePayload;
+    cachedDashboardTime = Date.now();
+
+    return res.json(responsePayload);
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }

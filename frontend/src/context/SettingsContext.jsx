@@ -20,17 +20,27 @@ const defaultSettings = {
 };
 
 export const SettingsProvider = ({ children }) => {
-  const [settings, setSettings] = useState(defaultSettings);
-  const [loading, setLoading] = useState(true);
+  const [settings, setSettings] = useState(() => {
+    try {
+      const saved = localStorage.getItem('fy_settings_v1');
+      if (saved) return { ...defaultSettings, ...JSON.parse(saved) };
+    } catch (e) {}
+    return defaultSettings;
+  });
+  const [loading, setLoading] = useState(false);
 
   const fetchSettings = async () => {
     try {
       const res = await axios.get('/api/settings');
       if (res.data && res.data.settings) {
-        setSettings({ ...defaultSettings, ...res.data.settings });
+        const merged = { ...defaultSettings, ...res.data.settings };
+        setSettings(merged);
+        try {
+          localStorage.setItem('fy_settings_v1', JSON.stringify(merged));
+        } catch (e) {}
       }
     } catch (err) {
-      console.warn('Using default settings');
+      console.warn('Using cached or default settings');
     } finally {
       setLoading(false);
     }

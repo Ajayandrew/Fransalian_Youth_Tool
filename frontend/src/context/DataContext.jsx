@@ -26,7 +26,7 @@ export function DataProvider({ children }) {
   const inFlightRef = React.useRef({});
   const [loadingKeys, setLoadingKeys] = useState({});
 
-  const CACHE_TTL_MS = 15000; // 15 seconds fresh cache TTL
+  const CACHE_TTL_MS = 60000; // 60 seconds fresh cache TTL
 
   const fetchWithCache = useCallback(async (key, url, params = {}, forceRefresh = false) => {
     const cacheKey = key + JSON.stringify(params);

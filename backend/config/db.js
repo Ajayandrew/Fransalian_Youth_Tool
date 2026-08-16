@@ -16,11 +16,11 @@ const connectDB = async () => {
   const uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/francisalian_youth_db';
   
   const mongooseOptions = {
-    serverSelectionTimeoutMS: 2000,
-    connectTimeoutMS: 2000,
+    serverSelectionTimeoutMS: 1000,
+    connectTimeoutMS: 1000,
     maxPoolSize: 20,
     minPoolSize: 2,
-    socketTimeoutMS: 20000,
+    socketTimeoutMS: 15000,
   };
 
   try {
