@@ -17,6 +17,7 @@ import {
   Facebook,
   Instagram,
   ExternalLink,
+  LogOut,
   ShieldCheck,
   Award,
   Phone,
