@@ -1,11 +1,16 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { X, Printer, ShieldCheck } from 'lucide-react';
+import { X, Printer, ShieldCheck, Download } from 'lucide-react';
+import html2canvas from 'html2canvas';
+import toast from 'react-hot-toast';
 import { useSettings } from '../context/SettingsContext';
 import { getImageUrl } from '../utils/urlUtils';
 
 export default function MemberIDCardModal({ member, onClose }) {
   const { settings } = useSettings();
+  const cardRef = useRef(null);
+  const [downloading, setDownloading] = useState(false);
+
   if (!member) return null;
 
   const qrValue = JSON.stringify({
@@ -17,6 +22,37 @@ export default function MemberIDCardModal({ member, onClose }) {
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleDownloadBadge = async () => {
+    if (!cardRef.current || downloading) return;
+    setDownloading(true);
+    const toastId = toast.loading('Generating high resolution ID badge...', { id: 'badge-dl' });
+
+    try {
+      const canvas = await html2canvas(cardRef.current, {
+        scale: 3,
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: null,
+        logging: false
+      });
+
+      const imageUrl = canvas.toDataURL('image/png', 1.0);
+      const link = document.createElement('a');
+      const cleanName = (member.fullName || 'Member').replace(/[^a-zA-Z0-9_\-]/g, '_');
+      link.download = `${cleanName}_Youth_ID_Badge.png`;
+      link.href = imageUrl;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast.success('ID Badge Downloaded!', { id: 'badge-dl' });
+    } catch (err) {
+      console.error('Failed to download badge:', err);
+      toast.error('Download failed. You can use Print ID Card option.', { id: 'badge-dl' });
+    } finally {
+      setDownloading(false);
+    }
   };
 
   return (
@@ -33,7 +69,7 @@ export default function MemberIDCardModal({ member, onClose }) {
         </div>
 
         {/* Printable Card Area */}
-        <div className="p-5 rounded-2xl bg-gradient-to-b from-indigo-900 via-indigo-800 to-slate-900 text-white space-y-4 shadow-md text-center relative border border-indigo-700">
+        <div ref={cardRef} className="p-5 rounded-2xl bg-gradient-to-b from-indigo-900 via-indigo-800 to-slate-900 text-white space-y-4 shadow-md text-center relative border border-indigo-700">
           <div className="flex items-center justify-center space-x-2 border-b border-indigo-700/60 pb-2">
             {settings.churchLogo ? (
               <img src={getImageUrl(settings.churchLogo)} alt="Logo" className="w-7 h-7 rounded-lg object-cover border border-white/40 flex-shrink-0" />
@@ -82,11 +118,19 @@ export default function MemberIDCardModal({ member, onClose }) {
 
         <div className="pt-2 flex items-center space-x-2 no-print">
           <button
+            onClick={handleDownloadBadge}
+            disabled={downloading}
+            className="flex-1 py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition flex items-center justify-center space-x-1.5 cursor-pointer disabled:opacity-50"
+          >
+            <Download className="w-4 h-4" />
+            <span>{downloading ? 'Exporting...' : 'Download Badge'}</span>
+          </button>
+          <button
             onClick={handlePrint}
-            className="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition flex items-center justify-center space-x-1.5"
+            className="flex-1 py-2.5 px-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition flex items-center justify-center space-x-1.5 cursor-pointer"
           >
             <Printer className="w-4 h-4" />
-            <span>Print ID Card</span>
+            <span>Print Badge</span>
           </button>
         </div>
       </div>
