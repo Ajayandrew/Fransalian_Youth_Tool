@@ -16,6 +16,7 @@ export default function Gallery() {
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [showUploadModal, setShowUploadModal] = useState(false);
 
+  const [uploading, setUploading] = useState(false);
   const [formData, setFormData] = useState({
     albumTitle: 'Parish Youth Fest 2026',
     category: 'Cultural',
@@ -27,9 +28,10 @@ export default function Gallery() {
 
   const canEdit = hasRole(['Admin', 'Youth Leader', 'Secretary']);
 
-  const fetchGallery = async () => {
+  const fetchGallery = async (forceRefresh = false) => {
     try {
-      const data = await fetchWithCache('gallery', '/api/gallery');
+      if (forceRefresh) invalidateCache('gallery');
+      const data = await fetchWithCache('gallery', '/api/gallery', {}, forceRefresh);
       if (data && data.albums) {
         setAlbums(data.albums);
       }
@@ -47,14 +49,25 @@ export default function Gallery() {
     if (!canEdit) return;
     if (!window.confirm(`Delete photo "${photo.caption || photo.albumTitle}" from gallery?`)) return;
 
+    // 1. Instant Optimistic UI Update (0ms latency)
+    setAlbums(prevAlbums =>
+      prevAlbums
+        .map(alb => ({
+          ...alb,
+          photos: (alb.photos || []).filter(p => p.url !== photo.url)
+        }))
+        .filter(alb => (alb.photos || []).length > 0)
+    );
+
+    toast.success('Photo removed from album.');
+    invalidateCache('gallery');
+
+    // 2. Background API Call
     try {
-      const res = await axios.post('/api/gallery/delete-photo', { photoUrl: photo.url });
-      if (res.data && res.data.success) {
-        toast.success('Photo removed from album.');
-        fetchGallery();
-      }
+      await axios.post('/api/gallery/delete-photo', { photoUrl: photo.url });
     } catch (err) {
-      toast.error('Failed to delete photo.');
+      toast.error('Failed to sync deletion to server.');
+      fetchGallery(true);
     }
   };
 
@@ -75,6 +88,10 @@ export default function Gallery() {
       return toast.error('Please upload a photo file or provide an Image URL.');
     }
 
+    if (uploading) return;
+    setUploading(true);
+    const toastId = toast.loading('Uploading photo to album...', { id: 'gallery-dl' });
+
     try {
       let res;
       if (photoFile) {
@@ -90,29 +107,64 @@ export default function Gallery() {
       }
 
       if (res.data && res.data.success) {
-        toast.success('Photo added to gallery album successfully!');
+        const newPhotoUrl = res.data.photoUrl || photoPreview || formData.photoUrl;
+        const newPhotoObj = {
+          url: newPhotoUrl,
+          caption: formData.caption || formData.albumTitle,
+          uploadedAt: new Date().toISOString()
+        };
+
+        // Prepend new photo to albums array so it appears at POSITION #1 immediately
+        setAlbums(prev => {
+          const existingIdx = prev.findIndex(a => (a.albumTitle || '').toLowerCase() === (formData.albumTitle || '').toLowerCase());
+          if (existingIdx !== -1) {
+            const updated = [...prev];
+            updated[existingIdx] = {
+              ...updated[existingIdx],
+              photos: [newPhotoObj, ...(updated[existingIdx].photos || [])]
+            };
+            return updated;
+          } else {
+            return [
+              {
+                _id: 'alb_' + Date.now(),
+                albumTitle: formData.albumTitle,
+                category: formData.category,
+                photos: [newPhotoObj]
+              },
+              ...prev
+            ];
+          }
+        });
+
+        toast.success('Photo added to gallery album!', { id: 'gallery-dl' });
         setShowUploadModal(false);
         setPhotoFile(null);
         setPhotoPreview('');
-        fetchGallery();
+        fetchGallery(true);
       }
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to upload photo to album.');
+      toast.error(err.response?.data?.message || 'Failed to upload photo to album.', { id: 'gallery-dl' });
+    } finally {
+      setUploading(false);
     }
   };
 
-  // Combine photos across albums for grid view
-  const allPhotos = albums.flatMap(a => 
-    (a.photos || []).map(p => ({
-      ...p,
-      albumTitle: a.albumTitle,
-      category: a.category
-    }))
-  );
+  // Combine & Sort photos newest-first across all albums for grid view
+  const allPhotos = albums
+    .flatMap(a =>
+      (a.photos || []).map((p, idx) => ({
+        ...p,
+        albumTitle: a.albumTitle,
+        category: a.category,
+        uploadedAt: p.uploadedAt || p.createdAt || a.createdAt || new Date(Date.now() - idx * 1000)
+      }))
+    )
+    .sort((a, b) => new Date(b.uploadedAt || 0) - new Date(a.uploadedAt || 0));
 
   const categories = ['All', ...new Set(albums.map(a => a.category).filter(Boolean))];
 
-  const filteredPhotos = allPhotos.filter(p => 
+  const filteredPhotos = allPhotos.filter(p =>
     activeCategory === 'All' || p.category === activeCategory
   );
 
@@ -360,9 +412,17 @@ export default function Gallery() {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-md shadow-indigo-600/20"
+                  disabled={uploading}
+                  className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-md shadow-indigo-600/20 disabled:opacity-50 flex items-center gap-2 cursor-pointer"
                 >
-                  Upload Photo
+                  {uploading ? (
+                    <>
+                      <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>Uploading Photo...</span>
+                    </>
+                  ) : (
+                    <span>Upload Photo</span>
+                  )}
                 </button>
               </div>
             </form>

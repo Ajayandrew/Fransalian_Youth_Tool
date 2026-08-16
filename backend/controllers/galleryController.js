@@ -51,12 +51,12 @@ const uploadPhotoToAlbum = async (req, res) => {
       if (!album) {
         album = await Gallery.create({ albumTitle: title, category: cat, photos: [] });
       }
-      album.photos.unshift({ url: photoUrl, caption: caption || title });
+      album.photos.unshift({ url: photoUrl, caption: caption || title, uploadedAt: new Date() });
       await album.save();
     }
     savePersistentStore();
 
-    return res.status(201).json({ success: true, message: 'Photo uploaded to album.' });
+    return res.status(201).json({ success: true, message: 'Photo uploaded to album.', photoUrl, albumTitle: title, category: cat });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }
