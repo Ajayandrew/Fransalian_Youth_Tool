@@ -19,21 +19,29 @@ const resolveUserPhoto = async (userObj) => {
   if (userObj.avatar && userObj.avatar.trim()) return userObj.avatar;
   if (userObj.photo && userObj.photo.trim()) return userObj.photo;
 
+  const executiveRoles = ['parish priest', 'youth leader', 'secretary', 'treasurer'];
+  const isExecRole = executiveRoles.includes((userObj.role || '').toLowerCase());
+
   let mMatch = null;
   if (getIsInMemory()) {
-    mMatch = memoryStore.members.find(m =>
-      (userObj.email && m.email && m.email.toLowerCase() === userObj.email.toLowerCase()) ||
-      (userObj.role && m.role && m.role.toLowerCase() === userObj.role.toLowerCase())
-    );
+    mMatch = memoryStore.members.find(m => {
+      if (!m) return false;
+      if (userObj.email && m.email && m.email.toLowerCase() === userObj.email.toLowerCase()) return true;
+      if (isExecRole && userObj.role && m.role && m.role.toLowerCase() === userObj.role.toLowerCase()) return true;
+      return false;
+    });
   } else {
     const Member = require('../models/Member');
     try {
-      mMatch = await Member.findOne({
-        $or: [
-          { email: userObj.email?.toLowerCase() },
-          { role: { $regex: new RegExp(`^${(userObj.role || '').replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}$`, 'i') } }
-        ]
-      }).lean();
+      const matchConditions = [];
+      if (userObj.email) matchConditions.push({ email: userObj.email.toLowerCase() });
+      if (isExecRole && userObj.role) {
+        matchConditions.push({ role: { $regex: new RegExp(`^${userObj.role.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}$`, 'i') } });
+      }
+
+      if (matchConditions.length > 0) {
+        mMatch = await Member.findOne({ $or: matchConditions }).lean();
+      }
     } catch (e) {}
   }
 

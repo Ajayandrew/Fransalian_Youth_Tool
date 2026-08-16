@@ -134,31 +134,37 @@ export default function Navbar({ onToggleMobileSidebar }) {
 
           {/* User Info & Credentials Change Button */}
           {user && (() => {
-            const matchedMember = cachedMembers.find(m =>
-              (user?.email && m?.email && m.email.toLowerCase() === user.email.toLowerCase()) ||
-              (user?.role && m?.role && m.role.toLowerCase() === user.role.toLowerCase())
-            );
+            const EXECUTIVE_ROLES = ['parish priest', 'youth leader', 'secretary', 'treasurer'];
+            const isExecRole = EXECUTIVE_ROLES.includes((user?.role || '').toLowerCase());
 
-            const matchedLeader = cachedLeadership.find(l =>
-              l.roleTitle === user?.role || l.roleKey === (user?.role || '').toLowerCase().replace(/\s+/g, '')
-            );
+            const matchedMember = cachedMembers.find(m => {
+              if (!m) return false;
+              if (user?.email && m.email && m.email.toLowerCase() === user.email.toLowerCase()) return true;
+              if (user?.id && (m._id === user.id || m.id === user.id)) return true;
+              if (isExecRole && user?.role && m.role && m.role.toLowerCase() === user.role.toLowerCase()) return true;
+              return false;
+            });
+
+            const matchedLeader = isExecRole
+              ? cachedLeadership.find(l => l.roleTitle === user?.role || l.roleKey === (user?.role || '').toLowerCase().replace(/\s+/g, ''))
+              : null;
 
             const rawPhoto =
               user?.photo ||
               user?.avatar ||
-              matchedMember?.photo ||
-              matchedLeader?.photo ||
+              (matchedMember?.photo || '') ||
+              (matchedLeader?.photo || '') ||
               (user?.role === 'Parish Priest' ? settings?.parishPriestPhoto : '');
 
             const userPhoto = rawPhoto ? getImageUrl(rawPhoto) : null;
-            const displayName = matchedMember?.fullName || matchedLeader?.fullName || user.fullName || 'User';
+            const displayName = user?.fullName || matchedMember?.fullName || matchedLeader?.fullName || 'Parish Youth Member';
             const initials = displayName
               .split(' ')
               .filter(Boolean)
               .map(n => n[0])
               .join('')
               .slice(0, 2)
-              .toUpperCase();
+              .toUpperCase() || 'PY';
 
             return (
               <div className="flex items-center space-x-3 border-l border-slate-200 pl-3">
