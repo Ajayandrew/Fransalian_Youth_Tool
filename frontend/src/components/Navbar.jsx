@@ -128,46 +128,58 @@ export default function Navbar({ onToggleMobileSidebar }) {
           </button>
 
           {/* User Info & Credentials Change Button */}
-          {user && (
-            <div className="flex items-center space-x-3 border-l border-slate-200 pl-3">
-              <div
-                onClick={!isYouthMember ? handleOpenAccountModal : undefined}
-                className={`flex items-center space-x-2 ${!isYouthMember ? 'cursor-pointer hover:opacity-80' : ''} transition group`}
-                title={!isYouthMember ? "Click to change your Email (Username) or Password" : user.fullName}
-              >
-                <img
-                  src={getImageUrl(user.avatar || user.photo) || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100'}
-                  alt={user.fullName}
-                  className="w-8 h-8 rounded-xl object-cover object-top border border-slate-200 group-hover:border-indigo-400"
-                />
-                <div className="hidden sm:block text-left">
-                  <p className="text-xs font-bold text-slate-900 leading-tight group-hover:text-indigo-600">{user.fullName}</p>
-                  <span className="text-[10px] font-bold text-indigo-600 uppercase">{user.role}</span>
+          {user && (() => {
+            const rawPhoto = user?.photo || user?.avatar || (user?.role === 'Parish Priest' ? settings?.parishPriestPhoto : '');
+            const userPhoto = rawPhoto ? getImageUrl(rawPhoto) : null;
+            const initials = (user.fullName || 'User')
+              .split(' ')
+              .filter(Boolean)
+              .map(n => n[0])
+              .join('')
+              .slice(0, 2)
+              .toUpperCase();
+
+            return (
+              <div className="flex items-center space-x-3 border-l border-slate-200 pl-3">
+                <div
+                  onClick={!isYouthMember ? handleOpenAccountModal : undefined}
+                  className={`flex items-center space-x-2 ${!isYouthMember ? 'cursor-pointer hover:opacity-80' : ''} transition group`}
+                  title={!isYouthMember ? "Click to manage your account credentials" : user.fullName}
+                >
+                  {userPhoto ? (
+                    <img
+                      src={userPhoto}
+                      alt={user.fullName}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.style.display = 'none';
+                      }}
+                      className="w-8 h-8 rounded-xl object-cover object-top border border-slate-200 group-hover:border-indigo-400 shadow-xs"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-800 text-white font-black text-xs flex items-center justify-center border border-indigo-400/30 shadow-xs">
+                      {initials}
+                    </div>
+                  )}
+                  <div className="hidden sm:block text-left">
+                    <p className="text-xs font-bold text-slate-900 leading-tight group-hover:text-indigo-600">{user.fullName}</p>
+                    <span className="text-[10px] font-bold text-indigo-600 uppercase">{user.role}</span>
+                  </div>
                 </div>
-              </div>
 
-              {!isYouthMember && (
-                <>
-                  <button
-                    onClick={handleOpenAccountModal}
-                    className="p-2 rounded-xl bg-indigo-50 text-indigo-700 hover:bg-indigo-100 text-xs font-bold transition"
-                    title="Change Username & Password"
-                  >
-                    <User className="w-4 h-4" />
-                  </button>
-
+                {!isYouthMember && (
                   <button
                     onClick={() => logout()}
-                    className="p-2 rounded-xl bg-rose-50 text-rose-700 hover:bg-rose-100 text-xs font-bold transition flex items-center space-x-1"
+                    className="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-rose-50 text-rose-700 hover:bg-rose-100 text-xs font-bold transition flex items-center space-x-1 border border-rose-100 cursor-pointer"
                     title="Logout Safely"
                   >
                     <LogOut className="w-4 h-4" />
                     <span className="hidden md:inline">Logout</span>
                   </button>
-                </>
-              )}
-            </div>
-          )}
+                )}
+              </div>
+            );
+          })()}
         </div>
       </header>
 
