@@ -132,9 +132,11 @@ const login = async (req, res) => {
       return res.status(401).json({ success: false, message: 'Invalid credentials. User not found.' });
     }
 
-    const defaultAdminHash = bcrypt.hashSync('Admin@123', 10);
-    const userPasswordHash = user.password || defaultAdminHash;
-    const isMatch = (password === 'Admin@123') || bcrypt.compareSync(password, userPasswordHash);
+    const userPasswordHash = (user.password && user.password.startsWith('$2'))
+      ? user.password
+      : bcrypt.hashSync(user.password || 'Admin@123', 10);
+
+    const isMatch = bcrypt.compareSync(password, userPasswordHash);
     
     if (!isMatch) {
       return res.status(401).json({ success: false, message: 'Invalid email or password.' });
