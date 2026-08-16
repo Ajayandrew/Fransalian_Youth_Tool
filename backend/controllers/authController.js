@@ -14,6 +14,50 @@ const generateToken = (user) => {
   );
 };
 
+const resolveUserPhoto = async (userObj) => {
+  if (!userObj) return '';
+  if (userObj.avatar && userObj.avatar.trim()) return userObj.avatar;
+  if (userObj.photo && userObj.photo.trim()) return userObj.photo;
+
+  let mMatch = null;
+  if (getIsInMemory()) {
+    mMatch = memoryStore.members.find(m =>
+      (userObj.email && m.email && m.email.toLowerCase() === userObj.email.toLowerCase()) ||
+      (userObj.role && m.role && m.role.toLowerCase() === userObj.role.toLowerCase())
+    );
+  } else {
+    const Member = require('../models/Member');
+    try {
+      mMatch = await Member.findOne({
+        $or: [
+          { email: userObj.email?.toLowerCase() },
+          { role: { $regex: new RegExp(`^${(userObj.role || '').replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}$`, 'i') } }
+        ]
+      }).lean();
+    } catch (e) {}
+  }
+
+  if (mMatch && mMatch.photo) {
+    return mMatch.photo;
+  }
+
+  if (userObj.role === 'Parish Priest') {
+    let currentSettings = memoryStore.settings;
+    if (!getIsInMemory()) {
+      try {
+        const Settings = require('../models/Settings');
+        const dbSet = await Settings.findById('org_settings').lean();
+        if (dbSet) currentSettings = dbSet;
+      } catch (e) {}
+    }
+    if (currentSettings && currentSettings.parishPriestPhoto) {
+      return currentSettings.parishPriestPhoto;
+    }
+  }
+
+  return '';
+};
+
 const login = async (req, res) => {
   try {
     const { email: rawEmail, password } = req.body;
@@ -151,6 +195,7 @@ const login = async (req, res) => {
     }
 
     user.fullName = resolvedName;
+    const resolvedPhoto = await resolveUserPhoto(user);
 
     // Persist/Sync User record with correct role in database
     if (!getIsInMemory()) {
@@ -163,6 +208,7 @@ const login = async (req, res) => {
               email: user.email.toLowerCase(),
               role: user.role,
               password: user.password,
+              avatar: resolvedPhoto || user.avatar || '',
               bloodGroup: user.bloodGroup || 'O+'
             }
           },
@@ -181,7 +227,8 @@ const login = async (req, res) => {
         fullName: user.fullName,
         email: user.email,
         role: user.role,
-        avatar: user.avatar || '',
+        avatar: resolvedPhoto || user.avatar || '',
+        photo: resolvedPhoto || user.avatar || '',
         bloodGroup: user.bloodGroup || 'O+'
       },
       message: `Welcome back, ${user.fullName}!`
@@ -221,6 +268,8 @@ const me = async (req, res) => {
       }
     }
 
+    const resolvedPhoto = await resolveUserPhoto(user);
+
     return res.json({
       success: true,
       user: {
@@ -228,7 +277,8 @@ const me = async (req, res) => {
         fullName: resolvedName,
         email: user.email,
         role: user.role,
-        avatar: user.avatar || '',
+        avatar: resolvedPhoto || user.avatar || '',
+        photo: resolvedPhoto || user.avatar || '',
         bloodGroup: user.bloodGroup || 'O+'
       }
     });

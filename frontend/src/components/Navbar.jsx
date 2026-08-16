@@ -3,6 +3,7 @@ import { Menu, LogOut, Sun, Moon, User, KeyRound, Lock, Mail, X, Droplet, Search
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useSettings } from '../context/SettingsContext';
+import { useDataCache } from '../context/DataContext';
 import RoleLoginModal from './RoleLoginModal';
 import PhotoLightboxModal from './PhotoLightboxModal';
 import CommandPaletteModal from './CommandPaletteModal';
@@ -13,7 +14,11 @@ export default function Navbar({ onToggleMobileSidebar }) {
   const { user, logout, updateUserProfile } = useAuth();
   const { darkMode, toggleDarkMode } = useTheme();
   const { settings: rawSettings } = useSettings();
+  const { cache } = useDataCache();
   const settings = rawSettings || {};
+
+  const cachedMembers = cache['members{}']?.members || cache['members']?.members || [];
+  const cachedLeadership = cache['dashboard{}']?.leadership || [];
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [showLogoModal, setShowLogoModal] = useState(false);
   const [showAccountModal, setShowAccountModal] = useState(false);
@@ -129,9 +134,25 @@ export default function Navbar({ onToggleMobileSidebar }) {
 
           {/* User Info & Credentials Change Button */}
           {user && (() => {
-            const rawPhoto = user?.photo || user?.avatar || (user?.role === 'Parish Priest' ? settings?.parishPriestPhoto : '');
+            const matchedMember = cachedMembers.find(m =>
+              (user?.email && m?.email && m.email.toLowerCase() === user.email.toLowerCase()) ||
+              (user?.role && m?.role && m.role.toLowerCase() === user.role.toLowerCase())
+            );
+
+            const matchedLeader = cachedLeadership.find(l =>
+              l.roleTitle === user?.role || l.roleKey === (user?.role || '').toLowerCase().replace(/\s+/g, '')
+            );
+
+            const rawPhoto =
+              user?.photo ||
+              user?.avatar ||
+              matchedMember?.photo ||
+              matchedLeader?.photo ||
+              (user?.role === 'Parish Priest' ? settings?.parishPriestPhoto : '');
+
             const userPhoto = rawPhoto ? getImageUrl(rawPhoto) : null;
-            const initials = (user.fullName || 'User')
+            const displayName = matchedMember?.fullName || matchedLeader?.fullName || user.fullName || 'User';
+            const initials = displayName
               .split(' ')
               .filter(Boolean)
               .map(n => n[0])
@@ -144,12 +165,12 @@ export default function Navbar({ onToggleMobileSidebar }) {
                 <div
                   onClick={!isYouthMember ? handleOpenAccountModal : undefined}
                   className={`flex items-center space-x-2 ${!isYouthMember ? 'cursor-pointer hover:opacity-80' : ''} transition group`}
-                  title={!isYouthMember ? "Click to manage your account credentials" : user.fullName}
+                  title={!isYouthMember ? "Click to manage your account credentials" : displayName}
                 >
                   {userPhoto ? (
                     <img
                       src={userPhoto}
-                      alt={user.fullName}
+                      alt={displayName}
                       onError={(e) => {
                         e.target.onerror = null;
                         e.target.style.display = 'none';
@@ -162,7 +183,7 @@ export default function Navbar({ onToggleMobileSidebar }) {
                     </div>
                   )}
                   <div className="hidden sm:block text-left">
-                    <p className="text-xs font-bold text-slate-900 leading-tight group-hover:text-indigo-600">{user.fullName}</p>
+                    <p className="text-xs font-bold text-slate-900 leading-tight group-hover:text-indigo-600">{displayName}</p>
                     <span className="text-[10px] font-bold text-indigo-600 uppercase">{user.role}</span>
                   </div>
                 </div>
