@@ -260,6 +260,7 @@ export default function Login() {
           photoUrl={settings.churchLogo}
           title={`${settings.churchName || 'Parish'} Crest Logo`}
           subtitle={settings.youthName || 'Youth Movement'}
+          allowDownload={true}
           onClose={() => setShowLogoModal(false)}
         />
       )}

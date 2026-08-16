@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Settings as SettingsIcon, Save, Database, Shield, DollarSign, Church, KeyRound, Mail, UserCheck, Lock, Upload, Share2, Youtube, Facebook, Instagram, Image as ImageIcon, Sparkles } from 'lucide-react';
+import { Settings as SettingsIcon, Save, Database, Shield, DollarSign, Church, KeyRound, Mail, UserCheck, Lock, Upload, Download, Share2, Youtube, Facebook, Instagram, Image as ImageIcon, Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
@@ -26,6 +26,29 @@ export default function Settings() {
   const [newPasswordInput, setNewPasswordInput] = useState('');
 
   const canEdit = hasRole(['Admin']);
+
+  const handleDownloadCrestLogo = async () => {
+    const targetUrl = logoPreview || getImageUrl(settings.churchLogo);
+    if (!targetUrl) return;
+    try {
+      toast.loading('Preparing Crest Logo download...', { id: 'logo-dl' });
+      const res = await fetch(targetUrl);
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      const cleanName = (settings.churchName || 'Church_Crest').replace(/[^a-zA-Z0-9_\-]/g, '_');
+      link.download = `${cleanName}_Crest_Logo.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+      toast.success('Crest Logo Downloaded!', { id: 'logo-dl' });
+    } catch (err) {
+      window.open(targetUrl, '_blank');
+      toast.success('Opened Crest Logo in new tab!', { id: 'logo-dl' });
+    }
+  };
 
   useEffect(() => {
     if (user?.email) setProfileEmail(user.email);
@@ -298,13 +321,26 @@ export default function Settings() {
               </div>
             </div>
 
-            {canEdit && (
-              <label className="py-2 px-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold cursor-pointer flex items-center space-x-1.5 shadow-sm transition">
-                <Upload className="w-3.5 h-3.5" />
-                <span>Upload Logo File</span>
-                <input type="file" accept="image/*" onChange={handleLogoFileChange} className="hidden" />
-              </label>
-            )}
+            <div className="flex flex-wrap items-center gap-2">
+              {(logoPreview || settings.churchLogo) && (
+                <button
+                  type="button"
+                  onClick={handleDownloadCrestLogo}
+                  className="py-2 px-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center space-x-1.5 shadow-sm transition cursor-pointer"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Download Crest Logo</span>
+                </button>
+              )}
+
+              {canEdit && (
+                <label className="py-2 px-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold cursor-pointer flex items-center space-x-1.5 shadow-sm transition">
+                  <Upload className="w-3.5 h-3.5" />
+                  <span>Upload Logo File</span>
+                  <input type="file" accept="image/*" onChange={handleLogoFileChange} className="hidden" />
+                </label>
+              )}
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-semibold">
@@ -562,6 +598,7 @@ export default function Settings() {
           photoUrl={logoPreview || settings.churchLogo}
           title={`${settings.churchName || 'Parish'} Crest Logo`}
           subtitle={settings.youthName || 'Youth Association'}
+          allowDownload={true}
           onClose={() => setShowLogoModal(false)}
         />
       )}
