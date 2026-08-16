@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Image as GalleryIcon, Plus, Eye, Tag, Calendar, Upload, X, Sparkles, Trash2, Maximize2, Grid } from 'lucide-react';
+import { Image as GalleryIcon, Plus, Eye, Upload, X, Trash2, Maximize2, Grid } from 'lucide-react';
 import toast from 'react-hot-toast';
 import PhotoLightboxModal from '../components/PhotoLightboxModal';
 import { useAuth } from '../context/AuthContext';
@@ -18,9 +18,9 @@ export default function Gallery() {
 
   const [uploading, setUploading] = useState(false);
   const [formData, setFormData] = useState({
-    albumTitle: 'Parish Youth Fest 2026',
+    albumTitle: '',
     category: 'Cultural',
-    caption: 'Youth group live performance stage',
+    caption: '',
     photoUrl: ''
   });
   const [photoFile, setPhotoFile] = useState(null);
@@ -201,11 +201,10 @@ export default function Gallery() {
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
-              className={`px-4 py-2 rounded-xl text-xs font-extrabold transition whitespace-nowrap cursor-pointer ${
-                activeCategory === cat
+              className={`px-4 py-2 rounded-xl text-xs font-extrabold transition whitespace-nowrap cursor-pointer ${activeCategory === cat
                   ? 'bg-slate-900 text-white shadow-md'
                   : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
-              }`}
+                }`}
             >
               {cat}
             </button>
@@ -216,23 +215,21 @@ export default function Gallery() {
         <div className="flex items-center space-x-1 bg-slate-200/80 p-1 rounded-xl self-start sm:self-auto flex-shrink-0">
           <button
             onClick={() => setFitMode('contain')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-extrabold flex items-center space-x-1.5 transition cursor-pointer ${
-              fitMode === 'contain'
+            className={`px-3 py-1.5 rounded-lg text-xs font-extrabold flex items-center space-x-1.5 transition cursor-pointer ${fitMode === 'contain'
                 ? 'bg-white text-indigo-600 shadow-sm'
                 : 'text-slate-600 hover:text-slate-900'
-            }`}
+              }`}
             title="Display complete image inside card without top crop"
           >
             <Maximize2 className="w-3.5 h-3.5" />
-            <span>Full Image (No Cut)</span>
+            <span>Full Image</span>
           </button>
           <button
             onClick={() => setFitMode('cover')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-extrabold flex items-center space-x-1.5 transition cursor-pointer ${
-              fitMode === 'cover'
+            className={`px-3 py-1.5 rounded-lg text-xs font-extrabold flex items-center space-x-1.5 transition cursor-pointer ${fitMode === 'cover'
                 ? 'bg-white text-indigo-600 shadow-sm'
                 : 'text-slate-600 hover:text-slate-900'
-            }`}
+              }`}
             title="Top focused grid crop"
           >
             <Grid className="w-3.5 h-3.5" />
@@ -257,11 +254,10 @@ export default function Gallery() {
                   e.target.onerror = null;
                   e.target.src = 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=600';
                 }}
-                className={`w-full h-full ${
-                  fitMode === 'contain'
+                className={`w-full h-full ${fitMode === 'contain'
                     ? 'object-contain p-2 bg-slate-950'
                     : 'object-cover object-top'
-                } group-hover:scale-105 transition-all duration-500 opacity-90 group-hover:opacity-100`}
+                  } group-hover:scale-105 transition-all duration-500 opacity-90 group-hover:opacity-100`}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent opacity-80 group-hover:opacity-95 transition-opacity" />
 

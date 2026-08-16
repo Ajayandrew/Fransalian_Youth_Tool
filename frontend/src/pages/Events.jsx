@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Calendar, Plus, MapPin, Clock, DollarSign, Users, Trash2, Edit, CheckCircle2, AlertCircle, X, Sparkles, Upload } from 'lucide-react';
+import { Calendar, Plus, MapPin, Clock, DollarSign, Users, Trash2, Edit, CheckCircle2, AlertCircle, X, Upload } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import { useDataCache } from '../context/DataContext';

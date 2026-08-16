@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Wallet, TrendingUp, TrendingDown, DollarSign, Plus, Search, Filter, FileSpreadsheet, Tag, Calendar, User, Eye, X, Trash2 } from 'lucide-react';
+import { Wallet, TrendingUp, TrendingDown, DollarSign, Plus, Search, FileSpreadsheet, Eye, X, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import * as XLSX from 'xlsx';
 import { useAuth } from '../context/AuthContext';

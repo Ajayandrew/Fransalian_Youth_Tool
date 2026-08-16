@@ -19,7 +19,6 @@ import {
   Mail,
   MapPin,
   Upload,
-  Trash,
   Eye,
   ZoomIn,
   Droplet

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import {
   Users,
   CreditCard,
@@ -18,7 +17,6 @@ import {
   Facebook,
   Instagram,
   ExternalLink,
-  LogOut,
   ShieldCheck,
   Award,
   Phone,
