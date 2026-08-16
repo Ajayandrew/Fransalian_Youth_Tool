@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { QRCodeSVG } from 'qrcode.react';
+import { QRCodeCanvas } from 'qrcode.react';
 import { X, Printer, ShieldCheck, Download } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import toast from 'react-hot-toast';
@@ -30,12 +30,47 @@ export default function MemberIDCardModal({ member, onClose }) {
     const toastId = toast.loading('Generating high resolution ID badge...', { id: 'badge-dl' });
 
     try {
-      const canvas = await html2canvas(cardRef.current, {
+      const cardElement = cardRef.current;
+      const imgElements = cardElement.querySelectorAll('img');
+      const originalSrcs = [];
+
+      // Pre-convert images to base64 Data URLs to prevent canvas tainting
+      for (let i = 0; i < imgElements.length; i++) {
+        const img = imgElements[i];
+        originalSrcs.push(img.src);
+        if (img.src && !img.src.startsWith('data:')) {
+          try {
+            const res = await fetch(img.src, { mode: 'cors' });
+            if (res.ok) {
+              const blob = await res.blob();
+              const dataUrl = await new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.onerror = () => resolve(img.src);
+                reader.readAsDataURL(blob);
+              });
+              img.src = dataUrl;
+            }
+          } catch (e) {
+            img.setAttribute('crossOrigin', 'anonymous');
+          }
+        }
+      }
+
+      // Small delay to ensure browser renders converted base64 images
+      await new Promise((r) => setTimeout(r, 150));
+
+      const canvas = await html2canvas(cardElement, {
         scale: 3,
         useCORS: true,
-        allowTaint: false,
+        allowTaint: true,
         backgroundColor: null,
         logging: false
+      });
+
+      // Restore original image URLs
+      imgElements.forEach((img, idx) => {
+        if (originalSrcs[idx]) img.src = originalSrcs[idx];
       });
 
       const imageUrl = canvas.toDataURL('image/png', 1.0);
@@ -46,10 +81,10 @@ export default function MemberIDCardModal({ member, onClose }) {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      toast.success('ID Badge Downloaded!', { id: 'badge-dl' });
+      toast.success('Member ID Badge Downloaded!', { id: 'badge-dl' });
     } catch (err) {
       console.error('Failed to download badge:', err);
-      toast.error('Download failed. You can use Print ID Card option.', { id: 'badge-dl' });
+      toast.error('Could not export badge image. Please try Print Badge option.', { id: 'badge-dl' });
     } finally {
       setDownloading(false);
     }
@@ -72,7 +107,12 @@ export default function MemberIDCardModal({ member, onClose }) {
         <div ref={cardRef} className="p-5 rounded-2xl bg-gradient-to-b from-indigo-900 via-indigo-800 to-slate-900 text-white space-y-4 shadow-md text-center relative border border-indigo-700">
           <div className="flex items-center justify-center space-x-2 border-b border-indigo-700/60 pb-2">
             {settings.churchLogo ? (
-              <img src={getImageUrl(settings.churchLogo)} alt="Logo" className="w-8 h-8 rounded-full object-contain flex-shrink-0" />
+              <img
+                src={getImageUrl(settings.churchLogo)}
+                alt="Logo"
+                crossOrigin="anonymous"
+                className="w-8 h-8 rounded-full object-contain flex-shrink-0"
+              />
             ) : (
               <div className="w-8 h-8 rounded-full bg-white/20 text-white font-black text-xs flex items-center justify-center flex-shrink-0 border border-white/30">
                 {(settings.youthName || 'FY').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
@@ -88,6 +128,7 @@ export default function MemberIDCardModal({ member, onClose }) {
             <img
               src={getImageUrl(member.photo) || 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=300'}
               alt={member.fullName}
+              crossOrigin="anonymous"
               onError={(e) => {
                 e.target.onerror = null;
                 e.target.src = 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=300';
@@ -110,7 +151,7 @@ export default function MemberIDCardModal({ member, onClose }) {
 
           <div className="pt-2 flex flex-col items-center space-y-1">
             <div className="p-2 bg-white rounded-xl shadow-sm">
-              <QRCodeSVG value={qrValue} size={70} />
+              <QRCodeCanvas value={qrValue} size={70} />
             </div>
             <p className="text-[10px] text-indigo-200 font-mono tracking-wider font-bold">ID: {member.memberId || member._id}</p>
           </div>
