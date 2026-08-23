@@ -467,7 +467,7 @@ export default function Members() {
                   )}
                   {canEdit && m.photo && (
                     <button onClick={() => handleRemovePhoto(m._id)} className="p-2 rounded-xl text-slate-400 hover:text-amber-600 hover:bg-slate-100 transition" title="Remove Photo">
-                      <Trash className="w-4 h-4" />
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   )}
                   {canDelete && (
@@ -611,7 +611,7 @@ export default function Members() {
                       onClick={() => handleRemovePhoto(editingMember._id)}
                       className="py-2 px-3 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl font-bold border border-rose-200 flex items-center space-x-1"
                     >
-                      <Trash className="w-3.5 h-3.5" />
+                      <Trash2 className="w-3.5 h-3.5" />
                       <span>Remove Photo</span>
                     </button>
                   )}
@@ -729,21 +729,7 @@ export default function Members() {
         />
       )}
 
-      {/* Member Photo Lightbox Modal */}
-      {selectedLightboxPhoto && (
-        <PhotoLightboxModal
-          photoUrl={selectedLightboxPhoto.url}
-          title={selectedLightboxPhoto.title}
-          subtitle={selectedLightboxPhoto.subtitle}
-          allowDownload={false}
-          onClose={() => setSelectedLightboxPhoto(null)}
-          onViewProfile={() => {
-            const mem = members.find(m => m.fullName === selectedLightboxPhoto.title);
-            if (mem) setSelectedProfileMember(mem);
-            setSelectedLightboxPhoto(null);
-          }}
-        />
-      )}
+
     </div>
   );
 }
