@@ -227,187 +227,301 @@ export default function Reports() {
   };
 
   // 1. Export Master PDF Report
-  const handleExportPDF = () => {
-    const doc = new jsPDF();
+  // 1. Export Master PDF Report (with full Unicode Tamil font rendering support)
+  const handleExportPDF = async () => {
+    try {
+      toast.loading('Generating Master PDF Report with Tamil Unicode support...', { id: 'pdf-toast' });
 
-    doc.setFontSize(16);
-    doc.setTextColor(79, 70, 229);
-    doc.text(`${(settings.youthName || 'FRANSALIAN YOUTH').toUpperCase()} - EXECUTIVE MASTER REPORT`, 14, 18);
+      // Create off-screen container with Tamil font family
+      const reportElement = document.createElement('div');
+      reportElement.style.position = 'absolute';
+      reportElement.style.left = '-9999px';
+      reportElement.style.top = '0';
+      reportElement.style.width = '800px';
+      reportElement.style.backgroundColor = '#ffffff';
+      reportElement.style.padding = '32px';
+      reportElement.style.fontFamily = '"Plus Jakarta Sans", "Noto Sans Tamil", sans-serif';
+      reportElement.style.color = '#0f172a';
 
-    doc.setFontSize(9);
-    doc.setTextColor(100);
-    doc.text(`Generated on: ${new Date().toLocaleDateString('en-IN')} | Period: ${getFilterLabel()} | ${settings.churchName || 'Cathedral Parish'}`, 14, 25);
+      const memCount = filteredMembers.length;
+      const subCollected = (filteredSubscriptions || [])
+        .filter(s => (s.status || '').toLowerCase() === 'paid')
+        .reduce((s, b) => s + (Number(b.amount) || 0), 0);
 
-    // Mathematical Totals Calculation
-    const memCount = filteredMembers.length;
-    const subCollected = (filteredSubscriptions || [])
-      .filter(s => (s.status || '').toLowerCase() === 'paid')
-      .reduce((s, b) => s + (Number(b.amount) || 0), 0);
+      const secretCollected = (filteredSecretOfferings || [])
+        .reduce((s, b) => s + (Number(b.amount) || 0), 0);
 
-    const secretCollected = (filteredSecretOfferings || [])
-      .reduce((s, b) => s + (Number(b.amount) || 0), 0);
+      const generalIncomeTotal = (filteredIncome || [])
+        .filter(i => i.category !== 'Monthly Subscription' && i.source !== 'Monthly Subscription' && i.category !== 'Meeting Secret Offering' && i.source !== 'Meeting Secret Offering')
+        .reduce((s, i) => s + (Number(i.amount) || 0), 0);
 
-    const generalIncomeTotal = (filteredIncome || [])
-      .filter(i => i.category !== 'Monthly Subscription' && i.source !== 'Monthly Subscription' && i.category !== 'Meeting Secret Offering' && i.source !== 'Meeting Secret Offering')
-      .reduce((s, i) => s + (Number(i.amount) || 0), 0);
+      const totalInc = generalIncomeTotal + subCollected + secretCollected;
+      const totalExp = (filteredExpense || []).reduce((s, e) => s + (Number(e.amount) || 0), 0);
+      const netBal = totalInc - totalExp;
 
-    const totalInc = generalIncomeTotal + subCollected + secretCollected;
-    const totalExp = (filteredExpense || []).reduce((s, e) => s + (Number(e.amount) || 0), 0);
-    const netBal = totalInc - totalExp;
+      reportElement.innerHTML = `
+        <div style="font-family: 'Plus Jakarta Sans', 'Noto Sans Tamil', sans-serif;">
+          <!-- Header -->
+          <div style="border-bottom: 2px solid #4f46e5; padding-bottom: 12px; margin-bottom: 20px;">
+            <h1 style="color: #4f46e5; font-size: 20px; font-weight: 900; margin: 0;">${(settings.youthName || 'FRANSALIAN YOUTH').toUpperCase()} - EXECUTIVE MASTER REPORT</h1>
+            <p style="color: #64748b; font-size: 11px; margin-top: 4px;">
+              Generated on: ${new Date().toLocaleDateString('en-IN')} | Scope: <strong>${getFilterLabel()}</strong> | ${settings.churchName || 'St. Mary Cathedral Parish'}
+            </p>
+          </div>
 
-    // Section 1: Executive Summary
-    let nextY = 32;
-    doc.setFontSize(11);
-    doc.setTextColor(15);
-    doc.text(`1. Executive Summary & Financial Overview (${getFilterLabel()})`, 14, nextY);
+          <!-- Section 1: Executive Summary -->
+          <div style="margin-bottom: 24px;">
+            <h2 style="font-size: 14px; font-weight: 800; color: #1e293b; margin-bottom: 8px;">1. Executive Summary & Financial Overview (${getFilterLabel()})</h2>
+            <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+              <thead>
+                <tr style="background-color: #4f46e5; color: #ffffff;">
+                  <th style="padding: 8px; text-align: left;">Key Indicator / Financial Metric</th>
+                  <th style="padding: 8px; text-align: right;">Metric Value (₹ / Count)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="border-bottom: 1px solid #e2e8f0;"><td style="padding: 6px 8px;">Registered Youth Members Directory Count</td><td style="padding: 6px 8px; text-align: right; font-weight: 700;">${memCount} Active Members</td></tr>
+                <tr style="border-bottom: 1px solid #e2e8f0; background-color: #f8fafc;"><td style="padding: 6px 8px;">Monthly Subscriptions Dues Collected</td><td style="padding: 6px 8px; text-align: right; font-weight: 700; color: #16a34a;">₹${subCollected.toLocaleString('en-IN')}</td></tr>
+                <tr style="border-bottom: 1px solid #e2e8f0;"><td style="padding: 6px 8px;">Meeting Secret Box Offerings Collected</td><td style="padding: 6px 8px; text-align: right; font-weight: 700; color: #d97706;">₹${secretCollected.toLocaleString('en-IN')}</td></tr>
+                <tr style="border-bottom: 1px solid #e2e8f0; background-color: #f8fafc;"><td style="padding: 6px 8px;">General Income & Donations Collected</td><td style="padding: 6px 8px; text-align: right; font-weight: 700; color: #2563eb;">₹${generalIncomeTotal.toLocaleString('en-IN')}</td></tr>
+                <tr style="border-bottom: 1px solid #e2e8f0;"><td style="padding: 6px 8px; font-weight: 700;">Overall Realized Total Income (All Sources)</td><td style="padding: 6px 8px; text-align: right; font-weight: 900; color: #16a34a;">₹${totalInc.toLocaleString('en-IN')}</td></tr>
+                <tr style="border-bottom: 1px solid #e2e8f0; background-color: #f8fafc;"><td style="padding: 6px 8px;">Total Expenditure Logged</td><td style="padding: 6px 8px; text-align: right; font-weight: 700; color: #dc2626;">₹${totalExp.toLocaleString('en-IN')}</td></tr>
+                <tr style="background-color: #f1f5f9;"><td style="padding: 8px; font-weight: 800; color: #0f172a;">Net Available Treasury Cash Balance</td><td style="padding: 8px; text-align: right; font-weight: 900; color: #0f172a; font-size: 13px;">₹${netBal.toLocaleString('en-IN')}</td></tr>
+              </tbody>
+            </table>
+          </div>
 
-    doc.autoTable({
-      startY: nextY + 4,
-      head: [['Key Indicator / Financial Metric', 'Metric Value (₹ / Count)']],
-      body: [
-        ['Registered Youth Members Directory Count', `${memCount} Active Members`],
-        ['Monthly Subscriptions Dues Collected', `₹${subCollected.toLocaleString('en-IN')}`],
-        ['Meeting Secret Box Offerings Collected', `₹${secretCollected.toLocaleString('en-IN')}`],
-        ['General Income & Donations Collected', `₹${generalIncomeTotal.toLocaleString('en-IN')}`],
-        ['Overall Realized Total Income (All Sources)', `₹${totalInc.toLocaleString('en-IN')}`],
-        ['Total Expenditure Logged', `₹${totalExp.toLocaleString('en-IN')}`],
-        ['Net Available Treasury Cash Balance', `₹${netBal.toLocaleString('en-IN')}`]
-      ],
-      theme: 'striped',
-      headStyles: { fillStyle: [79, 70, 229] }
-    });
+          <!-- Section 2: Subscriptions Dues Ledger -->
+          <div style="margin-bottom: 24px;">
+            <h2 style="font-size: 14px; font-weight: 800; color: #1e293b; margin-bottom: 8px;">2. Member Subscription Dues Ledger (${getFilterLabel()})</h2>
+            <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
+              <thead>
+                <tr style="background-color: #10b981; color: #ffffff;">
+                  <th style="padding: 6px; text-align: left;">Member Name</th>
+                  <th style="padding: 6px; text-align: left;">Month</th>
+                  <th style="padding: 6px; text-align: right;">Amount</th>
+                  <th style="padding: 6px; text-align: center;">Status</th>
+                  <th style="padding: 6px; text-align: center;">Mode</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${(filteredSubscriptions || []).length > 0 ? (filteredSubscriptions || []).map((s, idx) => `
+                  <tr style="border-bottom: 1px solid #e2e8f0; background-color: ${idx % 2 === 0 ? '#ffffff' : '#f8fafc'};">
+                    <td style="padding: 5px 6px; font-weight: 600;">${s.memberName || '-'}</td>
+                    <td style="padding: 5px 6px;">${s.month || '-'}</td>
+                    <td style="padding: 5px 6px; text-align: right; font-weight: 700;">₹${s.amount || 0}</td>
+                    <td style="padding: 5px 6px; text-align: center;">${s.status || '-'}</td>
+                    <td style="padding: 5px 6px; text-align: center;">${s.paymentMode || '-'}</td>
+                  </tr>
+                `).join('') : `
+                  <tr><td colspan="5" style="padding: 8px; text-align: center; color: #94a3b8;">No subscription records for period</td></tr>
+                `}
+              </tbody>
+            </table>
+          </div>
 
-    // Section 2: Subscriptions Dues Ledger
-    nextY = ensurePDFSpace(doc, doc.lastAutoTable.finalY + 12, 50);
-    doc.setFontSize(11);
-    doc.setTextColor(15);
-    doc.text(`2. Member Subscription Dues Ledger (${getFilterLabel()})`, 14, nextY);
+          <!-- Section 3: Itemized Accounts & Financial Ledger -->
+          <div style="margin-bottom: 24px;">
+            <h2 style="font-size: 14px; font-weight: 800; color: #1e293b; margin-bottom: 8px;">3. Itemized Accounts & Financial Ledger (${getFilterLabel()})</h2>
+            <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
+              <thead>
+                <tr style="background-color: #3b82f6; color: #ffffff;">
+                  <th style="padding: 6px; text-align: left;">Type</th>
+                  <th style="padding: 6px; text-align: left;">Entry Title</th>
+                  <th style="padding: 6px; text-align: right;">Amount</th>
+                  <th style="padding: 6px; text-align: left;">Category</th>
+                  <th style="padding: 6px; text-align: center;">Date</th>
+                  <th style="padding: 6px; text-align: center;">Mode</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${[
+                  ...(filteredIncome || []).map(i => ({ type: 'Income', title: i.title, amount: i.amount, category: i.category || 'General', date: i.date || '-', mode: i.paymentMode || 'Cash', color: '#16a34a' })),
+                  ...(filteredExpense || []).map(e => ({ type: 'Expense', title: e.title, amount: e.amount, category: e.category || 'General', date: e.date || '-', mode: e.paymentMode || 'Cash', color: '#dc2626' }))
+                ].length > 0 ? [
+                  ...(filteredIncome || []).map(i => ({ type: 'Income', title: i.title, amount: i.amount, category: i.category || 'General', date: i.date || '-', mode: i.paymentMode || 'Cash', color: '#16a34a' })),
+                  ...(filteredExpense || []).map(e => ({ type: 'Expense', title: e.title, amount: e.amount, category: e.category || 'General', date: e.date || '-', mode: e.paymentMode || 'Cash', color: '#dc2626' }))
+                ].map((item, idx) => `
+                  <tr style="border-bottom: 1px solid #e2e8f0; background-color: ${idx % 2 === 0 ? '#ffffff' : '#f8fafc'};">
+                    <td style="padding: 5px 6px; font-weight: 700; color: ${item.color};">${item.type}</td>
+                    <td style="padding: 5px 6px; font-weight: 600;">${item.title}</td>
+                    <td style="padding: 5px 6px; text-align: right; font-weight: 700;">₹${item.amount}</td>
+                    <td style="padding: 5px 6px;">${item.category}</td>
+                    <td style="padding: 5px 6px; text-align: center;">${item.date}</td>
+                    <td style="padding: 5px 6px; text-align: center;">${item.mode}</td>
+                  </tr>
+                `).join('') : `
+                  <tr><td colspan="6" style="padding: 8px; text-align: center; color: #94a3b8;">No transaction entries logged for period</td></tr>
+                `}
+              </tbody>
+            </table>
+          </div>
 
-    const subRows = (filteredSubscriptions || []).map(s => [
-      s.memberName || 'Member',
-      s.month || '-',
-      `₹${s.amount || 0}`,
-      s.status || 'Pending',
-      s.paymentMode || '-'
-    ]);
+          <!-- Section 4: Secret Box Offerings -->
+          <div style="margin-bottom: 24px;">
+            <h2 style="font-size: 14px; font-weight: 800; color: #1e293b; margin-bottom: 8px;">4. Meeting Secret Box Offerings Details (${getFilterLabel()})</h2>
+            <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
+              <thead>
+                <tr style="background-color: #d97706; color: #ffffff;">
+                  <th style="padding: 6px; text-align: left;">Meeting / Event Title</th>
+                  <th style="padding: 6px; text-align: center;">Date</th>
+                  <th style="padding: 6px; text-align: right;">Amount</th>
+                  <th style="padding: 6px; text-align: left;">Collected By</th>
+                  <th style="padding: 6px; text-align: left;">Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${(filteredSecretOfferings || []).length > 0 ? (filteredSecretOfferings || []).map((s, idx) => `
+                  <tr style="border-bottom: 1px solid #e2e8f0; background-color: ${idx % 2 === 0 ? '#ffffff' : '#f8fafc'};">
+                    <td style="padding: 5px 6px; font-weight: 600;">${s.meetingName || s.title || '-'}</td>
+                    <td style="padding: 5px 6px; text-align: center;">${s.date || '-'}</td>
+                    <td style="padding: 5px 6px; text-align: right; font-weight: 700; color: #d97706;">₹${s.amount || 0}</td>
+                    <td style="padding: 5px 6px;">${s.collectedBy || 'Leader'}</td>
+                    <td style="padding: 5px 6px;">${s.notes || '-'}</td>
+                  </tr>
+                `).join('') : `
+                  <tr><td colspan="5" style="padding: 8px; text-align: center; color: #94a3b8;">No secret box offerings logged for period</td></tr>
+                `}
+              </tbody>
+            </table>
+          </div>
 
-    doc.autoTable({
-      startY: nextY + 4,
-      head: [['Member Name', 'Month', 'Amount', 'Status', 'Payment Mode']],
-      body: subRows.length > 0 ? subRows : [['-', 'No subscription records for period', '₹0', '-', '-']],
-      theme: 'grid',
-      headStyles: { fillStyle: [16, 185, 129] }
-    });
+          <!-- Section 5: Youth Activities & Event Calendar -->
+          <div style="margin-bottom: 24px;">
+            <h2 style="font-size: 14px; font-weight: 800; color: #1e293b; margin-bottom: 8px;">5. Youth Activities & Event Calendar (${getFilterLabel()})</h2>
+            <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
+              <thead>
+                <tr style="background-color: #f43f5e; color: #ffffff;">
+                  <th style="padding: 6px; text-align: left;">Event Name</th>
+                  <th style="padding: 6px; text-align: center;">Date</th>
+                  <th style="padding: 6px; text-align: left;">Venue</th>
+                  <th style="padding: 6px; text-align: right;">Budget</th>
+                  <th style="padding: 6px; text-align: center;">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${(filteredEvents || []).length > 0 ? (filteredEvents || []).map((e, idx) => `
+                  <tr style="border-bottom: 1px solid #e2e8f0; background-color: ${idx % 2 === 0 ? '#ffffff' : '#f8fafc'};">
+                    <td style="padding: 5px 6px; font-weight: 600;">${e.eventName || '-'}</td>
+                    <td style="padding: 5px 6px; text-align: center;">${e.date || '-'}</td>
+                    <td style="padding: 5px 6px;">${e.venue || '-'}</td>
+                    <td style="padding: 5px 6px; text-align: right; font-weight: 700;">₹${e.budget || 0}</td>
+                    <td style="padding: 5px 6px; text-align: center;">${e.status || 'Upcoming'}</td>
+                  </tr>
+                `).join('') : `
+                  <tr><td colspan="5" style="padding: 8px; text-align: center; color: #94a3b8;">No events scheduled for period</td></tr>
+                `}
+              </tbody>
+            </table>
+          </div>
 
-    // Section 3: Itemized Accounts Ledger (Income & Expense)
-    nextY = ensurePDFSpace(doc, doc.lastAutoTable.finalY + 12, 50);
-    doc.setFontSize(11);
-    doc.setTextColor(15);
-    doc.text(`3. Itemized Accounts & Financial Ledger (${getFilterLabel()})`, 14, nextY);
+          <!-- Section 6: Youth Attendance Register -->
+          <div style="margin-bottom: 24px;">
+            <h2 style="font-size: 14px; font-weight: 800; color: #1e293b; margin-bottom: 8px;">6. Youth Attendance Register (${getFilterLabel()})</h2>
+            <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
+              <thead>
+                <tr style="background-color: #9333ea; color: #ffffff;">
+                  <th style="padding: 6px; text-align: left;">Meeting / Event Title</th>
+                  <th style="padding: 6px; text-align: center;">Date</th>
+                  <th style="padding: 6px; text-align: center;">Attendance</th>
+                  <th style="padding: 6px; text-align: center;">Turnout</th>
+                  <th style="padding: 6px; text-align: left;">Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${(filteredAttendance || []).length > 0 ? (filteredAttendance || []).map((a, idx) => {
+                  const p = a.presentCount || (a.records ? a.records.filter(r => r.status === 'Present').length : 0);
+                  const total = a.totalMembers || (a.records ? a.records.length : 0) || 1;
+                  const pct = Math.round((p / total) * 100);
+                  return `
+                    <tr style="border-bottom: 1px solid #e2e8f0; background-color: ${idx % 2 === 0 ? '#ffffff' : '#f8fafc'};">
+                      <td style="padding: 5px 6px; font-weight: 600;">${a.meetingName || a.title || '-'}</td>
+                      <td style="padding: 5px 6px; text-align: center;">${a.meetingDate || a.date || '-'}</td>
+                      <td style="padding: 5px 6px; text-align: center; font-weight: 700;">${p} / ${total}</td>
+                      <td style="padding: 5px 6px; text-align: center; font-weight: 700; color: #9333ea;">${pct}%</td>
+                      <td style="padding: 5px 6px;">${a.notes || '-'}</td>
+                    </tr>
+                  `;
+                }).join('') : `
+                  <tr><td colspan="5" style="padding: 8px; text-align: center; color: #94a3b8;">No attendance records logged for period</td></tr>
+                `}
+              </tbody>
+            </table>
+          </div>
 
-    const ledgerRows = [
-      ...(filteredIncome || []).map(i => ['Income', i.title, `₹${i.amount}`, i.category || 'General', i.date || '-', i.paymentMode || 'Cash']),
-      ...(filteredExpense || []).map(e => ['Expense', e.title, `₹${e.amount}`, e.category || 'General', e.date || '-', e.paymentMode || 'Cash'])
-    ];
+          <!-- Section 7: Youth Members Directory Roster -->
+          <div>
+            <h2 style="font-size: 14px; font-weight: 800; color: #1e293b; margin-bottom: 8px;">7. Youth Members Directory Roster (${filteredMembers.length} Members)</h2>
+            <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
+              <thead>
+                <tr style="background-color: #4f46e5; color: #ffffff;">
+                  <th style="padding: 6px; text-align: left;">Member ID</th>
+                  <th style="padding: 6px; text-align: left;">Full Name</th>
+                  <th style="padding: 6px; text-align: left;">Role</th>
+                  <th style="padding: 6px; text-align: left;">Anbiyam / Zone</th>
+                  <th style="padding: 6px; text-align: center;">Mobile</th>
+                  <th style="padding: 6px; text-align: center;">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${(filteredMembers || []).length > 0 ? (filteredMembers || []).map((m, idx) => `
+                  <tr style="border-bottom: 1px solid #e2e8f0; background-color: ${idx % 2 === 0 ? '#ffffff' : '#f8fafc'};">
+                    <td style="padding: 5px 6px; font-family: monospace; font-weight: 700;">${m.memberId || '-'}</td>
+                    <td style="padding: 5px 6px; font-weight: 700; color: #1e293b;">${m.fullName || '-'}</td>
+                    <td style="padding: 5px 6px;">${m.role || 'Youth Member'}</td>
+                    <td style="padding: 5px 6px;">${m.anbiyamName || m.zone || '-'}</td>
+                    <td style="padding: 5px 6px; text-align: center;">${m.mobileNumber || m.phone || '-'}</td>
+                    <td style="padding: 5px 6px; text-align: center;">${m.activeStatus || 'Active'}</td>
+                  </tr>
+                `).join('') : `
+                  <tr><td colspan="6" style="padding: 8px; text-align: center; color: #94a3b8;">No member records found</td></tr>
+                `}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
 
-    doc.autoTable({
-      startY: nextY + 4,
-      head: [['Type', 'Entry Title', 'Amount', 'Category', 'Date', 'Mode']],
-      body: ledgerRows.length > 0 ? ledgerRows : [['Info', 'No transaction entries logged for period', '₹0', '-', '-', '-']],
-      theme: 'striped',
-      headStyles: { fillStyle: [59, 130, 246] }
-    });
+      document.body.appendChild(reportElement);
 
-    // Section 4: Secret Box Offerings
-    nextY = ensurePDFSpace(doc, doc.lastAutoTable.finalY + 12, 50);
-    doc.setFontSize(11);
-    doc.setTextColor(15);
-    doc.text(`4. Meeting Secret Box Offerings Details (${getFilterLabel()})`, 14, nextY);
+      const html2canvas = (await import('html2canvas')).default;
+      const canvas = await html2canvas(reportElement, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        logging: false
+      });
 
-    const secRows = (filteredSecretOfferings || []).map(s => [
-      s.meetingName || s.title || 'Secret Box Offering',
-      s.date || '-',
-      `₹${s.amount || 0}`,
-      s.collectedBy || 'Leader',
-      s.notes || '-'
-    ]);
+      document.body.removeChild(reportElement);
 
-    doc.autoTable({
-      startY: nextY + 4,
-      head: [['Meeting / Event Title', 'Date', 'Amount', 'Collected By', 'Notes']],
-      body: secRows.length > 0 ? secRows : [['-', '-', '₹0', '-', 'No secret box offerings logged for period']],
-      theme: 'grid',
-      headStyles: { fillStyle: [217, 119, 6] }
-    });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = pdfWidth;
+      const imgHeight = (canvas.height * pdfWidth) / canvas.width;
 
-    // Section 5: Youth Activities & Event Calendar
-    nextY = ensurePDFSpace(doc, doc.lastAutoTable.finalY + 12, 50);
-    doc.setFontSize(11);
-    doc.setTextColor(15);
-    doc.text(`5. Youth Activities & Event Calendar (${getFilterLabel()})`, 14, nextY);
+      let heightLeft = imgHeight;
+      let position = 0;
 
-    const evtRows = (filteredEvents || []).map(e => [
-      e.eventName || 'Youth Event',
-      e.date || '-',
-      e.venue || '-',
-      e.budget ? `₹${e.budget}` : '₹0',
-      e.status || 'Upcoming'
-    ]);
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pdfHeight;
 
-    doc.autoTable({
-      startY: nextY + 4,
-      head: [['Event Name', 'Date', 'Venue', 'Budget', 'Status']],
-      body: evtRows.length > 0 ? evtRows : [['-', '-', '-', '₹0', 'No events scheduled for period']],
-      theme: 'striped',
-      headStyles: { fillStyle: [244, 63, 94] }
-    });
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pdfHeight;
+      }
 
-    // Section 6: Youth Attendance Register
-    nextY = ensurePDFSpace(doc, doc.lastAutoTable.finalY + 12, 50);
-    doc.setFontSize(11);
-    doc.setTextColor(15);
-    doc.text(`6. Youth Attendance Register (${getFilterLabel()})`, 14, nextY);
-
-    const attRows = (filteredAttendance || []).map(a => {
-      const p = a.presentCount || (a.records ? a.records.filter(r => r.status === 'Present').length : 0);
-      const total = a.totalMembers || (a.records ? a.records.length : 0) || 1;
-      const pct = Math.round((p / total) * 100);
-      return [a.meetingName || a.title || 'Youth Meeting', a.meetingDate || a.date || '-', `${p} / ${total}`, `${pct}%`, a.notes || '-'];
-    });
-
-    doc.autoTable({
-      startY: nextY + 4,
-      head: [['Meeting / Event Title', 'Date', 'Attendance (Present/Total)', 'Turnout Rate', 'Notes']],
-      body: attRows.length > 0 ? attRows : [['-', '-', '0 / 0', '0%', 'No attendance records logged for period']],
-      theme: 'striped',
-      headStyles: { fillStyle: [147, 51, 234] }
-    });
-
-    // Section 7: Youth Members Directory Roster
-    nextY = ensurePDFSpace(doc, doc.lastAutoTable.finalY + 12, 50);
-    doc.setFontSize(11);
-    doc.setTextColor(15);
-    doc.text(`7. Youth Members Directory Roster (${filteredMembers.length} Members)`, 14, nextY);
-
-    const memRows = (filteredMembers || []).map(m => [
-      m.memberId || '-',
-      m.fullName || 'Member',
-      m.role || 'Youth Member',
-      m.anbiyamName || m.zone || '-',
-      m.mobileNumber || m.phone || '-',
-      m.activeStatus || 'Active'
-    ]);
-
-    doc.autoTable({
-      startY: nextY + 4,
-      head: [['Member ID', 'Full Name', 'Role', 'Anbiyam / Zone', 'Mobile', 'Status']],
-      body: memRows.length > 0 ? memRows : [['-', 'No member records found', '-', '-', '-', '-']],
-      theme: 'grid',
-      headStyles: { fillStyle: [79, 70, 229] }
-    });
-
-    doc.save(`Fransalian_Youth_Master_Executive_Report_${getFilterLabel().replace(/\s+/g, '_')}.pdf`);
-    toast.success(`Downloaded Master Executive PDF Report for ${getFilterLabel()}!`);
+      pdf.save(`Fransalian_Youth_Master_Executive_Report_${getFilterLabel().replace(/\s+/g, '_')}.pdf`);
+      toast.dismiss('pdf-toast');
+      toast.success(`Downloaded Master Executive PDF Report with Tamil support for ${getFilterLabel()}!`);
+    } catch (err) {
+      console.error('[PDF Export Error]:', err);
+      toast.dismiss('pdf-toast');
+      toast.error('Failed to generate PDF report: ' + err.message);
+    }
   };
 
   // 2. Export Master Excel Workbook (Multi-Sheet Complete Workbook)
