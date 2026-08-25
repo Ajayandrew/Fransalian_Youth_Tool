@@ -337,9 +337,9 @@ export default function MemberIDCardModal({ member, onClose }) {
             </div>
           </div>
 
-          {/* Passport Photo (3:4 ratio - 112px Width x 144px Height) */}
+          {/* Standard ID Card Photo (w-24 h-30 - 96px Width x 120px Height) */}
           <div className="flex flex-col items-center space-y-2 pt-1">
-            <div className="relative p-1 bg-white/20 rounded-2xl border border-white/40 shadow-lg">
+            <div className="p-1 bg-white/20 rounded-2xl border border-white/40 shadow-lg">
               <img
                 src={getImageUrl(member.photo) || 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=300'}
                 alt={member.fullName}
@@ -347,11 +347,8 @@ export default function MemberIDCardModal({ member, onClose }) {
                   e.target.onerror = null;
                   e.target.src = 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=300';
                 }}
-                className="w-28 h-36 rounded-xl object-cover object-top shadow-inner"
+                className="w-24 h-30 rounded-xl object-cover object-top shadow-inner"
               />
-              <span className="absolute -bottom-2 -right-2 px-2 py-0.5 text-[9px] font-black uppercase rounded-md bg-amber-400 text-slate-950 shadow tracking-wider">
-                Passport
-              </span>
             </div>
 
             <div className="text-center space-y-0.5 pt-1">

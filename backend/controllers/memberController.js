@@ -17,25 +17,30 @@ const ensureMemberIds = (membersList, persist = false) => {
   const usedIds = new Set();
   let maxNum = 0;
 
+  // Track unique memberIds and highest sequence number
   membersList.forEach(m => {
     if (m && m.memberId && String(m.memberId) !== 'undefined' && String(m.memberId).trim() !== '') {
       const strId = String(m.memberId).trim();
-      usedIds.add(strId);
-      const match = strId.match(/FY-MEM-(\d+)/i);
-      if (match) {
-        const num = parseInt(match[1], 10);
-        if (!isNaN(num) && num > maxNum) maxNum = num;
+      if (!usedIds.has(strId)) {
+        usedIds.add(strId);
+        const match = strId.match(/FY-MEM-(\d+)/i);
+        if (match) {
+          const num = parseInt(match[1], 10);
+          if (!isNaN(num) && num > maxNum) maxNum = num;
+        }
       }
     }
   });
 
   let modified = false;
   let counter = 1;
+  const seenInThisPass = new Set();
 
   membersList.forEach(m => {
     if (!m) return;
     const strId = m.memberId !== undefined && m.memberId !== null ? String(m.memberId).trim() : '';
-    if (!strId || strId === 'undefined') {
+    // Re-assign if blank, undefined, or ALREADY SEEN in this pass (duplicate ID detected!)
+    if (!strId || strId === 'undefined' || seenInThisPass.has(strId)) {
       let candidate = `FY-MEM-${String(counter).padStart(3, '0')}`;
       while (usedIds.has(candidate)) {
         counter++;
@@ -43,6 +48,7 @@ const ensureMemberIds = (membersList, persist = false) => {
       }
       m.memberId = candidate;
       usedIds.add(candidate);
+      seenInThisPass.add(candidate);
       if (counter > maxNum) maxNum = counter;
       counter++;
       modified = true;
@@ -55,6 +61,8 @@ const ensureMemberIds = (membersList, persist = false) => {
       if (!getIsInMemory() && m._id) {
         Member.findByIdAndUpdate(m._id, { memberId: candidate }).catch(() => {});
       }
+    } else {
+      seenInThisPass.add(strId);
     }
   });
 
@@ -228,7 +236,13 @@ const createMember = async (req, res) => {
     }
 
     data.age = calcAge(data.dob);
-    if (!data.memberId || data.memberId === 'undefined' || String(data.memberId).trim() === '') {
+    const existingUsedIds = new Set(
+      (memoryStore.members || [])
+        .filter(m => m && m.memberId)
+        .map(m => String(m.memberId).trim())
+    );
+
+    if (!data.memberId || data.memberId === 'undefined' || String(data.memberId).trim() === '' || existingUsedIds.has(String(data.memberId).trim())) {
       data.memberId = await generateNextMemberId();
     }
 

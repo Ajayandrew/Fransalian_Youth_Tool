@@ -239,6 +239,7 @@ export default function Members() {
       const formPayload = new FormData();
       Object.keys(formData).forEach(key => {
         if (['_id', 'createdAt', 'updatedAt', '__v', 'photo'].includes(key)) return;
+        if (!editingMember && key === 'memberId') return;
         const val = formData[key];
         if (val !== null && val !== undefined) {
           formPayload.append(key, val);
