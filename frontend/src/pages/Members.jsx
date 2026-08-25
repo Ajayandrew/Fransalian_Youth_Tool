@@ -48,6 +48,7 @@ export default function Members() {
   const [genderFilter, setGenderFilter] = useState('');
   const [anbiyamFilter, setAnbiyamFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [bloodGroupFilter, setBloodGroupFilter] = useState('');
 
   const [showModal, setShowModal] = useState(false);
   const [editingMember, setEditingMember] = useState(null);
@@ -103,15 +104,31 @@ export default function Members() {
     }
   };
 
-  const fetchMembers = async (isInitial = false) => {
+  const handleToggleStatus = async (m, e) => {
+    if (e) e.stopPropagation();
+    if (!canEdit) {
+      return toast.error('You do not have permission to change member active status.');
+    }
+    const newStatus = (m.activeStatus || 'Active') === 'Active' ? 'Inactive' : 'Active';
     try {
-      const params = {};
-      if (search) params.search = search;
-      if (genderFilter && genderFilter !== 'All') params.gender = genderFilter;
-      if (anbiyamFilter && anbiyamFilter !== 'All') params.anbiyam = anbiyamFilter;
-      if (statusFilter && statusFilter !== 'All') params.activeStatus = statusFilter;
+      const res = await axios.put(`/api/members/${m._id}`, { activeStatus: newStatus });
+      if (res.data && res.data.success) {
+        toast.success(`${m.fullName} is now marked as ${newStatus}`);
+        setMembers(prev => prev.map(item => item._id === m._id ? { ...item, activeStatus: newStatus } : item));
+        if (selectedProfileMember && selectedProfileMember._id === m._id) {
+          setSelectedProfileMember(prev => ({ ...prev, activeStatus: newStatus }));
+        }
+        invalidateCache('members');
+        invalidateCache('dashboard');
+      }
+    } catch (err) {
+      toast.error('Failed to update status.');
+    }
+  };
 
-      const data = await fetchWithCache('members', '/api/members', params);
+  const fetchMembers = async () => {
+    try {
+      const data = await fetchWithCache('members', '/api/members');
       if (data && (data.members || Array.isArray(data))) {
         setMembers(Array.isArray(data) ? data : data.members || []);
       }
@@ -124,7 +141,53 @@ export default function Members() {
 
   useEffect(() => {
     fetchMembers();
-  }, [search, genderFilter, anbiyamFilter, statusFilter]);
+  }, []);
+
+  const counts = React.useMemo(() => {
+    let active = 0;
+    let inactive = 0;
+    (members || []).forEach(m => {
+      if ((m.activeStatus || 'Active') === 'Active') active++;
+      else inactive++;
+    });
+    return { active, inactive };
+  }, [members]);
+
+  const filteredMembers = React.useMemo(() => {
+    return (members || []).filter(m => {
+      if (search) {
+        const q = search.toLowerCase().trim();
+        const normQ = q.replace(/\s+/g, '+');
+        const matchSearch =
+          (m.fullName && m.fullName.toLowerCase().includes(q)) ||
+          (m.memberId && m.memberId.toLowerCase().includes(q)) ||
+          (m.baptismName && m.baptismName.toLowerCase().includes(q)) ||
+          (m.mobileNumber && m.mobileNumber.includes(q)) ||
+          (m.email && m.email.toLowerCase().includes(q)) ||
+          (m.anbiyamName && m.anbiyamName.toLowerCase().includes(q)) ||
+          (m.bloodGroup && (m.bloodGroup.toLowerCase().includes(q) || m.bloodGroup.toLowerCase().replace(/\s+/g, '+').includes(normQ)));
+        if (!matchSearch) return false;
+      }
+
+      if (statusFilter && statusFilter !== 'All') {
+        if ((m.activeStatus || 'Active') !== statusFilter) return false;
+      }
+
+      if (anbiyamFilter && anbiyamFilter !== 'All') {
+        if (m.anbiyamName !== anbiyamFilter) return false;
+      }
+
+      if (genderFilter && genderFilter !== 'All') {
+        if (m.gender !== genderFilter) return false;
+      }
+
+      if (bloodGroupFilter && bloodGroupFilter !== 'All') {
+        if ((m.bloodGroup || '').trim().replace(/\s+/g, '+').toUpperCase() !== bloodGroupFilter.trim().replace(/\s+/g, '+').toUpperCase()) return false;
+      }
+
+      return true;
+    });
+  }, [members, search, statusFilter, anbiyamFilter, genderFilter, bloodGroupFilter]);
 
   useEffect(() => {
     if (searchParams.get('action') === 'new' && canEdit) {
@@ -302,53 +365,128 @@ export default function Members() {
       </div>
 
       {/* Filter Toolbar */}
-      <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="relative w-full sm:w-80">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search name, blood group, mobile, email..."
-            className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-indigo-600 transition"
-          />
+      <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-3">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-3">
+          {/* Search Input */}
+          <div className="relative w-full md:w-80">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search name, ID, mobile, blood, email..."
+              className="w-full pl-9 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-indigo-600 transition"
+            />
+            {search && (
+              <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer">
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+
+          {/* Filter Dropdowns Bar */}
+          <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+            {/* Status Filter */}
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 font-bold cursor-pointer focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="">All Statuses ({members.length})</option>
+              <option value="Active">🟢 Active Only ({counts.active})</option>
+              <option value="Inactive">🔴 Inactive Only ({counts.inactive})</option>
+            </select>
+
+            {/* Anbiyam Filter */}
+            <select
+              value={anbiyamFilter}
+              onChange={(e) => setAnbiyamFilter(e.target.value)}
+              className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 font-medium cursor-pointer focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="">All Anbiyams</option>
+              <option value="Sagaya Madha Anbiyam">Sagaya Madha Anbiyam</option>
+              <option value="Vinnarasi Madha Anbiyam">Vinnarasi Madha Anbiyam</option>
+              <option value="Iruthaiya Aandaver Anbiyam">Iruthaiya Aandaver Anbiyam</option>
+              <option value="Anthoniyar Anbiyam">Anthoniyar Anbiyam</option>
+              <option value="Amalorpava Madha Anbiyam">Amalorpava Madha Anbiyam</option>
+              <option value="Saleth Madha Anbiyam">Saleth Madha Anbiyam</option>
+              <option value="Arockiya Matha Anbiyam">Arockiya Matha Anbiyam</option>
+              <option value="Susaiyappar Anbiyam">Susaiyappar Anbiyam</option>
+              <option value="Kulanthai Yeasu Anbiyam">Kulanthai Yeasu Anbiyam</option>
+            </select>
+
+            {/* Gender Filter */}
+            <select
+              value={genderFilter}
+              onChange={(e) => setGenderFilter(e.target.value)}
+              className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 font-medium cursor-pointer focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="">All Genders</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+            </select>
+
+            {/* Blood Group Filter */}
+            <select
+              value={bloodGroupFilter}
+              onChange={(e) => setBloodGroupFilter(e.target.value)}
+              className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 font-medium cursor-pointer focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="">All Blood Groups</option>
+              {['O+', 'A+', 'B+', 'AB+', 'O-', 'A-', 'B-', 'AB-'].map(bg => (
+                <option key={bg} value={bg}>🩸 {bg}</option>
+              ))}
+            </select>
+
+            {/* Reset Filters */}
+            {(search || statusFilter || anbiyamFilter || genderFilter || bloodGroupFilter) && (
+              <button
+                onClick={() => {
+                  setSearch('');
+                  setStatusFilter('');
+                  setAnbiyamFilter('');
+                  setGenderFilter('');
+                  setBloodGroupFilter('');
+                }}
+                className="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl text-xs font-bold transition border border-rose-200 cursor-pointer"
+              >
+                Reset Filters
+              </button>
+            )}
+
+            {/* View Switcher */}
+            <div className="flex items-center bg-slate-100 p-1 rounded-xl">
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`p-1.5 rounded-lg text-xs transition cursor-pointer ${viewMode === 'grid' ? 'bg-white shadow text-indigo-600 font-bold' : 'text-slate-500'}`}
+              >
+                <Grid className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setViewMode('table')}
+                className={`p-1.5 rounded-lg text-xs transition cursor-pointer ${viewMode === 'table' ? 'bg-white shadow text-indigo-600 font-bold' : 'text-slate-500'}`}
+              >
+                <List className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-          <select
-            value={genderFilter}
-            onChange={(e) => setGenderFilter(e.target.value)}
-            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 font-medium"
+        {/* Status Counter Bar */}
+        <div className="flex items-center gap-2 text-[11px] font-bold text-slate-500 pt-2 border-t border-slate-100 flex-wrap">
+          <span>Showing <strong>{filteredMembers.length}</strong> of {members.length} members:</span>
+          <button
+            onClick={() => setStatusFilter(statusFilter === 'Active' ? '' : 'Active')}
+            className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold transition cursor-pointer ${statusFilter === 'Active' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'}`}
           >
-            <option value="">All Genders</option>
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-          </select>
-
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 font-medium"
+            🟢 Active: {counts.active}
+          </button>
+          <button
+            onClick={() => setStatusFilter(statusFilter === 'Inactive' ? '' : 'Inactive')}
+            className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold transition cursor-pointer ${statusFilter === 'Inactive' ? 'bg-rose-600 text-white shadow-xs' : 'bg-rose-50 text-rose-700 border border-rose-200'}`}
           >
-            <option value="">All Statuses</option>
-            <option value="Active">Active</option>
-            <option value="Inactive">Inactive</option>
-          </select>
-
-          <div className="flex items-center bg-slate-100 p-1 rounded-xl">
-            <button
-              onClick={() => setViewMode('grid')}
-              className={`p-1.5 rounded-lg text-xs transition ${viewMode === 'grid' ? 'bg-white shadow text-indigo-600 font-bold' : 'text-slate-500'}`}
-            >
-              <Grid className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setViewMode('table')}
-              className={`p-1.5 rounded-lg text-xs transition ${viewMode === 'table' ? 'bg-white shadow text-indigo-600 font-bold' : 'text-slate-500'}`}
-            >
-              <List className="w-4 h-4" />
-            </button>
-          </div>
+            🔴 Inactive: {counts.inactive}
+          </button>
         </div>
       </div>
 
@@ -356,11 +494,33 @@ export default function Members() {
       {loading ? (
         <div className="flex items-center justify-center py-20 text-slate-500 font-bold text-xs tracking-wide">
           <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin mr-2.5" />
-          <span>Loading...</span>
+          <span>Loading members...</span>
+        </div>
+      ) : filteredMembers.length === 0 ? (
+        <div className="p-12 rounded-3xl bg-white border border-slate-200 text-center space-y-3">
+          <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
+            <Users className="w-6 h-6" />
+          </div>
+          <h3 className="text-sm font-bold text-slate-800">No youth members match your selected filters</h3>
+          <p className="text-xs text-slate-500">Try adjusting your search keywords, active status, or anbiyam filters.</p>
+          {(search || statusFilter || anbiyamFilter || genderFilter || bloodGroupFilter) && (
+            <button
+              onClick={() => {
+                setSearch('');
+                setStatusFilter('');
+                setAnbiyamFilter('');
+                setGenderFilter('');
+                setBloodGroupFilter('');
+              }}
+              className="py-2 px-4 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs rounded-xl transition"
+            >
+              Clear All Filters
+            </button>
+          )}
         </div>
       ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {members.map((m) => (
+          {filteredMembers.map((m) => (
             <div key={m._id} className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm hover:shadow-md transition space-y-4 flex flex-col justify-between">
               <div>
                 <div className="flex items-start justify-between">
@@ -420,9 +580,18 @@ export default function Members() {
                       </div>
                     </div>
                   </div>
-                  <span className={`px-2 py-0.5 text-[9px] font-extrabold rounded-full ${m.activeStatus === 'Active' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}`}>
-                    {m.activeStatus}
-                  </span>
+                  {/* Interactive Status Toggle Badge */}
+                  <button
+                    onClick={(e) => handleToggleStatus(m, e)}
+                    className={`px-2.5 py-0.5 text-[9px] font-extrabold rounded-full transition cursor-pointer ${
+                      (m.activeStatus || 'Active') === 'Active'
+                        ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200'
+                        : 'bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200'
+                    }`}
+                    title="Click to toggle Active / Inactive status"
+                  >
+                    {(m.activeStatus || 'Active') === 'Active' ? '🟢 Active' : '🔴 Inactive'}
+                  </button>
                 </div>
 
                 <div className="mt-4 pt-3 border-t border-slate-100 space-y-1.5 text-xs text-slate-600">
@@ -499,7 +668,7 @@ export default function Members() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {members.map(m => (
+                {filteredMembers.map(m => (
                   <tr key={m._id} className="hover:bg-slate-50">
                     <td className="p-4 font-mono font-black text-indigo-700">
                       <span className="px-2.5 py-1 rounded-lg bg-indigo-50 border border-indigo-100">
@@ -550,7 +719,19 @@ export default function Members() {
                     <td className="p-4">{m.gender} ({m.age} yrs)</td>
                     <td className="p-4">{m.mobileNumber}</td>
                     <td className="p-4">{m.anbiyamName}</td>
-                    <td className="p-4 font-bold text-emerald-600">{m.activeStatus}</td>
+                    <td className="p-4">
+                      <button
+                        onClick={(e) => handleToggleStatus(m, e)}
+                        className={`px-2.5 py-0.5 text-[10px] font-extrabold rounded-full transition cursor-pointer ${
+                          (m.activeStatus || 'Active') === 'Active'
+                            ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200'
+                            : 'bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200'
+                        }`}
+                        title="Click to toggle Active / Inactive status"
+                      >
+                        {(m.activeStatus || 'Active') === 'Active' ? '🟢 Active' : '🔴 Inactive'}
+                      </button>
+                    </td>
                     <td className="p-4 text-right space-x-2">
                       <button onClick={() => setSelectedProfileMember(m)} className="p-1.5 rounded-lg text-slate-700 font-bold hover:bg-slate-100">View Profile</button>
                       <button onClick={() => setSelectedIDCardMember(m)} className="p-1.5 rounded-lg text-indigo-600 font-bold hover:bg-indigo-50">Badge</button>
@@ -686,6 +867,21 @@ export default function Members() {
                     <option value="Arockiya Matha Anbiyam">Arockiya Matha Anbiyam</option>
                     <option value="Susaiyappar Anbiyam">Susaiyappar Anbiyam</option>
                     <option value="Kulanthai Yeasu Anbiyam">Kulanthai Yeasu Anbiyam</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Membership Active / Inactive Status *</label>
+                  <select
+                    value={formData.activeStatus || 'Active'}
+                    onChange={(e) => setFormData({ ...formData, activeStatus: e.target.value })}
+                    className={`white-input font-bold ${
+                      formData.activeStatus === 'Active'
+                        ? 'text-emerald-700 bg-emerald-50/50 border-emerald-200'
+                        : 'text-rose-700 bg-rose-50/50 border-rose-200'
+                    }`}
+                  >
+                    <option value="Active">🟢 Active Member</option>
+                    <option value="Inactive">🔴 Inactive Member</option>
                   </select>
                 </div>
               </div>
