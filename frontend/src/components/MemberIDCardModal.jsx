@@ -85,7 +85,7 @@ const generate2DBadgePNG = async (member, settings) => {
     ctx.fillStyle = 'rgba(255,255,255,0.2)';
     ctx.fill();
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 34px sans-serif';
+    ctx.font = 'bold 34px "Noto Sans Tamil", "Plus Jakarta Sans", sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText((settings.youthName || 'FY').slice(0, 2).toUpperCase(), logoX + logoSize / 2, logoY + logoSize / 2);
@@ -93,12 +93,12 @@ const generate2DBadgePNG = async (member, settings) => {
   ctx.restore();
 
   ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 32px sans-serif';
+  ctx.font = 'bold 32px "Noto Sans Tamil", "Plus Jakarta Sans", sans-serif';
   ctx.textAlign = 'left';
   ctx.fillText((settings.youthName || 'FRANSALIAN YOUTH').toUpperCase(), logoX + logoSize + 25, logoY + 38);
 
   ctx.fillStyle = '#c7d2fe';
-  ctx.font = '22px sans-serif';
+  ctx.font = '22px "Noto Sans Tamil", "Plus Jakarta Sans", sans-serif';
   ctx.fillText(settings.churchName || 'St. Mary Cathedral Parish', logoX + logoSize + 25, logoY + 72);
 
   // Photo (220px Width x 264px Height - Compact ID Card Ratio)
@@ -155,11 +155,11 @@ const generate2DBadgePNG = async (member, settings) => {
   // Name & Role Badge
   ctx.textAlign = 'center';
   ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 42px sans-serif';
+  ctx.font = 'bold 42px "Noto Sans Tamil", "Plus Jakarta Sans", sans-serif';
   ctx.fillText(member.fullName || 'Member Name', width / 2, photoY + photoH + 50);
 
   ctx.fillStyle = '#fcd34d';
-  ctx.font = 'bold 24px sans-serif';
+  ctx.font = 'bold 24px "Noto Sans Tamil", "Plus Jakarta Sans", sans-serif';
   ctx.fillText(`${(member.role || 'Youth Member').toUpperCase()} • ${member.anbiyamName || 'Main Parish'}`, width / 2, photoY + photoH + 90);
 
   // Compact Details Box
@@ -188,7 +188,7 @@ const generate2DBadgePNG = async (member, settings) => {
   ctx.stroke();
 
   ctx.textAlign = 'left';
-  ctx.font = '24px sans-serif';
+  ctx.font = '24px "Noto Sans Tamil", "Plus Jakarta Sans", sans-serif';
   const startY = boxY + 50;
   const gapY = 48;
 
@@ -198,7 +198,7 @@ const generate2DBadgePNG = async (member, settings) => {
   ctx.font = 'bold 26px monospace';
   ctx.fillText(member.memberId || 'FY-MEM-001', boxX + 250, startY);
 
-  ctx.font = '24px sans-serif';
+  ctx.font = '24px "Noto Sans Tamil", "Plus Jakarta Sans", sans-serif';
   ctx.fillStyle = '#c7d2fe';
   ctx.fillText('Mobile:', boxX + 35, startY + gapY);
   ctx.fillStyle = '#ffffff';
@@ -207,11 +207,11 @@ const generate2DBadgePNG = async (member, settings) => {
   ctx.fillStyle = '#c7d2fe';
   ctx.fillText('Blood Group:', boxX + 35, startY + gapY * 2);
   ctx.fillStyle = '#fcd34d';
-  ctx.font = 'bold 26px sans-serif';
+  ctx.font = 'bold 26px "Noto Sans Tamil", "Plus Jakarta Sans", sans-serif';
   ctx.fillText(member.bloodGroup || 'O+', boxX + 250, startY + gapY * 2);
 
   ctx.fillStyle = '#c7d2fe';
-  ctx.font = '24px sans-serif';
+  ctx.font = '24px "Noto Sans Tamil", "Plus Jakarta Sans", sans-serif';
   ctx.fillText('Anbiyam:', boxX + 35, startY + gapY * 3);
   ctx.fillStyle = '#ffffff';
   ctx.fillText(member.anbiyamName || 'Main Parish', boxX + 250, startY + gapY * 3);

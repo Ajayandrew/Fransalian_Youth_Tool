@@ -30,7 +30,7 @@ const loadPersistentStore = () => {
   if (!fileToRead) return;
 
   try {
-    const rawData = fs.readFileSync(fileToRead, 'utf8');
+    const rawData = fs.readFileSync(fileToRead, 'utf8').replace(/^\uFEFF/, '');
     const parsedData = JSON.parse(rawData);
 
     if (parsedData) {
@@ -72,7 +72,7 @@ const loadPersistentStore = () => {
     if (fileToRead === dataFilePath && fs.existsSync(backupFilePath)) {
       try {
         console.warn('[Store Recovery] Attempting emergency fallback read from store.json.bak...');
-        const rawBak = fs.readFileSync(backupFilePath, 'utf8');
+        const rawBak = fs.readFileSync(backupFilePath, 'utf8').replace(/^\uFEFF/, '');
         const parsedBak = JSON.parse(rawBak);
         if (parsedBak) {
           if (Array.isArray(parsedBak.members)) memoryStore.members = parsedBak.members;

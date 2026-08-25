@@ -13,11 +13,17 @@ dotenv.config();
 
 const app = express();
 
-// Security Headers Middleware
+// Security & Encoding Headers Middleware
 app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'SAMEORIGIN');
   res.setHeader('X-XSS-Protection', '1; mode=block');
+  next();
+});
+
+// Explicit UTF-8 Content Type for API responses
+app.use('/api', (req, res, next) => {
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
   next();
 });
 
