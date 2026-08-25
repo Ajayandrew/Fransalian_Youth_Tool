@@ -14,13 +14,23 @@ const calcAge = (dobString) => {
 
 const ensureMemberIds = (membersList, persist = false) => {
   if (!Array.isArray(membersList)) return [];
-  let counter = 1;
-  const usedIds = new Set(
-    membersList
-      .filter(m => m && m.memberId && String(m.memberId) !== 'undefined')
-      .map(m => String(m.memberId))
-  );
+  const usedIds = new Set();
+  let maxNum = 0;
+
+  membersList.forEach(m => {
+    if (m && m.memberId && String(m.memberId) !== 'undefined' && String(m.memberId).trim() !== '') {
+      const strId = String(m.memberId).trim();
+      usedIds.add(strId);
+      const match = strId.match(/FY-MEM-(\d+)/i);
+      if (match) {
+        const num = parseInt(match[1], 10);
+        if (!isNaN(num) && num > maxNum) maxNum = num;
+      }
+    }
+  });
+
   let modified = false;
+  let counter = 1;
 
   membersList.forEach(m => {
     if (!m) return;
@@ -33,8 +43,18 @@ const ensureMemberIds = (membersList, persist = false) => {
       }
       m.memberId = candidate;
       usedIds.add(candidate);
+      if (counter > maxNum) maxNum = counter;
       counter++;
       modified = true;
+
+      const memMatch = (memoryStore.members || []).find(sm => sm._id === m._id);
+      if (memMatch && memMatch !== m) {
+        memMatch.memberId = candidate;
+      }
+
+      if (!getIsInMemory() && m._id) {
+        Member.findByIdAndUpdate(m._id, { memberId: candidate }).catch(() => {});
+      }
     }
   });
 
@@ -46,10 +66,42 @@ const ensureMemberIds = (membersList, persist = false) => {
   return membersList;
 };
 
-const generateNextMemberId = () => {
-  const membersList = memoryStore.members || [];
-  const usedIds = new Set(membersList.filter(m => m.memberId && m.memberId !== 'undefined').map(m => m.memberId));
-  let counter = membersList.length + 1;
+const generateNextMemberId = async () => {
+  let dbMembers = [];
+  if (!getIsInMemory()) {
+    try {
+      dbMembers = await Member.find({}).lean();
+    } catch (e) {
+      dbMembers = [];
+    }
+  }
+
+  const memMembers = memoryStore.members || [];
+  const combinedMembers = [...memMembers];
+  dbMembers.forEach(dbM => {
+    if (!combinedMembers.some(m => m._id === dbM._id)) {
+      combinedMembers.push(dbM);
+    }
+  });
+
+  ensureMemberIds(combinedMembers, true);
+
+  const usedIds = new Set();
+  let maxNum = 0;
+
+  combinedMembers.forEach(m => {
+    if (m && m.memberId && String(m.memberId) !== 'undefined' && String(m.memberId).trim() !== '') {
+      const strId = String(m.memberId).trim();
+      usedIds.add(strId);
+      const match = strId.match(/FY-MEM-(\d+)/i);
+      if (match) {
+        const num = parseInt(match[1], 10);
+        if (!isNaN(num) && num > maxNum) maxNum = num;
+      }
+    }
+  });
+
+  let counter = Math.max(combinedMembers.length + 1, maxNum + 1);
   let candidate = `FY-MEM-${String(counter).padStart(3, '0')}`;
   while (usedIds.has(candidate)) {
     counter++;
@@ -57,6 +109,9 @@ const generateNextMemberId = () => {
   }
   return candidate;
 };
+
+// Clean up any missing IDs in memory store on initialization
+ensureMemberIds(memoryStore.members || [], true);
 
 const getMembers = async (req, res) => {
   try {
@@ -79,7 +134,7 @@ const getMembers = async (req, res) => {
       }
     }
 
-    list = ensureMemberIds(list, false);
+    list = ensureMemberIds(list, true);
 
     if (search) {
       const rawQ = search.trim().toLowerCase();
@@ -173,8 +228,8 @@ const createMember = async (req, res) => {
     }
 
     data.age = calcAge(data.dob);
-    if (!data.memberId || data.memberId === 'undefined') {
-      data.memberId = generateNextMemberId();
+    if (!data.memberId || data.memberId === 'undefined' || String(data.memberId).trim() === '') {
+      data.memberId = await generateNextMemberId();
     }
 
     delete data.photo;
@@ -187,7 +242,7 @@ const createMember = async (req, res) => {
     let newMember = null;
     if (getIsInMemory()) {
       newMember = {
-        _id: 'mem_' + Date.now(),
+        _id: 'mem_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
         ...data,
         createdAt: new Date(),
         updatedAt: new Date()
@@ -213,6 +268,9 @@ const updateMember = async (req, res) => {
     delete data._id;
     delete data.createdAt;
     delete data.__v;
+    if (!data.memberId || data.memberId === 'undefined' || String(data.memberId).trim() === '') {
+      delete data.memberId;
+    }
 
     if (data.fullName || data.mobileNumber || data.address) {
       const errMsg = validateMemberInput({

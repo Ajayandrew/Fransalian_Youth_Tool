@@ -25,7 +25,7 @@ const loadImg = (src) => {
 // 100% Guaranteed 2D Canvas Drawer (High-Res 300 DPI PNG)
 const generate2DBadgePNG = async (member, settings) => {
   const width = 1080;
-  const height = 1560;
+  const height = 1680;
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
@@ -33,9 +33,10 @@ const generate2DBadgePNG = async (member, settings) => {
 
   // Background Gradient
   const gradient = ctx.createLinearGradient(0, 0, 0, height);
-  gradient.addColorStop(0, '#1e1b4b');
-  gradient.addColorStop(0.5, '#312e81');
-  gradient.addColorStop(1, '#0f172a');
+  gradient.addColorStop(0, '#0f172a');
+  gradient.addColorStop(0.3, '#1e1b4b');
+  gradient.addColorStop(0.7, '#312e81');
+  gradient.addColorStop(1, '#020617');
   ctx.fillStyle = gradient;
 
   // Rounded Card Base
@@ -53,12 +54,12 @@ const generate2DBadgePNG = async (member, settings) => {
   ctx.closePath();
   ctx.fill();
 
-  // Card Border
-  ctx.lineWidth = 10;
-  ctx.strokeStyle = '#4338ca';
+  // Card Outer Border
+  ctx.lineWidth = 12;
+  ctx.strokeStyle = '#6366f1';
   ctx.stroke();
 
-  // Header Line
+  // Header Divider Line
   ctx.strokeStyle = 'rgba(99, 102, 241, 0.4)';
   ctx.lineWidth = 4;
   ctx.beginPath();
@@ -71,7 +72,7 @@ const generate2DBadgePNG = async (member, settings) => {
   const logoImg = await loadImg(logoSrc);
   const logoX = 60;
   const logoY = 40;
-  const logoSize = 90;
+  const logoSize = 95;
 
   ctx.save();
   ctx.beginPath();
@@ -84,7 +85,7 @@ const generate2DBadgePNG = async (member, settings) => {
     ctx.fillStyle = 'rgba(255,255,255,0.2)';
     ctx.fill();
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 36px sans-serif';
+    ctx.font = 'bold 38px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText((settings.youthName || 'FY').slice(0, 2).toUpperCase(), logoX + logoSize / 2, logoY + logoSize / 2);
@@ -92,117 +93,148 @@ const generate2DBadgePNG = async (member, settings) => {
   ctx.restore();
 
   ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 34px sans-serif';
+  ctx.font = 'bold 36px sans-serif';
   ctx.textAlign = 'left';
-  ctx.fillText((settings.youthName || 'FRANSALIAN YOUTH').toUpperCase(), logoX + logoSize + 30, logoY + 42);
+  ctx.fillText((settings.youthName || 'FRANSALIAN YOUTH').toUpperCase(), logoX + logoSize + 30, logoY + 45);
 
   ctx.fillStyle = '#c7d2fe';
   ctx.font = '24px sans-serif';
-  ctx.fillText(settings.churchName || 'St. Mary Cathedral Parish', logoX + logoSize + 30, logoY + 80);
+  ctx.fillText(settings.churchName || 'St. Mary Cathedral Parish', logoX + logoSize + 30, logoY + 85);
 
-  // Profile Photo
+  // Passport Size Photo (3:4 Aspect Ratio - 255px Width x 340px Height)
+  const photoW = 255;
+  const photoH = 340;
+  const photoX = (width - photoW) / 2;
+  const photoY = 195;
+
+  // Photo Outer Frame Box
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+  const frameMargin = 12;
+  ctx.beginPath();
+  const fr = 24;
+  ctx.moveTo(photoX - frameMargin + fr, photoY - frameMargin);
+  ctx.lineTo(photoX + photoW + frameMargin - fr, photoY - frameMargin);
+  ctx.quadraticCurveTo(photoX + photoW + frameMargin, photoY - frameMargin, photoX + photoW + frameMargin, photoY - frameMargin + fr);
+  ctx.lineTo(photoX + photoW + frameMargin, photoY + photoH + frameMargin - fr);
+  ctx.quadraticCurveTo(photoX + photoW + frameMargin, photoY + photoH + frameMargin, photoX + photoW + frameMargin - fr, photoY + photoH + frameMargin);
+  ctx.lineTo(photoX - frameMargin + fr, photoY + photoH + frameMargin);
+  ctx.quadraticCurveTo(photoX - frameMargin, photoY + photoH + frameMargin, photoX - frameMargin, photoY + photoH + frameMargin - fr);
+  ctx.lineTo(photoX - frameMargin, photoY - frameMargin + fr);
+  ctx.quadraticCurveTo(photoX - frameMargin, photoY - frameMargin, photoX - frameMargin + fr, photoY - frameMargin);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = '#ffffff';
+  ctx.stroke();
+
+  // Draw Photo
   const photoSrc = getImageUrl(member.photo) || 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=300';
   const photoImg = await loadImg(photoSrc);
-  const photoSize = 250;
-  const photoX = (width - photoSize) / 2;
-  const photoY = 210;
 
   ctx.save();
-  const pr = 44;
+  const pr = 18;
   ctx.beginPath();
   ctx.moveTo(photoX + pr, photoY);
-  ctx.lineTo(photoX + photoSize - pr, photoY);
-  ctx.quadraticCurveTo(photoX + photoSize, photoY, photoX + photoSize, photoY + pr);
-  ctx.lineTo(photoX + photoSize, photoY + photoSize - pr);
-  ctx.quadraticCurveTo(photoX + photoSize, photoY + photoSize, photoX + photoSize - pr, photoY + photoSize);
-  ctx.lineTo(photoX + pr, photoY + photoSize);
-  ctx.quadraticCurveTo(photoX, photoY + photoSize, photoX, photoY + photoSize - pr);
+  ctx.lineTo(photoX + photoW - pr, photoY);
+  ctx.quadraticCurveTo(photoX + photoW, photoY, photoX + photoW, photoY + pr);
+  ctx.lineTo(photoX + photoW, photoY + photoH - pr);
+  ctx.quadraticCurveTo(photoX + photoW, photoY + photoH, photoX + photoW - pr, photoY + photoH);
+  ctx.lineTo(photoX + pr, photoY + photoH);
+  ctx.quadraticCurveTo(photoX, photoY + photoH, photoX, photoY + photoH - pr);
   ctx.lineTo(photoX, photoY + pr);
   ctx.quadraticCurveTo(photoX, photoY, photoX + pr, photoY);
   ctx.closePath();
   ctx.clip();
 
   if (photoImg) {
-    ctx.drawImage(photoImg, photoX, photoY, photoSize, photoSize);
+    ctx.drawImage(photoImg, photoX, photoY, photoW, photoH);
   }
   ctx.restore();
 
-  ctx.lineWidth = 8;
-  ctx.strokeStyle = '#ffffff';
-  ctx.stroke();
-
-  // Name & Role
+  // Name & Role Badge
   ctx.textAlign = 'center';
   ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 48px sans-serif';
-  ctx.fillText(member.fullName || 'Member Name', width / 2, photoY + photoSize + 65);
+  ctx.font = 'bold 46px sans-serif';
+  ctx.fillText(member.fullName || 'Member Name', width / 2, photoY + photoH + 60);
 
   ctx.fillStyle = '#fcd34d';
-  ctx.font = 'bold 28px sans-serif';
-  ctx.fillText(`${(member.role || 'Youth Member').toUpperCase()} • ${member.anbiyamName || 'Main Parish'}`, width / 2, photoY + photoSize + 110);
+  ctx.font = 'bold 26px sans-serif';
+  ctx.fillText(`${(member.role || 'Youth Member').toUpperCase()} • ${member.anbiyamName || 'Main Parish'}`, width / 2, photoY + photoH + 105);
 
   // Details Box
   const boxX = 60;
-  const boxY = photoY + photoSize + 145;
+  const boxY = photoY + photoH + 135;
   const boxW = width - 120;
-  const boxH = 270;
+  const boxH = 320;
 
   ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
   ctx.beginPath();
-  ctx.moveTo(boxX + 24, boxY);
-  ctx.lineTo(boxX + boxW - 24, boxY);
-  ctx.quadraticCurveTo(boxX + boxW, boxY, boxX + boxW, boxY + 24);
-  ctx.lineTo(boxX + boxW, boxY + boxH - 24);
-  ctx.quadraticCurveTo(boxX + boxW, boxY + boxH, boxX + boxW - 24, boxY + boxH);
-  ctx.lineTo(boxX + 24, boxY + boxH);
-  ctx.quadraticCurveTo(boxX, boxY + boxH, boxX, boxY + boxH - 24);
-  ctx.lineTo(boxX, boxY + 24);
-  ctx.quadraticCurveTo(boxX, boxY, boxX + 24, boxY);
+  const br = 28;
+  ctx.moveTo(boxX + br, boxY);
+  ctx.lineTo(boxX + boxW - br, boxY);
+  ctx.quadraticCurveTo(boxX + boxW, boxY, boxX + boxW, boxY + br);
+  ctx.lineTo(boxX + boxW, boxY + boxH - br);
+  ctx.quadraticCurveTo(boxX + boxW, boxY + boxH, boxX + boxW - br, boxY + boxH);
+  ctx.lineTo(boxX + br, boxY + boxH);
+  ctx.quadraticCurveTo(boxX, boxY + boxH, boxX, boxY + boxH - br);
+  ctx.lineTo(boxX, boxY + br);
+  ctx.quadraticCurveTo(boxX, boxY, boxX + br, boxY);
   ctx.closePath();
   ctx.fill();
 
+  ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
   ctx.textAlign = 'left';
   ctx.font = '26px sans-serif';
-  const startY = boxY + 55;
-  const gapY = 50;
+  const startY = boxY + 60;
+  const gapY = 54;
 
   ctx.fillStyle = '#c7d2fe';
-  ctx.fillText('Member ID:', boxX + 35, startY);
+  ctx.fillText('Member ID:', boxX + 40, startY);
   ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 26px monospace';
-  ctx.fillText(member.memberId || 'FY-MEM-001', boxX + 230, startY);
+  ctx.font = 'bold 28px monospace';
+  ctx.fillText(member.memberId || 'FY-MEM-001', boxX + 270, startY);
 
   ctx.font = '26px sans-serif';
   ctx.fillStyle = '#c7d2fe';
-  ctx.fillText('Baptism Name:', boxX + 35, startY + gapY);
+  ctx.fillText('Baptism Name:', boxX + 40, startY + gapY);
   ctx.fillStyle = '#ffffff';
-  ctx.fillText(member.baptismName || 'Francis', boxX + 230, startY + gapY);
+  ctx.fillText(member.baptismName || 'Francis', boxX + 270, startY + gapY);
 
   ctx.fillStyle = '#c7d2fe';
-  ctx.fillText('Mobile Number:', boxX + 35, startY + gapY * 2);
+  ctx.fillText('Mobile Number:', boxX + 40, startY + gapY * 2);
   ctx.fillStyle = '#ffffff';
-  ctx.fillText(member.mobileNumber || 'N/A', boxX + 230, startY + gapY * 2);
+  ctx.fillText(member.mobileNumber || 'N/A', boxX + 270, startY + gapY * 2);
 
   ctx.fillStyle = '#c7d2fe';
-  ctx.fillText('Blood Group:', boxX + 35, startY + gapY * 3);
+  ctx.fillText('Blood Group:', boxX + 40, startY + gapY * 3);
   ctx.fillStyle = '#fcd34d';
-  ctx.font = 'bold 26px sans-serif';
-  ctx.fillText(member.bloodGroup || 'O+', boxX + 230, startY + gapY * 3);
+  ctx.font = 'bold 28px sans-serif';
+  ctx.fillText(member.bloodGroup || 'O+', boxX + 270, startY + gapY * 3);
+
+  ctx.fillStyle = '#c7d2fe';
+  ctx.font = '26px sans-serif';
+  ctx.fillText('Anbiyam / Parish:', boxX + 40, startY + gapY * 4);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillText(member.anbiyamName || 'Main Parish', boxX + 270, startY + gapY * 4);
 
   // QR Code
   const qrElement = document.querySelector('#badge-qr-canvas-wrap canvas');
   if (qrElement) {
-    const qrSize = 200;
+    const qrSize = 210;
     const qrX = (width - qrSize) / 2;
     const qrY = boxY + boxH + 35;
     ctx.fillStyle = '#ffffff';
-    ctx.fillRect(qrX - 12, qrY - 12, qrSize + 24, qrSize + 24);
+    ctx.fillRect(qrX - 14, qrY - 14, qrSize + 28, qrSize + 28);
     ctx.drawImage(qrElement, qrX, qrY, qrSize, qrSize);
 
     ctx.fillStyle = '#c7d2fe';
     ctx.font = 'bold 24px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText(`ID: ${member.memberId || member._id}`, width / 2, qrY + qrSize + 45);
+    ctx.fillText(`OFFICIAL VERIFIED BADGE • ID: ${member.memberId || member._id}`, width / 2, qrY + qrSize + 50);
   }
 
   return canvas.toDataURL('image/png', 1.0);
@@ -285,8 +317,9 @@ export default function MemberIDCardModal({ member, onClose }) {
         </div>
 
         {/* Printable Card Area */}
-        <div ref={cardRef} className="p-5 rounded-2xl bg-gradient-to-b from-indigo-900 via-indigo-800 to-slate-900 text-white space-y-4 shadow-md text-center relative border border-indigo-700">
-          <div className="flex items-center justify-center space-x-2 border-b border-indigo-700/60 pb-2">
+        <div ref={cardRef} className="p-5 rounded-2xl bg-gradient-to-b from-indigo-950 via-indigo-900 to-slate-950 text-white space-y-4 shadow-xl text-center relative border border-indigo-700">
+          {/* Header */}
+          <div className="flex items-center justify-center space-x-2 border-b border-indigo-700/60 pb-2.5">
             {settings.churchLogo ? (
               <img
                 src={getImageUrl(settings.churchLogo)}
@@ -304,38 +337,70 @@ export default function MemberIDCardModal({ member, onClose }) {
             </div>
           </div>
 
-          <div className="flex flex-col items-center space-y-2">
-            <img
-              src={getImageUrl(member.photo) || 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=300'}
-              alt={member.fullName}
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.src = 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=300';
-              }}
-              className="w-20 h-20 rounded-2xl object-cover object-top border-2 border-white/80 shadow-md"
-            />
-            <div>
-              <h3 className="text-base font-black leading-tight text-white">{member.fullName}</h3>
-              <p className="text-[11px] text-indigo-200 font-mono font-bold mt-0.5">{member.memberId || 'FY-MEM-001'}</p>
-              <p className="text-xs text-amber-300 font-extrabold mt-0.5 uppercase tracking-wider">{member.role || 'Youth Member'} • {member.anbiyamName || 'Main Parish'}</p>
+          {/* Passport Photo (3:4 ratio - 112px Width x 144px Height) */}
+          <div className="flex flex-col items-center space-y-2 pt-1">
+            <div className="relative p-1 bg-white/20 rounded-2xl border border-white/40 shadow-lg">
+              <img
+                src={getImageUrl(member.photo) || 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=300'}
+                alt={member.fullName}
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=300';
+                }}
+                className="w-28 h-36 rounded-xl object-cover object-top shadow-inner"
+              />
+              <span className="absolute -bottom-2 -right-2 px-2 py-0.5 text-[9px] font-black uppercase rounded-md bg-amber-400 text-slate-950 shadow tracking-wider">
+                Passport
+              </span>
+            </div>
+
+            <div className="text-center space-y-0.5 pt-1">
+              <h3 className="text-base font-black leading-tight text-white tracking-wide">{member.fullName}</h3>
+              <p className="text-xs font-mono font-extrabold text-indigo-200 tracking-wider">{member.memberId || 'FY-MEM-001'}</p>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/20 border border-amber-300/40 text-amber-300 text-[10px] font-extrabold uppercase mt-1">
+                <span>{member.role || 'Youth Member'}</span>
+                <span>•</span>
+                <span>{member.anbiyamName || 'Main Parish'}</span>
+              </div>
             </div>
           </div>
 
-          <div className="bg-white/15 p-2.5 rounded-xl text-[11px] space-y-1 text-slate-100 text-left border border-white/10">
-            <p><span className="text-indigo-200 font-medium">Member ID:</span> <strong className="text-white font-mono">{member.memberId || 'FY-MEM-001'}</strong></p>
-            <p><span className="text-indigo-200 font-medium">Baptism Name:</span> {member.baptismName || 'Francis'}</p>
-            <p><span className="text-indigo-200 font-medium">Mobile:</span> {member.mobileNumber}</p>
-            <p><span className="text-indigo-200 font-medium">Blood Group:</span> <strong className="text-amber-300">{member.bloodGroup || 'O+'}</strong></p>
+          {/* Details Section */}
+          <div className="bg-white/10 backdrop-blur-md p-3 rounded-2xl text-[11px] space-y-2 text-slate-100 text-left border border-white/15 shadow-inner">
+            <div className="flex justify-between items-center border-b border-white/10 pb-1">
+              <span className="text-indigo-200 font-medium">Member ID</span>
+              <strong className="text-white font-mono font-black text-xs">{member.memberId || 'FY-MEM-001'}</strong>
+            </div>
+            <div className="flex justify-between items-center border-b border-white/10 pb-1">
+              <span className="text-indigo-200 font-medium">Baptism Name</span>
+              <span className="text-white font-semibold">{member.baptismName || 'N/A'}</span>
+            </div>
+            <div className="flex justify-between items-center border-b border-white/10 pb-1">
+              <span className="text-indigo-200 font-medium">Mobile Number</span>
+              <span className="text-white font-semibold">{member.mobileNumber || 'N/A'}</span>
+            </div>
+            <div className="flex justify-between items-center border-b border-white/10 pb-1">
+              <span className="text-indigo-200 font-medium">Blood Group</span>
+              <strong className="text-amber-300 font-black text-xs px-2 py-0.5 rounded bg-rose-950/60 border border-rose-500/30">
+                🩸 {member.bloodGroup || 'O+'}
+              </strong>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-indigo-200 font-medium">Anbiyam / Parish</span>
+              <span className="text-indigo-100 font-medium truncate max-w-[160px]">{member.anbiyamName || 'Main Parish'}</span>
+            </div>
           </div>
 
-          <div className="pt-2 flex flex-col items-center space-y-1">
-            <div id="badge-qr-canvas-wrap" className="p-2 bg-white rounded-xl shadow-sm">
-              <QRCodeCanvas value={qrValue} size={70} />
+          {/* Footer QR Verification */}
+          <div className="pt-1 flex flex-col items-center space-y-1">
+            <div id="badge-qr-canvas-wrap" className="p-2 bg-white rounded-xl shadow-md border border-indigo-200">
+              <QRCodeCanvas value={qrValue} size={72} />
             </div>
-            <p className="text-[10px] text-indigo-200 font-mono tracking-wider font-bold">ID: {member.memberId || member._id}</p>
+            <p className="text-[9px] text-indigo-200 font-mono tracking-wider font-bold">OFFICIAL VERIFIED BADGE • ID: {member.memberId || member._id}</p>
           </div>
         </div>
 
+        {/* Action Buttons */}
         <div className="pt-2 flex items-center space-x-2 no-print">
           <button
             onClick={handleDownloadBadge}
