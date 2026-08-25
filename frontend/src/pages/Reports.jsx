@@ -189,10 +189,7 @@ export default function Reports() {
     const chartArray = Object.values(monthMap).sort((a, b) => a.sortKey - b.sortKey);
 
     if (chartArray.length === 0) {
-      return [
-        { month: 'Jul 2026', Income: 0, Expense: 0 },
-        { month: 'Aug 2026', Income: 0, Expense: 0 }
-      ];
+      return [];
     }
 
     return chartArray;
@@ -214,10 +211,7 @@ export default function Reports() {
     }));
 
     if (entries.length === 0) {
-      return [
-        { name: 'St. Francis Xavier Anbiyam', value: 1, color: '#4f46e5' },
-        { name: 'St. Antony Anbiyam', value: 1, color: '#10b981' }
-      ];
+      return [];
     }
 
     return entries;
@@ -289,14 +283,18 @@ export default function Reports() {
     doc.setTextColor(15);
     doc.text(`2. Member Subscription Dues Ledger (${getFilterLabel()})`, 14, nextY);
 
-    const subRows = (filteredSubscriptions.length > 0 ? filteredSubscriptions : [
-      { memberName: 'Sample Member', month: 'August 2026', amount: 50, status: 'Paid', paymentMode: 'Cash' }
-    ]).map(s => [s.memberName, s.month, `₹${s.amount || 50}`, s.status, s.paymentMode || '-']);
+    const subRows = (filteredSubscriptions || []).map(s => [
+      s.memberName || 'Member',
+      s.month || '-',
+      `₹${s.amount || 0}`,
+      s.status || 'Pending',
+      s.paymentMode || '-'
+    ]);
 
     doc.autoTable({
       startY: nextY + 4,
       head: [['Member Name', 'Month', 'Amount', 'Status', 'Payment Mode']],
-      body: subRows,
+      body: subRows.length > 0 ? subRows : [['-', 'No subscription records for period', '₹0', '-', '-']],
       theme: 'grid',
       headStyles: { fillStyle: [16, 185, 129] }
     });
@@ -326,14 +324,18 @@ export default function Reports() {
     doc.setTextColor(15);
     doc.text(`4. Meeting Secret Box Offerings Details (${getFilterLabel()})`, 14, nextY);
 
-    const secRows = (filteredSecretOfferings.length > 0 ? filteredSecretOfferings : [
-      { meetingName: 'Youth Mass Collection', date: '2026-08-02', amount: 850, collectedBy: 'Leader', notes: 'Secret Box' }
-    ]).map(s => [s.meetingName || s.title, s.date || '-', `₹${s.amount}`, s.collectedBy || 'Leader', s.notes || '-']);
+    const secRows = (filteredSecretOfferings || []).map(s => [
+      s.meetingName || s.title || 'Secret Box Offering',
+      s.date || '-',
+      `₹${s.amount || 0}`,
+      s.collectedBy || 'Leader',
+      s.notes || '-'
+    ]);
 
     doc.autoTable({
       startY: nextY + 4,
       head: [['Meeting / Event Title', 'Date', 'Amount', 'Collected By', 'Notes']],
-      body: secRows,
+      body: secRows.length > 0 ? secRows : [['-', '-', '₹0', '-', 'No secret box offerings logged for period']],
       theme: 'grid',
       headStyles: { fillStyle: [217, 119, 6] }
     });
@@ -344,14 +346,18 @@ export default function Reports() {
     doc.setTextColor(15);
     doc.text(`5. Youth Activities & Event Calendar (${getFilterLabel()})`, 14, nextY);
 
-    const evtRows = (filteredEvents.length > 0 ? filteredEvents : [
-      { eventName: 'Youth Cultural Gathering', date: '2026-08-15', venue: 'Parish Hall', budget: 15000, status: 'Upcoming' }
-    ]).map(e => [e.eventName, e.date || '-', e.venue || 'Parish Hall', e.budget ? `₹${e.budget}` : 'N/A', e.status || 'Upcoming']);
+    const evtRows = (filteredEvents || []).map(e => [
+      e.eventName || 'Youth Event',
+      e.date || '-',
+      e.venue || '-',
+      e.budget ? `₹${e.budget}` : '₹0',
+      e.status || 'Upcoming'
+    ]);
 
     doc.autoTable({
       startY: nextY + 4,
       head: [['Event Name', 'Date', 'Venue', 'Budget', 'Status']],
-      body: evtRows,
+      body: evtRows.length > 0 ? evtRows : [['-', '-', '-', '₹0', 'No events scheduled for period']],
       theme: 'striped',
       headStyles: { fillStyle: [244, 63, 94] }
     });
@@ -362,9 +368,7 @@ export default function Reports() {
     doc.setTextColor(15);
     doc.text(`6. Youth Attendance Register (${getFilterLabel()})`, 14, nextY);
 
-    const attRows = (filteredAttendance.length > 0 ? filteredAttendance : [
-      { meetingName: 'Monthly Youth Meeting', meetingDate: '2026-08-09', presentCount: 28, totalMembers: 30, notes: 'General Session' }
-    ]).map(a => {
+    const attRows = (filteredAttendance || []).map(a => {
       const p = a.presentCount || (a.records ? a.records.filter(r => r.status === 'Present').length : 0);
       const total = a.totalMembers || (a.records ? a.records.length : 0) || 1;
       const pct = Math.round((p / total) * 100);
@@ -374,7 +378,7 @@ export default function Reports() {
     doc.autoTable({
       startY: nextY + 4,
       head: [['Meeting / Event Title', 'Date', 'Attendance (Present/Total)', 'Turnout Rate', 'Notes']],
-      body: attRows,
+      body: attRows.length > 0 ? attRows : [['-', '-', '0 / 0', '0%', 'No attendance records logged for period']],
       theme: 'striped',
       headStyles: { fillStyle: [147, 51, 234] }
     });
@@ -385,11 +389,11 @@ export default function Reports() {
     doc.setTextColor(15);
     doc.text(`7. Youth Members Directory Roster (${filteredMembers.length} Members)`, 14, nextY);
 
-    const memRows = (filteredMembers.length > 0 ? filteredMembers : []).map(m => [
-      m.memberId || 'FY-MEM-001',
-      m.fullName,
+    const memRows = (filteredMembers || []).map(m => [
+      m.memberId || '-',
+      m.fullName || 'Member',
       m.role || 'Youth Member',
-      m.anbiyamName || m.zone || 'Sagaya Madha Anbiyam',
+      m.anbiyamName || m.zone || '-',
       m.mobileNumber || m.phone || '-',
       m.activeStatus || 'Active'
     ]);
@@ -960,16 +964,22 @@ export default function Reports() {
             <span className="text-[10px] font-bold text-indigo-600 uppercase bg-indigo-50 px-2.5 py-1 rounded-md">{getFilterLabel()}</span>
           </div>
 
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={monthlyFinanceChartData}>
-                <XAxis dataKey="month" stroke="#94a3b8" fontSize={11} />
-                <YAxis stroke="#94a3b8" fontSize={11} />
-                <Tooltip />
-                <Bar dataKey="Income" fill="#10b981" radius={[6, 6, 0, 0]} />
-                <Bar dataKey="Expense" fill="#f43f5e" radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="h-64 flex items-center justify-center">
+            {monthlyFinanceChartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={monthlyFinanceChartData}>
+                  <XAxis dataKey="month" stroke="#94a3b8" fontSize={11} />
+                  <YAxis stroke="#94a3b8" fontSize={11} />
+                  <Tooltip />
+                  <Bar dataKey="Income" fill="#10b981" radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="Expense" fill="#f43f5e" radius={[6, 6, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="text-slate-400 text-xs font-semibold">
+                No financial transaction entries logged for this period
+              </div>
+            )}
           </div>
         </div>
 
@@ -981,25 +991,31 @@ export default function Reports() {
           </div>
 
           <div className="h-64 flex items-center justify-center">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={zoneDistribution}
-                  dataKey="value"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={80}
-                  label
-                >
-                  {zoneDistribution.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
+            {zoneDistribution.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={zoneDistribution}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    label
+                  >
+                    {zoneDistribution.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="text-slate-400 text-xs font-semibold">
+                No youth member records available for zone distribution
+              </div>
+            )}
           </div>
         </div>
       </div>
