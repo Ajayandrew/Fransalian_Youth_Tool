@@ -24,8 +24,8 @@ const loadImg = (src) => {
 
 // 100% Guaranteed 2D Canvas Drawer (High-Res 300 DPI PNG)
 const generate2DBadgePNG = async (member, settings) => {
-  const width = 1080;
-  const height = 1680;
+  const width = 1000;
+  const height = 1350;
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
@@ -40,7 +40,7 @@ const generate2DBadgePNG = async (member, settings) => {
   ctx.fillStyle = gradient;
 
   // Rounded Card Base
-  const r = 48;
+  const r = 40;
   ctx.beginPath();
   ctx.moveTo(r, 0);
   ctx.lineTo(width - r, 0);
@@ -55,24 +55,24 @@ const generate2DBadgePNG = async (member, settings) => {
   ctx.fill();
 
   // Card Outer Border
-  ctx.lineWidth = 12;
+  ctx.lineWidth = 10;
   ctx.strokeStyle = '#6366f1';
   ctx.stroke();
 
   // Header Divider Line
   ctx.strokeStyle = 'rgba(99, 102, 241, 0.4)';
-  ctx.lineWidth = 4;
+  ctx.lineWidth = 3;
   ctx.beginPath();
-  ctx.moveTo(50, 160);
-  ctx.lineTo(width - 50, 160);
+  ctx.moveTo(40, 140);
+  ctx.lineTo(width - 40, 140);
   ctx.stroke();
 
   // Header Logo / Text
   const logoSrc = settings.churchLogo ? getImageUrl(settings.churchLogo) : '';
   const logoImg = await loadImg(logoSrc);
-  const logoX = 60;
-  const logoY = 40;
-  const logoSize = 95;
+  const logoX = 50;
+  const logoY = 35;
+  const logoSize = 80;
 
   ctx.save();
   ctx.beginPath();
@@ -85,7 +85,7 @@ const generate2DBadgePNG = async (member, settings) => {
     ctx.fillStyle = 'rgba(255,255,255,0.2)';
     ctx.fill();
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 38px sans-serif';
+    ctx.font = 'bold 34px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText((settings.youthName || 'FY').slice(0, 2).toUpperCase(), logoX + logoSize / 2, logoY + logoSize / 2);
@@ -93,25 +93,25 @@ const generate2DBadgePNG = async (member, settings) => {
   ctx.restore();
 
   ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 36px sans-serif';
+  ctx.font = 'bold 32px sans-serif';
   ctx.textAlign = 'left';
-  ctx.fillText((settings.youthName || 'FRANSALIAN YOUTH').toUpperCase(), logoX + logoSize + 30, logoY + 45);
+  ctx.fillText((settings.youthName || 'FRANSALIAN YOUTH').toUpperCase(), logoX + logoSize + 25, logoY + 38);
 
   ctx.fillStyle = '#c7d2fe';
-  ctx.font = '24px sans-serif';
-  ctx.fillText(settings.churchName || 'St. Mary Cathedral Parish', logoX + logoSize + 30, logoY + 85);
+  ctx.font = '22px sans-serif';
+  ctx.fillText(settings.churchName || 'St. Mary Cathedral Parish', logoX + logoSize + 25, logoY + 72);
 
-  // Passport Size Photo (3:4 Aspect Ratio - 255px Width x 340px Height)
-  const photoW = 255;
-  const photoH = 340;
+  // Photo (220px Width x 264px Height - Compact ID Card Ratio)
+  const photoW = 220;
+  const photoH = 264;
   const photoX = (width - photoW) / 2;
-  const photoY = 195;
+  const photoY = 170;
 
   // Photo Outer Frame Box
   ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
-  const frameMargin = 12;
+  const frameMargin = 10;
   ctx.beginPath();
-  const fr = 24;
+  const fr = 20;
   ctx.moveTo(photoX - frameMargin + fr, photoY - frameMargin);
   ctx.lineTo(photoX + photoW + frameMargin - fr, photoY - frameMargin);
   ctx.quadraticCurveTo(photoX + photoW + frameMargin, photoY - frameMargin, photoX + photoW + frameMargin, photoY - frameMargin + fr);
@@ -124,7 +124,7 @@ const generate2DBadgePNG = async (member, settings) => {
   ctx.closePath();
   ctx.fill();
 
-  ctx.lineWidth = 4;
+  ctx.lineWidth = 3;
   ctx.strokeStyle = '#ffffff';
   ctx.stroke();
 
@@ -133,7 +133,7 @@ const generate2DBadgePNG = async (member, settings) => {
   const photoImg = await loadImg(photoSrc);
 
   ctx.save();
-  const pr = 18;
+  const pr = 16;
   ctx.beginPath();
   ctx.moveTo(photoX + pr, photoY);
   ctx.lineTo(photoX + photoW - pr, photoY);
@@ -155,25 +155,25 @@ const generate2DBadgePNG = async (member, settings) => {
   // Name & Role Badge
   ctx.textAlign = 'center';
   ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 46px sans-serif';
-  ctx.fillText(member.fullName || 'Member Name', width / 2, photoY + photoH + 60);
+  ctx.font = 'bold 42px sans-serif';
+  ctx.fillText(member.fullName || 'Member Name', width / 2, photoY + photoH + 50);
 
   ctx.fillStyle = '#fcd34d';
-  ctx.font = 'bold 26px sans-serif';
-  ctx.fillText(`${(member.role || 'Youth Member').toUpperCase()} • ${member.anbiyamName || 'Main Parish'}`, width / 2, photoY + photoH + 105);
+  ctx.font = 'bold 24px sans-serif';
+  ctx.fillText(`${(member.role || 'Youth Member').toUpperCase()} • ${member.anbiyamName || 'Main Parish'}`, width / 2, photoY + photoH + 90);
 
-  // Details Box
-  const boxX = 60;
-  const boxY = photoY + photoH + 135;
-  const boxW = width - 120;
-  const boxH = 320;
+  // Compact Details Box
+  const boxX = 50;
+  const boxY = photoY + photoH + 120;
+  const boxW = width - 100;
+  const boxH = 260;
 
   ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
   ctx.beginPath();
-  const br = 28;
+  const br = 24;
   ctx.moveTo(boxX + br, boxY);
   ctx.lineTo(boxX + boxW - br, boxY);
-  ctx.quadraticCurveTo(boxX + boxW, boxY, boxX + boxW, boxY + br);
+  ctx.quadraticCurveTo(boxX + boxW, boxY, boxX + boxW, boxY + 24);
   ctx.lineTo(boxX + boxW, boxY + boxH - br);
   ctx.quadraticCurveTo(boxX + boxW, boxY + boxH, boxX + boxW - br, boxY + boxH);
   ctx.lineTo(boxX + br, boxY + boxH);
@@ -188,53 +188,51 @@ const generate2DBadgePNG = async (member, settings) => {
   ctx.stroke();
 
   ctx.textAlign = 'left';
-  ctx.font = '26px sans-serif';
-  const startY = boxY + 60;
-  const gapY = 54;
+  ctx.font = '24px sans-serif';
+  const startY = boxY + 50;
+  const gapY = 48;
 
   ctx.fillStyle = '#c7d2fe';
-  ctx.fillText('Member ID:', boxX + 40, startY);
+  ctx.fillText('Member ID:', boxX + 35, startY);
   ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 28px monospace';
-  ctx.fillText(member.memberId || 'FY-MEM-001', boxX + 270, startY);
+  ctx.font = 'bold 26px monospace';
+  ctx.fillText(member.memberId || 'FY-MEM-001', boxX + 250, startY);
 
-  ctx.font = '26px sans-serif';
+  ctx.font = '24px sans-serif';
   ctx.fillStyle = '#c7d2fe';
-  ctx.fillText('Baptism Name:', boxX + 40, startY + gapY);
+  ctx.fillText('Mobile:', boxX + 35, startY + gapY);
   ctx.fillStyle = '#ffffff';
-  ctx.fillText(member.baptismName || 'Francis', boxX + 270, startY + gapY);
+  ctx.fillText(member.mobileNumber || 'N/A', boxX + 250, startY + gapY);
 
   ctx.fillStyle = '#c7d2fe';
-  ctx.fillText('Mobile Number:', boxX + 40, startY + gapY * 2);
-  ctx.fillStyle = '#ffffff';
-  ctx.fillText(member.mobileNumber || 'N/A', boxX + 270, startY + gapY * 2);
-
-  ctx.fillStyle = '#c7d2fe';
-  ctx.fillText('Blood Group:', boxX + 40, startY + gapY * 3);
+  ctx.fillText('Blood Group:', boxX + 35, startY + gapY * 2);
   ctx.fillStyle = '#fcd34d';
-  ctx.font = 'bold 28px sans-serif';
-  ctx.fillText(member.bloodGroup || 'O+', boxX + 270, startY + gapY * 3);
+  ctx.font = 'bold 26px sans-serif';
+  ctx.fillText(member.bloodGroup || 'O+', boxX + 250, startY + gapY * 2);
 
   ctx.fillStyle = '#c7d2fe';
-  ctx.font = '26px sans-serif';
-  ctx.fillText('Anbiyam / Parish:', boxX + 40, startY + gapY * 4);
+  ctx.font = '24px sans-serif';
+  ctx.fillText('Anbiyam:', boxX + 35, startY + gapY * 3);
   ctx.fillStyle = '#ffffff';
-  ctx.fillText(member.anbiyamName || 'Main Parish', boxX + 270, startY + gapY * 4);
+  ctx.fillText(member.anbiyamName || 'Main Parish', boxX + 250, startY + gapY * 3);
 
-  // QR Code
+  // Footer QR Code
   const qrElement = document.querySelector('#badge-qr-canvas-wrap canvas');
   if (qrElement) {
-    const qrSize = 210;
-    const qrX = (width - qrSize) / 2;
-    const qrY = boxY + boxH + 35;
+    const qrSize = 160;
+    const footerY = boxY + boxH + 25;
+    const qrX = width - boxX - qrSize;
     ctx.fillStyle = '#ffffff';
-    ctx.fillRect(qrX - 14, qrY - 14, qrSize + 28, qrSize + 28);
-    ctx.drawImage(qrElement, qrX, qrY, qrSize, qrSize);
+    ctx.fillRect(qrX - 10, footerY - 10, qrSize + 20, qrSize + 20);
+    ctx.drawImage(qrElement, qrX, footerY, qrSize, qrSize);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 24px sans-serif';
+    ctx.fillText('OFFICIAL VERIFIED BADGE', boxX, footerY + 60);
 
     ctx.fillStyle = '#c7d2fe';
-    ctx.font = 'bold 24px monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText(`OFFICIAL VERIFIED BADGE • ID: ${member.memberId || member._id}`, width / 2, qrY + qrSize + 50);
+    ctx.font = '20px monospace';
+    ctx.fillText(`ID: ${member.memberId || member._id}`, boxX, footerY + 100);
   }
 
   return canvas.toDataURL('image/png', 1.0);
@@ -304,42 +302,43 @@ export default function MemberIDCardModal({ member, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-      <div className="bg-white border border-slate-200 rounded-3xl max-w-sm w-full p-6 shadow-2xl space-y-4 text-slate-900">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-3 no-print">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
+      <div className="bg-white border border-slate-200 rounded-2xl max-w-xs sm:max-w-sm w-full p-4 shadow-2xl space-y-3 text-slate-900 my-auto max-h-[95vh] overflow-y-auto">
+        {/* Modal Top Header */}
+        <div className="flex items-center justify-between border-b border-slate-100 pb-2 no-print">
           <div className="flex items-center space-x-1.5">
-            <ShieldCheck className="w-5 h-5 text-indigo-600" />
-            <h3 className="text-sm font-extrabold">Youth Official ID Badge</h3>
+            <ShieldCheck className="w-4 h-4 text-indigo-600" />
+            <h3 className="text-xs font-bold text-slate-900">Youth Official ID Badge</h3>
           </div>
           <button onClick={onClose} className="p-1 rounded-lg text-slate-400 hover:text-slate-700">
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Printable Card Area */}
-        <div ref={cardRef} className="p-5 rounded-2xl bg-gradient-to-b from-indigo-950 via-indigo-900 to-slate-950 text-white space-y-4 shadow-xl text-center relative border border-indigo-700">
+        <div ref={cardRef} className="p-4 rounded-xl bg-gradient-to-b from-indigo-950 via-indigo-900 to-slate-950 text-white space-y-3 shadow-xl text-center relative border border-indigo-700">
           {/* Header */}
-          <div className="flex items-center justify-center space-x-2 border-b border-indigo-700/60 pb-2.5">
+          <div className="flex items-center justify-center space-x-2 border-b border-indigo-700/60 pb-2">
             {settings.churchLogo ? (
               <img
                 src={getImageUrl(settings.churchLogo)}
                 alt="Logo"
-                className="w-8 h-8 rounded-full object-contain flex-shrink-0"
+                className="w-7 h-7 rounded-full object-contain flex-shrink-0"
               />
             ) : (
-              <div className="w-8 h-8 rounded-full bg-white/20 text-white font-black text-xs flex items-center justify-center flex-shrink-0 border border-white/30">
+              <div className="w-7 h-7 rounded-full bg-white/20 text-white font-black text-[10px] flex items-center justify-center flex-shrink-0 border border-white/30">
                 {(settings.youthName || 'FY').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
               </div>
             )}
             <div className="text-left truncate">
-              <h4 className="text-xs font-black tracking-wide uppercase leading-tight truncate">{settings.youthName || 'Francisalian Youth'}</h4>
-              <p className="text-[9px] text-indigo-200 font-medium truncate">{settings.churchName || 'St. Mary Cathedral Parish'}</p>
+              <h4 className="text-[11px] font-black tracking-wide uppercase leading-tight truncate">{settings.youthName || 'Francisalian Youth'}</h4>
+              <p className="text-[8px] text-indigo-200 font-medium truncate">{settings.churchName || 'St. Mary Cathedral Parish'}</p>
             </div>
           </div>
 
-          {/* Standard ID Card Photo (w-24 h-30 - 96px Width x 120px Height) */}
-          <div className="flex flex-col items-center space-y-2 pt-1">
-            <div className="p-1 bg-white/20 rounded-2xl border border-white/40 shadow-lg">
+          {/* Photo & Name Section */}
+          <div className="flex flex-col items-center space-y-1.5">
+            <div className="p-0.5 bg-white/20 rounded-xl border border-white/40 shadow-md">
               <img
                 src={getImageUrl(member.photo) || 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=300'}
                 alt={member.fullName}
@@ -347,14 +346,14 @@ export default function MemberIDCardModal({ member, onClose }) {
                   e.target.onerror = null;
                   e.target.src = 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=300';
                 }}
-                className="w-24 h-30 rounded-xl object-cover object-top shadow-inner"
+                className="w-20 h-24 rounded-lg object-cover object-top shadow-inner"
               />
             </div>
 
-            <div className="text-center space-y-0.5 pt-1">
-              <h3 className="text-base font-black leading-tight text-white tracking-wide">{member.fullName}</h3>
-              <p className="text-xs font-mono font-extrabold text-indigo-200 tracking-wider">{member.memberId || 'FY-MEM-001'}</p>
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/20 border border-amber-300/40 text-amber-300 text-[10px] font-extrabold uppercase mt-1">
+            <div className="text-center space-y-0.5">
+              <h3 className="text-sm font-black leading-tight text-white tracking-wide">{member.fullName}</h3>
+              <p className="text-[11px] font-mono font-extrabold text-amber-300 tracking-wider">{member.memberId || 'FY-MEM-001'}</p>
+              <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-400/20 border border-amber-300/30 text-amber-300 text-[9px] font-extrabold uppercase">
                 <span>{member.role || 'Youth Member'}</span>
                 <span>•</span>
                 <span>{member.anbiyamName || 'Main Parish'}</span>
@@ -362,56 +361,61 @@ export default function MemberIDCardModal({ member, onClose }) {
             </div>
           </div>
 
-          {/* Details Section */}
-          <div className="bg-white/10 backdrop-blur-md p-3 rounded-2xl text-[11px] space-y-2 text-slate-100 text-left border border-white/15 shadow-inner">
-            <div className="flex justify-between items-center border-b border-white/10 pb-1">
+          {/* Compact Grid Details */}
+          <div className="bg-white/10 backdrop-blur-md p-2.5 rounded-xl text-[10px] space-y-1 text-slate-100 text-left border border-white/15 shadow-inner">
+            <div className="flex justify-between items-center border-b border-white/10 pb-0.5">
               <span className="text-indigo-200 font-medium">Member ID</span>
-              <strong className="text-white font-mono font-black text-xs">{member.memberId || 'FY-MEM-001'}</strong>
+              <strong className="text-white font-mono font-bold">{member.memberId || 'FY-MEM-001'}</strong>
             </div>
-            <div className="flex justify-between items-center border-b border-white/10 pb-1">
-              <span className="text-indigo-200 font-medium">Baptism Name</span>
-              <span className="text-white font-semibold">{member.baptismName || 'N/A'}</span>
-            </div>
-            <div className="flex justify-between items-center border-b border-white/10 pb-1">
-              <span className="text-indigo-200 font-medium">Mobile Number</span>
+            <div className="flex justify-between items-center border-b border-white/10 pb-0.5">
+              <span className="text-indigo-200 font-medium">Mobile</span>
               <span className="text-white font-semibold">{member.mobileNumber || 'N/A'}</span>
             </div>
-            <div className="flex justify-between items-center border-b border-white/10 pb-1">
+            <div className="flex justify-between items-center border-b border-white/10 pb-0.5">
               <span className="text-indigo-200 font-medium">Blood Group</span>
-              <strong className="text-amber-300 font-black text-xs px-2 py-0.5 rounded bg-rose-950/60 border border-rose-500/30">
+              <strong className="text-amber-300 font-bold px-1.5 py-0.2 rounded bg-rose-950/60 border border-rose-500/30">
                 🩸 {member.bloodGroup || 'O+'}
               </strong>
             </div>
+            {member.baptismName && (
+              <div className="flex justify-between items-center border-b border-white/10 pb-0.5">
+                <span className="text-indigo-200 font-medium">Baptism Name</span>
+                <span className="text-white font-semibold">{member.baptismName}</span>
+              </div>
+            )}
             <div className="flex justify-between items-center">
-              <span className="text-indigo-200 font-medium">Anbiyam / Parish</span>
-              <span className="text-indigo-100 font-medium truncate max-w-[160px]">{member.anbiyamName || 'Main Parish'}</span>
+              <span className="text-indigo-200 font-medium">Anbiyam</span>
+              <span className="text-indigo-100 font-medium truncate max-w-[140px]">{member.anbiyamName || 'Main Parish'}</span>
             </div>
           </div>
 
           {/* Footer QR Verification */}
-          <div className="pt-1 flex flex-col items-center space-y-1">
-            <div id="badge-qr-canvas-wrap" className="p-2 bg-white rounded-xl shadow-md border border-indigo-200">
-              <QRCodeCanvas value={qrValue} size={72} />
+          <div className="pt-0.5 flex items-center justify-between bg-white/5 p-2 rounded-xl border border-white/10">
+            <div className="text-left">
+              <p className="text-[9px] text-white font-bold uppercase tracking-wider">Official Verified Badge</p>
+              <p className="text-[8px] text-indigo-300 font-mono">ID: {member.memberId || member._id}</p>
             </div>
-            <p className="text-[9px] text-indigo-200 font-mono tracking-wider font-bold">OFFICIAL VERIFIED BADGE • ID: {member.memberId || member._id}</p>
+            <div id="badge-qr-canvas-wrap" className="p-1 bg-white rounded-lg shadow-sm flex-shrink-0">
+              <QRCodeCanvas value={qrValue} size={48} />
+            </div>
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="pt-2 flex items-center space-x-2 no-print">
+        <div className="pt-1 flex items-center space-x-2 no-print">
           <button
             onClick={handleDownloadBadge}
             disabled={downloading}
-            className="flex-1 py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition flex items-center justify-center space-x-1.5 cursor-pointer disabled:opacity-50"
+            className="flex-1 py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition flex items-center justify-center space-x-1.5 cursor-pointer disabled:opacity-50"
           >
-            <Download className="w-4 h-4" />
+            <Download className="w-3.5 h-3.5" />
             <span>{downloading ? 'Exporting...' : 'Download Badge'}</span>
           </button>
           <button
             onClick={handlePrint}
-            className="flex-1 py-2.5 px-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition flex items-center justify-center space-x-1.5 cursor-pointer"
+            className="flex-1 py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition flex items-center justify-center space-x-1.5 cursor-pointer"
           >
-            <Printer className="w-4 h-4" />
+            <Printer className="w-3.5 h-3.5" />
             <span>Print Badge</span>
           </button>
         </div>
