@@ -22,14 +22,27 @@ const loadImg = (src) => {
   });
 };
 
-// High-Definition Professional ID Badge Generator (300 DPI - 800 x 1200 Standard CR80 Ratio)
+// High-Definition Professional ID Badge Generator (Ultra-HD 2400 x 3600 @ 300-600 DPI Print Quality)
 const generate2DBadgePNG = async (member, settings) => {
+  // Ensure custom typography is fully ready before rasterization
+  try {
+    if (document.fonts) await document.fonts.ready;
+  } catch (e) {
+    // fallback
+  }
+
+  const SCALE = 3; // 3x Ultra-HD Scaling (2400 x 3600 px) for razor-sharp zoom & print
   const width = 800;
   const height = 1200;
   const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
+  canvas.width = width * SCALE;
+  canvas.height = height * SCALE;
   const ctx = canvas.getContext('2d');
+
+  // Enable high-fidelity bicubic smoothing
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.scale(SCALE, SCALE);
 
   // Background Gradient - Deep Premium Navy / Indigo
   const gradient = ctx.createLinearGradient(0, 0, 0, height);
@@ -141,8 +154,8 @@ const generate2DBadgePNG = async (member, settings) => {
   ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
   ctx.stroke();
 
-  // Load & Draw Photo
-  const photoSrc = getImageUrl(member.photo) || 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=300';
+  // Load & Draw Photo (High-Res 800px)
+  const photoSrc = getImageUrl(member.photo) || 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=800';
   const photoImg = await loadImg(photoSrc);
 
   ctx.save();
@@ -299,8 +312,8 @@ const generate2DBadgePNG = async (member, settings) => {
   ctx.font = 'bold 13px monospace';
   ctx.fillText(`DIGITAL ID: ${member.memberId || member._id}`, footerX + 25, footerY + 175);
 
-  // Right QR Code
-  const qrElement = document.querySelector('#badge-qr-canvas-wrap canvas');
+  // Right QR Code (drawn from 600px Ultra-HD QR canvas)
+  const qrElement = document.querySelector('#badge-qr-hd-wrap canvas') || document.querySelector('#badge-qr-canvas-wrap canvas');
   if (qrElement) {
     const qrSize = 150;
     const qrX = footerX + footerW - qrSize - 25;
@@ -513,6 +526,10 @@ export default function MemberIDCardModal({ member, onClose }) {
             <Printer className="w-4 h-4" />
             <span>Print Badge</span>
           </button>
+        </div>
+        {/* Offscreen 600px High-Resolution QR Canvas for Ultra-Crisp Export */}
+        <div id="badge-qr-hd-wrap" style={{ position: 'fixed', left: '-99999px', top: '-99999px', pointerEvents: 'none' }} aria-hidden="true">
+          <QRCodeCanvas value={qrValue} size={600} level="H" includeMargin={false} />
         </div>
       </div>
     </div>
