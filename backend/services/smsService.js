@@ -33,9 +33,11 @@ const cleanPhoneNumber = (phone) => {
 /**
  * Generate standard SMS receipt text (concise for SMS character limits)
  */
-const generateSmsReceiptText = (memberName, months, amount, paymentMode) => {
+const generateSmsReceiptText = (memberName, months, amount, paymentMode, settings = {}) => {
   const monthsText = Array.isArray(months) ? months.join(', ') : months;
-  return `FRANSALIAN YOUTH: Dear ${memberName}, your Rs.${amount} Youth Subscription for ${monthsText} (${paymentMode || 'Cash'}) has been received. Status: PAID. Thank you!`;
+  const youth = (settings.youthName || 'Fransalian Youth').toUpperCase();
+  const church = settings.churchName || 'Mary Help of Christians Church, Vaniyambadi';
+  return `${youth}\n${church}\nSUBSCRIPTION REPORT\nDear ${memberName}, your payment of Rs.${amount} for ${monthsText} (${paymentMode || 'Cash'}) has been recorded. Status: PAID. Thank you!`;
 };
 
 /**
@@ -119,7 +121,7 @@ const dispatchSubscriptionReceiptSMS = async ({ memberName, phone, months, amoun
     };
   }
 
-  const messageText = generateSmsReceiptText(memberName, months, amount, paymentMode);
+  const messageText = generateSmsReceiptText(memberName, months, amount, paymentMode, settings);
   const apiKey = (settings.fast2smsApiKey || process.env.FAST2SMS_API_KEY || '').trim();
   const twilioSid = (settings.twilioAccountSid || process.env.TWILIO_ACCOUNT_SID || '').trim();
   const twilioAuth = (settings.twilioAuthToken || process.env.TWILIO_AUTH_TOKEN || '').trim();

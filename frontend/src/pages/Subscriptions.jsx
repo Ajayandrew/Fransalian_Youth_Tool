@@ -8,10 +8,12 @@ import {
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import { useDataCache } from '../context/DataContext';
+import { useSettings } from '../context/SettingsContext';
 
 export default function Subscriptions() {
   const { hasRole } = useAuth();
   const { fetchWithCache, invalidateCache, cache } = useDataCache();
+  const { settings } = useSettings();
   
   // Real-time current month string (e.g., "September 2026")
   const realTimeCurrentMonth = `${new Date().toLocaleString('en-US', { month: 'long' })} ${new Date().getFullYear()}`;
@@ -75,7 +77,9 @@ export default function Subscriptions() {
 
   const generateReceiptText = (memberName, months, amount, paymentMode) => {
     const monthsText = Array.isArray(months) ? months.join(', ') : months;
-    return `FRANSALIAN YOUTH MOVEMENT\nSUBSCRIPTION RECEIPT\n------------------------------\nDear ${memberName},\n\nThank you! Your Youth Subscription payment has been successfully recorded.\n\nAmount Paid: ₹${amount}\nMonth(s) Cleared: ${monthsText}\nPayment Mode: ${paymentMode || 'Cash'}\nStatus: PAID ✅\nDate: ${new Date().toLocaleDateString('en-GB')}\n------------------------------\nThank you for your active support & commitment!`;
+    const youth = (settings?.youthName || 'Fransalian Youth').toUpperCase();
+    const church = settings?.churchName || 'Mary Help of Christians Church, Vaniyambadi';
+    return `${youth}\n${church}\nSUBSCRIPTION REPORT\n------------------------------\nDear ${memberName},\n\nThank you! Your Youth Subscription payment has been successfully recorded.\n\nAmount Paid: ₹${amount}\nMonth(s) Cleared: ${monthsText}\nPayment Mode: ${paymentMode || 'Cash'}\nStatus: PAID ✅\nDate: ${new Date().toLocaleDateString('en-GB')}\n------------------------------\nThank you for your active support & commitment!`;
   };
 
   const sendDirectSMS = async (data) => {
@@ -883,6 +887,17 @@ export default function Subscriptions() {
             </div>
 
             <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2 text-xs">
+              <div className="text-center pb-2.5 mb-1.5 border-b border-slate-200">
+                <h4 className="font-black text-slate-900 uppercase tracking-wide text-xs">
+                  {settings?.youthName || 'Fransalian Youth'}
+                </h4>
+                <p className="text-[11px] text-slate-500 font-medium">
+                  {settings?.churchName || 'Mary Help of Christians Church, Vaniyambadi'}
+                </p>
+                <span className="inline-block mt-1 px-2.5 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 font-black text-[10px] uppercase tracking-wider">
+                  Subscription Report
+                </span>
+              </div>
               <div className="flex justify-between">
                 <span className="text-slate-500">Member:</span>
                 <span className="font-bold text-slate-900">{receiptData.memberName}</span>
