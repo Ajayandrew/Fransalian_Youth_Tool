@@ -121,7 +121,7 @@ export default function Subscriptions() {
         }
 
         // Mobile device fallback
-        toast('Opening device SMS composer...', { icon: '📱' });
+        toast.error('⚠️ Fast2SMS API Key not added in Settings! Opening phone SMS app as fallback. Enter your API Key in Settings to send 100% automatically.', { duration: 6500 });
         const cleanPhone = phone.replace(/\D/g, '');
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
         const separator = isIOS ? '&' : '?';
