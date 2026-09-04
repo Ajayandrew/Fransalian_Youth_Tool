@@ -368,9 +368,8 @@ export default function MemberIDCardModal({ member, onClose }) {
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-slate-900/70 backdrop-blur-md overflow-y-auto animate-in fade-in duration-200">
-      <div className="bg-white border border-slate-200 rounded-3xl max-w-sm sm:max-w-md w-full p-4 sm:p-5 shadow-2xl space-y-4 text-slate-900 my-auto max-h-[96vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-3 sm:p-4 bg-slate-900/75 backdrop-blur-md overflow-y-auto animate-in fade-in duration-200">
+      <div className="bg-white border border-slate-200 rounded-3xl max-w-sm sm:max-w-md w-full p-3.5 sm:p-5 shadow-2xl space-y-3.5 sm:space-y-4 text-slate-900 my-auto sm:my-6 max-h-[92vh] sm:max-h-[95vh] overflow-y-auto">
         {/* Top Header */}
         <div className="flex items-center justify-between border-b border-slate-100 pb-3 no-print">
           <div className="flex items-center space-x-2">
@@ -390,8 +389,7 @@ export default function MemberIDCardModal({ member, onClose }) {
         {/* Card Preview Container */}
         <div
           ref={cardRef}
-          className="rounded-2xl bg-gradient-to-b from-slate-950 via-indigo-950 to-slate-950 text-white p-4 sm:p-5 space-y-3.5 shadow-2xl relative border-2 border-indigo-600/60 overflow-hidden"
-          style={{ aspectRatio: '800/1200' }}
+          className="rounded-2xl bg-gradient-to-b from-slate-950 via-indigo-950 to-slate-950 text-white p-3.5 sm:p-5 pb-5 sm:pb-6 space-y-3 sm:space-y-3.5 shadow-2xl relative border-2 border-indigo-600/60 overflow-hidden"
         >
           {/* Top Decorative Ribbon */}
           <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-indigo-500 via-sky-400 to-indigo-500" />
