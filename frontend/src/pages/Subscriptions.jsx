@@ -53,7 +53,7 @@ export default function Subscriptions() {
   const [payAmount, setPayAmount] = useState(50);
   const [payMode, setPayMode] = useState('Cash');
   const [payRemarks, setPayRemarks] = useState('Monthly Subscription Collected');
-  const [autoOpenSMS, setAutoOpenSMS] = useState(true);
+  const [shareOption, setShareOption] = useState('modal'); // 'modal' | 'whatsapp' | 'sms'
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Post-Payment Receipt Modal State
@@ -121,7 +121,7 @@ export default function Subscriptions() {
         }
 
         // Mobile device fallback
-        toast.error('⚠️ Fast2SMS API Key not added in Settings! Opening phone SMS app as fallback. Enter your API Key in Settings to send 100% automatically.', { duration: 6500 });
+        toast('Opening Messages app to send via your free SIM pack... 📱', { icon: '📱' });
         const cleanPhone = phone.replace(/\D/g, '');
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
         const separator = isIOS ? '&' : '?';
@@ -323,11 +323,15 @@ export default function Subscriptions() {
         // Open receipt modal
         setReceiptData(newReceipt);
 
-        // If autoOpenSMS is checked, open SMS composer immediately
-        if (autoOpenSMS && memberPhone) {
+        // If user specifically requested instant auto-share
+        if (shareOption === 'whatsapp' && memberPhone) {
+          setTimeout(() => {
+            sendDirectWhatsApp(newReceipt);
+          }, 350);
+        } else if (shareOption === 'sms' && memberPhone) {
           setTimeout(() => {
             sendDirectSMS(newReceipt);
-          }, 400);
+          }, 350);
         }
       }
     } catch (err) {
@@ -835,24 +839,41 @@ export default function Subscriptions() {
                 />
               </div>
 
-              {/* Auto SMS Checkbox */}
-              <div className="flex items-center justify-between p-3 bg-sky-50 border border-sky-200 rounded-2xl text-sky-900">
-                <div className="flex items-center gap-2.5">
-                  <input
-                    type="checkbox"
-                    id="autoSMSCheck"
-                    checked={autoOpenSMS}
-                    onChange={(e) => setAutoOpenSMS(e.target.checked)}
-                    className="w-4 h-4 rounded text-sky-600 focus:ring-sky-500 cursor-pointer accent-sky-600"
-                  />
-                  <label htmlFor="autoSMSCheck" className="text-xs font-bold cursor-pointer select-none flex items-center gap-1.5">
-                    <MessageSquare className="w-3.5 h-3.5 text-sky-600" />
-                    <span>Automatically send SMS receipt</span>
-                  </label>
+              {/* 100% Free Receipt Sharing Options */}
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl space-y-2 text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-slate-700 flex items-center gap-1.5">
+                    <Share2 className="w-3.5 h-3.5 text-emerald-600" />
+                    Receipt Sharing (100% Free)
+                  </span>
+                  <span className="text-[10px] text-emerald-800 font-extrabold bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded-full">
+                    Zero Cost
+                  </span>
                 </div>
-                <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${settings?.fast2smsApiKey ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800 border border-amber-300'}`}>
-                  {settings?.fast2smsApiKey ? '⚡ Instant Cloud SMS' : '📱 Device SMS'}
-                </span>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShareOption(shareOption === 'whatsapp' ? 'modal' : 'whatsapp')}
+                    className={`py-2 px-2.5 rounded-xl font-bold text-[11px] border transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                      shareOption === 'whatsapp'
+                        ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
+                        : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    <Share2 className="w-3.5 h-3.5" /> Auto WhatsApp
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShareOption('modal')}
+                    className={`py-2 px-2.5 rounded-xl font-bold text-[11px] border transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                      shareOption === 'modal'
+                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                        : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    <Copy className="w-3.5 h-3.5" /> Show in Dialog
+                  </button>
+                </div>
               </div>
 
               {/* Action Buttons */}
@@ -930,17 +951,17 @@ export default function Subscriptions() {
             <div className="space-y-2 pt-1">
               <button
                 type="button"
-                onClick={() => sendDirectSMS(receiptData)}
-                className="w-full py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md shadow-sky-600/20 transition active:scale-98"
-              >
-                <MessageSquare className="w-4 h-4" /> Send Direct SMS (Native Messages)
-              </button>
-              <button
-                type="button"
                 onClick={() => sendDirectWhatsApp(receiptData)}
                 className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20 transition active:scale-98"
               >
-                <Share2 className="w-4 h-4" /> Send Receipt via WhatsApp
+                <Share2 className="w-4 h-4" /> Send Receipt via WhatsApp (100% Free)
+              </button>
+              <button
+                type="button"
+                onClick={() => sendDirectSMS(receiptData)}
+                className="w-full py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md shadow-sky-600/20 transition active:scale-98"
+              >
+                <MessageSquare className="w-4 h-4" /> Send Free SIM SMS (Device Messages)
               </button>
               <button
                 type="button"
