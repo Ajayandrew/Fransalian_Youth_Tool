@@ -368,6 +368,7 @@ export default function MemberIDCardModal({ member, onClose }) {
     }
   };
 
+  return (
     <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-3 sm:p-4 bg-slate-900/75 backdrop-blur-md overflow-y-auto animate-in fade-in duration-200">
       <div className="bg-white border border-slate-200 rounded-3xl max-w-sm sm:max-w-md w-full p-3.5 sm:p-5 shadow-2xl space-y-3.5 sm:space-y-4 text-slate-900 my-auto sm:my-6 max-h-[92vh] sm:max-h-[95vh] overflow-y-auto">
         {/* Top Header */}
