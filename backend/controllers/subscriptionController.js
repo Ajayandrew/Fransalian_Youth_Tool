@@ -2,6 +2,7 @@ const { getIsInMemory } = require('../config/db');
 const memoryStore = require('../store/memoryStore');
 const { savePersistentStore } = require('../store/persistentStore');
 const Subscription = require('../models/Subscription');
+const { dispatchSubscriptionReceiptSMS } = require('../services/smsService');
 
 const getSubscriptions = async (req, res) => {
   try {
@@ -358,5 +359,46 @@ const markSubscriptionUnpaid = async (req, res) => {
   }
 };
 
-module.exports = { getSubscriptions, getMemberSubscriptionHistory, markSubscriptionPaid, markSubscriptionUnpaid };
+const sendSubscriptionSMS = async (req, res) => {
+  try {
+    const { memberName, phone, months, amount, paymentMode } = req.body;
+    if (!memberName) {
+      return res.status(400).json({ success: false, message: 'Member Name is required.' });
+    }
+
+    const result = await dispatchSubscriptionReceiptSMS({
+      memberName,
+      phone,
+      months: months || ['Current Month'],
+      amount: amount || 50,
+      paymentMode: paymentMode || 'Cash'
+    });
+
+    if (result.success) {
+      return res.json({
+        success: true,
+        provider: result.provider,
+        message: result.message || `SMS sent successfully to +91 ${phone}!`
+      });
+    } else {
+      return res.status(result.isUnconfigured ? 200 : 400).json({
+        success: false,
+        isUnconfigured: result.isUnconfigured || false,
+        message: result.message
+      });
+    }
+  } catch (error) {
+    console.error('Error in sendSubscriptionSMS:', error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+module.exports = {
+  getSubscriptions,
+  getMemberSubscriptionHistory,
+  markSubscriptionPaid,
+  markSubscriptionUnpaid,
+  sendSubscriptionSMS
+};
+
 

@@ -175,4 +175,22 @@ const addAnbiyam = async (req, res) => {
   }
 };
 
-module.exports = { getSettings, updateSettings, resetData, addAnbiyam };
+const testSMS = async (req, res) => {
+  try {
+    const { phone } = req.body;
+    const { sendTestSMS } = require('../services/smsService');
+    const result = await sendTestSMS(phone);
+
+    if (result.success) {
+      return res.json({ success: true, message: result.message });
+    } else {
+      return res.status(400).json({ success: false, message: result.message });
+    }
+  } catch (error) {
+    console.error('Error testing SMS gateway:', error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+module.exports = { getSettings, updateSettings, resetData, addAnbiyam, testSMS };
+

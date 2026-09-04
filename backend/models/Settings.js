@@ -22,7 +22,15 @@ const settingsSchema = new mongoose.Schema({
   parishPriestPhone: { type: String, default: '' },
   parishPriestTitle: { type: String, default: 'Parish Priest / Spiritual Director' },
   patronPhoto: { type: String, default: '' },
-  anbiyams: { type: [String], default: ['St. Francis Xavier Anbiyam', 'St. Antony Anbiyam', 'Mother Teresa Anbiyam', 'St. Jude Anbiyam'] }
+  anbiyams: { type: [String], default: ['St. Francis Xavier Anbiyam', 'St. Antony Anbiyam', 'Mother Teresa Anbiyam', 'St. Jude Anbiyam'] },
+  // SMS Gateway Configuration
+  smsProvider: { type: String, default: 'fast2sms' },
+  fast2smsApiKey: { type: String, default: '' },
+  twilioAccountSid: { type: String, default: '' },
+  twilioAuthToken: { type: String, default: '' },
+  twilioPhoneNumber: { type: String, default: '' },
+  smsSenderId: { type: String, default: 'FYMOVT' }
 }, { timestamps: true });
 
 module.exports = mongoose.models.Settings || mongoose.model('Settings', settingsSchema);
+

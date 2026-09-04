@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Settings as SettingsIcon, Save, Database, Shield, DollarSign, Church, KeyRound, Mail, UserCheck, Lock, Upload, Download, Share2, Youtube, Facebook, Instagram, Image as ImageIcon, Sparkles } from 'lucide-react';
+import { Settings as SettingsIcon, Save, Database, Shield, DollarSign, Church, KeyRound, Mail, UserCheck, Lock, Upload, Download, Share2, Youtube, Facebook, Instagram, Image as ImageIcon, Sparkles, MessageSquare } from 'lucide-react';
 import toast from 'react-hot-toast';
+
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
 import PhotoLightboxModal from '../components/PhotoLightboxModal';
@@ -551,6 +552,139 @@ export default function Settings() {
           </div>
         </div>
 
+        {/* Automated SMS Gateway Configuration Card */}
+        <div className="bg-white rounded-3xl border border-sky-200/80 p-6 shadow-xs space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div>
+              <h2 className="text-xs font-black uppercase tracking-wider text-sky-600 flex items-center gap-2">
+                <MessageSquare className="w-4 h-4 text-sky-600" /> Automated SMS Gateway Setup (Fast2SMS / Twilio)
+              </h2>
+              <p className="text-xs font-medium text-slate-500 mt-0.5">
+                Automatically send instant SMS payment receipts & notifications to member mobile numbers.
+              </p>
+            </div>
+            <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-sky-100 text-sky-800 border border-sky-200">
+              {settings.fast2smsApiKey ? '🟢 Gateway Active' : '⚪ Setup Required'}
+            </span>
+          </div>
+
+          <div className="space-y-4 text-xs font-semibold">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-slate-600 mb-1">SMS Provider</label>
+                <select
+                  disabled={!canEdit}
+                  value={settings.smsProvider || 'fast2sms'}
+                  onChange={(e) => setSettings({ ...settings, smsProvider: e.target.value })}
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500/20 focus:outline-none font-bold text-slate-800"
+                >
+                  <option value="fast2sms">Fast2SMS (Recommended for India - Instant Setup)</option>
+                  <option value="twilio">Twilio (International / Enterprise)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-slate-600 mb-1 flex items-center justify-between">
+                  <span>Fast2SMS API Key</span>
+                  <a
+                    href="https://www.fast2sms.com"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-sky-600 hover:underline font-bold text-[10px] flex items-center gap-1"
+                  >
+                    Get Free API Key at Fast2SMS.com ↗
+                  </a>
+                </label>
+                <input
+                  type="password"
+                  disabled={!canEdit}
+                  value={settings.fast2smsApiKey || ''}
+                  onChange={(e) => setSettings({ ...settings, fast2smsApiKey: e.target.value })}
+                  placeholder="Paste your Fast2SMS API Authorization Key here"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500/20 focus:outline-none font-mono"
+                />
+              </div>
+            </div>
+
+            {settings.smsProvider === 'twilio' && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 bg-slate-50 rounded-2xl border border-slate-200">
+                <div>
+                  <label className="block text-slate-600 mb-1 text-[11px]">Twilio Account SID</label>
+                  <input
+                    type="text"
+                    disabled={!canEdit}
+                    value={settings.twilioAccountSid || ''}
+                    onChange={(e) => setSettings({ ...settings, twilioAccountSid: e.target.value })}
+                    placeholder="ACXXXXXXXXXXXXXXXX"
+                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-600 mb-1 text-[11px]">Twilio Auth Token</label>
+                  <input
+                    type="password"
+                    disabled={!canEdit}
+                    value={settings.twilioAuthToken || ''}
+                    onChange={(e) => setSettings({ ...settings, twilioAuthToken: e.target.value })}
+                    placeholder="Auth Token"
+                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-600 mb-1 text-[11px]">Twilio Phone Number</label>
+                  <input
+                    type="text"
+                    disabled={!canEdit}
+                    value={settings.twilioPhoneNumber || ''}
+                    onChange={(e) => setSettings({ ...settings, twilioPhoneNumber: e.target.value })}
+                    placeholder="+1234567890"
+                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-mono"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Test SMS dispatch box */}
+            <div className="p-3.5 bg-sky-50/70 border border-sky-200 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="text-left">
+                <h4 className="text-xs font-bold text-sky-950">Test Gateway Dispatch</h4>
+                <p className="text-[11px] text-sky-800">Send a live test verification SMS to ensure your API credentials work.</p>
+              </div>
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <input
+                  type="tel"
+                  id="testPhoneInput"
+                  placeholder="10-digit mobile number"
+                  defaultValue={user?.mobileNumber || user?.phone || ''}
+                  className="px-3 py-2 bg-white border border-sky-300 rounded-xl text-xs font-bold w-full sm:w-48 focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const phoneEl = document.getElementById('testPhoneInput');
+                    const phoneVal = phoneEl ? phoneEl.value.trim() : '';
+                    if (!phoneVal) return toast.error('Enter a mobile number to test.');
+                    const toastId = toast.loading('Sending test SMS...', { id: 'sms-test' });
+                    try {
+                      const res = await axios.post('/api/settings/test-sms', { phone: phoneVal });
+                      if (res.data && res.data.success) {
+                        toast.success(res.data.message || '✅ Test SMS sent successfully!', { id: 'sms-test' });
+                      } else {
+                        toast.error(res.data?.message || 'Failed to send test SMS.', { id: 'sms-test' });
+                      }
+                    } catch (err) {
+                      toast.error(err.response?.data?.message || 'Failed to dispatch test SMS. Check your API key.', { id: 'sms-test' });
+                    }
+                  }}
+                  className="px-3.5 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold shadow-xs whitespace-nowrap transition cursor-pointer"
+                >
+                  Send Test SMS
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Subscription & Treasury Rules Card */}
         <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
           <h2 className="text-xs font-black uppercase tracking-wider text-slate-400 flex items-center gap-2">
@@ -569,6 +703,7 @@ export default function Settings() {
             <p className="text-[11px] text-slate-400 font-medium mt-1">This standard monthly fee applies to all youth members unless customized.</p>
           </div>
         </div>
+
 
         {/* System & Data Maintenance */}
         <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">

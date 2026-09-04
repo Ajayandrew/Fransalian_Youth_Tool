@@ -78,19 +78,56 @@ export default function Subscriptions() {
     return `FRANSALIAN YOUTH MOVEMENT\nSUBSCRIPTION RECEIPT\n------------------------------\nDear ${memberName},\n\nThank you! Your Youth Subscription payment has been successfully recorded.\n\nAmount Paid: ₹${amount}\nMonth(s) Cleared: ${monthsText}\nPayment Mode: ${paymentMode || 'Cash'}\nStatus: PAID ✅\nDate: ${new Date().toLocaleDateString('en-GB')}\n------------------------------\nThank you for your active support & commitment!`;
   };
 
-  const sendDirectSMS = (data) => {
+  const sendDirectSMS = async (data) => {
     const phone = data.phone || getMemberPhone(data.memberName);
     if (!phone) {
       toast.error(`No phone number found for ${data.memberName}.`);
       return;
     }
-    const cleanPhone = phone.replace(/\D/g, '');
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    const separator = isIOS ? '&' : '?';
-    const targetNumber = cleanPhone.length === 10 ? `+91${cleanPhone}` : cleanPhone;
-    const text = generateReceiptText(data.memberName, data.months, data.amount, data.paymentMode);
-    const smsUrl = `sms:${targetNumber}${separator}body=${encodeURIComponent(text)}`;
-    window.location.href = smsUrl;
+
+    const toastId = toast.loading(`Sending SMS to ${data.memberName}...`, { id: 'sms-dispatch' });
+    try {
+      const res = await axios.post('/api/subscriptions/send-sms', {
+        memberName: data.memberName,
+        phone,
+        months: data.months,
+        amount: data.amount,
+        paymentMode: data.paymentMode
+      });
+
+      if (res.data && res.data.success) {
+        toast.success(res.data.message || `✅ SMS sent successfully to ${phone}!`, { id: 'sms-dispatch', duration: 4000 });
+        return;
+      }
+
+      if (res.data && res.data.isUnconfigured) {
+        toast.dismiss(toastId);
+        // Fallback to opening native device SMS app
+        toast('Opening SMS app (Add Fast2SMS key in Settings for auto-send)...', { icon: '📱' });
+        const cleanPhone = phone.replace(/\D/g, '');
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        const separator = isIOS ? '&' : '?';
+        const targetNumber = cleanPhone.length === 10 ? `+91${cleanPhone}` : cleanPhone;
+        const text = generateReceiptText(data.memberName, data.months, data.amount, data.paymentMode);
+        const smsUrl = `sms:${targetNumber}${separator}body=${encodeURIComponent(text)}`;
+        window.location.href = smsUrl;
+        return;
+      }
+
+      toast.error(res.data?.message || 'Failed to send automated SMS.', { id: 'sms-dispatch' });
+    } catch (err) {
+      console.warn('Backend SMS failed, falling back to device SMS:', err);
+      toast.dismiss(toastId);
+      // Fallback
+      toast('Opening device SMS composer...', { icon: '📱' });
+      const cleanPhone = phone.replace(/\D/g, '');
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      const separator = isIOS ? '&' : '?';
+      const targetNumber = cleanPhone.length === 10 ? `+91${cleanPhone}` : cleanPhone;
+      const text = generateReceiptText(data.memberName, data.months, data.amount, data.paymentMode);
+      const smsUrl = `sms:${targetNumber}${separator}body=${encodeURIComponent(text)}`;
+      window.location.href = smsUrl;
+    }
   };
 
   const sendDirectWhatsApp = (data) => {
