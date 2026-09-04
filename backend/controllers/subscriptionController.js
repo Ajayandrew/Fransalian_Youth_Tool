@@ -18,23 +18,35 @@ const getSubscriptions = async (req, res) => {
     } else {
       const Member = require('../models/Member');
       [subsList, membersList] = await Promise.all([
-        Subscription.find({ month: targetMonth }).lean(),
-        Member.find({}).select('_id fullName').lean()
+        Subscription.find({}).lean(),
+        Member.find({}).select('_id fullName mobileNumber whatsappNumber phone').lean()
       ]);
     }
 
     const defaultSubsAmount = (memoryStore.settings?.subscriptionAmount) || 50;
 
-    // Create O(1) fast lookup map for subscriptions in target month
+    // Create lookup maps
     const normTargetMonth = targetMonth.trim().toLowerCase();
     const subMapByMemberId = new Map();
     const subMapByName = new Map();
+    const allMemberPaidMonths = new Map(); // memberName -> Set of paid months
 
     for (let i = 0; i < subsList.length; i++) {
       const s = subsList[i];
-      if (s.month && s.month.trim().toLowerCase() === normTargetMonth) {
-        if (s.memberId) subMapByMemberId.set(s.memberId.toString(), s);
-        if (s.memberName) subMapByName.set(s.memberName.trim().toLowerCase(), s);
+      const sMonth = (s.month || '').trim().toLowerCase();
+      const sName = (s.memberName || '').trim().toLowerCase();
+      const sId = (s.memberId || '').toString();
+
+      if (sMonth === normTargetMonth) {
+        if (sId) subMapByMemberId.set(sId, s);
+        if (sName) subMapByName.set(sName, s);
+      }
+
+      if ((s.status || '').toLowerCase() === 'paid' && s.month) {
+        if (!allMemberPaidMonths.has(sName)) {
+          allMemberPaidMonths.set(sName, new Set());
+        }
+        allMemberPaidMonths.get(sName).add(s.month.trim());
       }
     }
 
@@ -45,18 +57,21 @@ const getSubscriptions = async (req, res) => {
 
       const existing = subMapByMemberId.get(mIdStr) || subMapByName.get(mNameNorm);
       const isPaid = existing && (existing.status || '').toLowerCase() === 'paid';
+      const paidMonthsList = Array.from(allMemberPaidMonths.get(mNameNorm) || []);
 
       return {
         _id: existing ? existing._id : `sub_temp_${m._id}`,
         memberId: m._id,
         memberName: m.fullName,
+        phone: m.mobileNumber || m.whatsappNumber || m.phone || '',
         month: targetMonth,
         year: targetYear,
         amount: isPaid ? (Number(existing.amount) || defaultSubsAmount) : defaultSubsAmount,
         status: isPaid ? 'Paid' : 'Unpaid',
         paymentDate: isPaid ? existing.paymentDate : '-',
         paymentMode: isPaid ? (existing.paymentMode || 'Cash') : '-',
-        remarks: isPaid ? existing.remarks : ''
+        remarks: isPaid ? existing.remarks : '',
+        paidMonths: paidMonthsList
       };
     });
 
@@ -105,90 +120,167 @@ const getSubscriptions = async (req, res) => {
   }
 };
 
+const getMemberSubscriptionHistory = async (req, res) => {
+  try {
+    const { memberName, memberId } = req.query;
+    if (!memberName && !memberId) {
+      return res.status(400).json({ success: false, message: 'Member name or ID required.' });
+    }
+
+    let subsList = [];
+    if (getIsInMemory()) {
+      subsList = memoryStore.subscriptions || [];
+    } else {
+      subsList = await Subscription.find({}).lean();
+    }
+
+    const cleanName = (memberName || '').trim().toLowerCase();
+    const cleanId = (memberId || '').toString();
+
+    const memberSubs = subsList.filter(s => {
+      const sName = (s.memberName || '').trim().toLowerCase();
+      const sId = (s.memberId || '').toString();
+      return (cleanName && sName === cleanName) || (cleanId && sId === cleanId);
+    });
+
+    return res.json({
+      success: true,
+      subscriptions: memberSubs
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 const markSubscriptionPaid = async (req, res) => {
   try {
-    const { memberName, memberId, month, year, amount, paymentMode, remarks } = req.body;
+    const { memberName, memberId, month, months, year, amount, paymentMode, remarks } = req.body;
     if (!memberName) {
       return res.status(400).json({ success: false, message: 'Member Name is required.' });
     }
 
-    const targetMonth = month || 'August 2026';
-    const targetYear = year || '2026';
-    const feeAmount = Number(amount) || 50;
+    // Support single month or multi-month array
+    let targetMonths = [];
+    if (Array.isArray(months) && months.length > 0) {
+      targetMonths = months.map(m => m.trim());
+    } else if (month) {
+      targetMonths = [month.trim()];
+    } else {
+      targetMonths = ['August 2026'];
+    }
+
+    const targetYear = year || new Date().getFullYear().toString();
+    const totalFeeAmount = Number(amount) || (50 * targetMonths.length);
+    const perMonthAmount = Math.round(totalFeeAmount / targetMonths.length);
     const currentDate = new Date().toISOString().split('T')[0];
     const cleanName = memberName.trim();
+    const cleanId = memberId || 'mem_' + Date.now();
+    const mode = paymentMode || 'Cash';
+    const baseRemarks = remarks || 'Monthly Subscription Collected';
 
-    const newRecord = {
-      _id: 'sub_' + Date.now(),
-      memberId: memberId || 'mem_' + Date.now(),
-      memberName: cleanName,
-      month: targetMonth,
-      year: targetYear,
-      amount: feeAmount,
-      status: 'Paid',
-      paymentDate: currentDate,
-      paymentMode: paymentMode || 'Cash',
-      remarks: remarks || '₹50 Monthly Subscription Collected'
-    };
+    const createdRecords = [];
 
     if (getIsInMemory()) {
-      memoryStore.subscriptions = (memoryStore.subscriptions || []).filter(s =>
-        !(s.memberName && s.memberName.trim().toLowerCase() === cleanName.toLowerCase() && s.month === targetMonth)
-      );
-      memoryStore.subscriptions.unshift(newRecord);
+      for (const m of targetMonths) {
+        const monthYear = m.includes(' ') ? m.split(' ')[1] : targetYear;
+        const record = {
+          _id: 'sub_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+          memberId: cleanId,
+          memberName: cleanName,
+          month: m,
+          year: monthYear,
+          amount: perMonthAmount,
+          status: 'Paid',
+          paymentDate: currentDate,
+          paymentMode: mode,
+          remarks: targetMonths.length > 1
+            ? `${baseRemarks} (${targetMonths.length} months bulk payment)`
+            : baseRemarks
+        };
 
-      memoryStore.income = (memoryStore.income || []).filter(i =>
-        !(i.notes?.includes(`Subscription payment for ${targetMonth}`) && i.title?.toLowerCase().includes(cleanName.toLowerCase()))
-      );
-
-      memoryStore.income.unshift({
-        _id: 'inc_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
-        title: `Monthly Subscription (₹${feeAmount}): ${cleanName} (${targetMonth})`,
-        amount: feeAmount,
-        date: currentDate,
-        category: 'Monthly Subscription',
-        source: 'Monthly Subscription',
-        receiptNumber: `SUB-${Date.now().toString().slice(-6)}`,
-        paymentMode: paymentMode || 'Cash',
-        notes: `Subscription payment for ${targetMonth}`
-      });
-    } else {
-      const existingSub = await Subscription.findOne({
-        memberName: { $regex: new RegExp(`^${cleanName.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}$`, 'i') },
-        month: targetMonth
-      });
-      if (existingSub) {
-        existingSub.status = 'Paid';
-        existingSub.amount = feeAmount;
-        existingSub.paymentDate = currentDate;
-        existingSub.paymentMode = paymentMode || 'Cash';
-        existingSub.remarks = remarks || '₹50 Monthly Subscription Collected';
-        await existingSub.save();
-      } else {
-        await Subscription.create(newRecord);
+        memoryStore.subscriptions = (memoryStore.subscriptions || []).filter(s =>
+          !(s.memberName && s.memberName.trim().toLowerCase() === cleanName.toLowerCase() && s.month.trim().toLowerCase() === m.toLowerCase())
+        );
+        memoryStore.subscriptions.unshift(record);
+        createdRecords.push(record);
       }
 
-      const { Income } = require('../models/Finance');
-      await Income.deleteMany({
-        category: 'Monthly Subscription',
-        title: { $regex: new RegExp(cleanName.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'i') }
-      });
-
-      await Income.create({
+      // Record consolidated income entry for today's collection
+      const monthNamesStr = targetMonths.join(', ');
+      memoryStore.income.unshift({
         _id: 'inc_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
-        title: `Monthly Subscription (₹${feeAmount}): ${cleanName} (${targetMonth})`,
-        amount: feeAmount,
+        title: `Monthly Subscription (₹${totalFeeAmount}): ${cleanName} (${monthNamesStr})`,
+        amount: totalFeeAmount,
         date: currentDate,
         category: 'Monthly Subscription',
         source: 'Monthly Subscription',
         receiptNumber: `SUB-${Date.now().toString().slice(-6)}`,
-        paymentMode: paymentMode || 'Cash',
-        notes: `Subscription payment for ${targetMonth}`
+        paymentMode: mode,
+        notes: `Subscription payment for ${monthNamesStr}${targetMonths.length > 1 ? ` (${targetMonths.length} months)` : ''}`
+      });
+    } else {
+      const { Income } = require('../models/Finance');
+
+      for (const m of targetMonths) {
+        const monthYear = m.includes(' ') ? m.split(' ')[1] : targetYear;
+        const recData = {
+          _id: 'sub_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+          memberId: cleanId,
+          memberName: cleanName,
+          month: m,
+          year: monthYear,
+          amount: perMonthAmount,
+          status: 'Paid',
+          paymentDate: currentDate,
+          paymentMode: mode,
+          remarks: targetMonths.length > 1
+            ? `${baseRemarks} (${targetMonths.length} months bulk payment)`
+            : baseRemarks
+        };
+
+        const existingSub = await Subscription.findOne({
+          memberName: { $regex: new RegExp(`^${cleanName.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}$`, 'i') },
+          month: { $regex: new RegExp(`^${m.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}$`, 'i') }
+        });
+
+        if (existingSub) {
+          existingSub.status = 'Paid';
+          existingSub.amount = perMonthAmount;
+          existingSub.paymentDate = currentDate;
+          existingSub.paymentMode = mode;
+          existingSub.remarks = recData.remarks;
+          await existingSub.save();
+          createdRecords.push(existingSub);
+        } else {
+          const created = await Subscription.create(recData);
+          createdRecords.push(created);
+        }
+      }
+
+      const monthNamesStr = targetMonths.join(', ');
+      await Income.create({
+        _id: 'inc_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+        title: `Monthly Subscription (₹${totalFeeAmount}): ${cleanName} (${monthNamesStr})`,
+        amount: totalFeeAmount,
+        date: currentDate,
+        category: 'Monthly Subscription',
+        source: 'Monthly Subscription',
+        receiptNumber: `SUB-${Date.now().toString().slice(-6)}`,
+        paymentMode: mode,
+        notes: `Subscription payment for ${monthNamesStr}${targetMonths.length > 1 ? ` (${targetMonths.length} months)` : ''}`
       });
     }
+
     savePersistentStore();
 
-    return res.status(201).json({ success: true, subscription: newRecord, message: `₹${feeAmount} Subscription collected for ${cleanName}!` });
+    const monthDisplay = targetMonths.length > 1 ? `${targetMonths.length} months (${targetMonths.join(', ')})` : targetMonths[0];
+    return res.status(201).json({
+      success: true,
+      subscriptions: createdRecords,
+      totalAmount: totalFeeAmount,
+      months: targetMonths,
+      message: `₹${totalFeeAmount} Subscription collected for ${cleanName} for ${monthDisplay}!`
+    });
   } catch (error) {
     console.error('Error marking subscription paid:', error);
     return res.status(500).json({ success: false, message: error.message });
@@ -259,11 +351,12 @@ const markSubscriptionUnpaid = async (req, res) => {
     }
     savePersistentStore();
 
-    return res.json({ success: true, message: `Subscription set to Unpaid for ${cleanName}.` });
+    return res.json({ success: true, message: `Subscription set to Unpaid for ${cleanName} (${targetMonth}).` });
   } catch (error) {
     console.error('Error marking subscription unpaid:', error);
     return res.status(500).json({ success: false, message: error.message });
   }
 };
 
-module.exports = { getSubscriptions, markSubscriptionPaid, markSubscriptionUnpaid };
+module.exports = { getSubscriptions, getMemberSubscriptionHistory, markSubscriptionPaid, markSubscriptionUnpaid };
+
