@@ -44,8 +44,19 @@ export default function BirthdayCelebrationModal({ member, onClose, onTriggerBur
       toast.error('Mobile number not available for WhatsApp.');
       return;
     }
-    window.open(`https://wa.me/${mobile.replace(/\D/g, '')}?text=${msg}`, '_blank');
-    toast.success(`Opening WhatsApp blessing for ${member.fullName}! 🚀`);
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const cleanNum = mobile.replace(/\D/g, '');
+    const formatted = cleanNum.length === 10 ? `91${cleanNum}` : cleanNum;
+    const url = isMobile
+      ? `https://wa.me/${formatted}?text=${msg}`
+      : `https://web.whatsapp.com/send?phone=${formatted}&text=${msg}`;
+
+    const win = window.open(url, '_blank');
+    if (!win || win.closed || typeof win.closed === 'undefined') {
+      toast.error('⚠️ Pop-up was blocked by your browser! Please allow pop-ups to open WhatsApp.');
+    } else {
+      toast.success(isMobile ? `Opening WhatsApp blessing for ${member.fullName}! 🚀` : `Opening WhatsApp Web for ${member.fullName}! 🚀`);
+    }
   };
 
   const handleCopyMessage = () => {

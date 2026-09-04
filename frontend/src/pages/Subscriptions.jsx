@@ -100,15 +100,28 @@ export default function Subscriptions() {
         return;
       }
 
+      const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
       if (res.data && res.data.isUnconfigured) {
         toast.dismiss(toastId);
-        // Fallback to opening native device SMS app
-        toast('Opening SMS app (Add Fast2SMS key in Settings for auto-send)...', { icon: '📱' });
+        const text = generateReceiptText(data.memberName, data.months, data.amount, data.paymentMode);
+
+        if (!isMobile) {
+          // Desktop PC / Laptop has no native SMS app
+          navigator.clipboard.writeText(text);
+          toast.error(
+            '💻 Desktop PCs have no cellular SMS app. Receipt copied to clipboard! Please send via WhatsApp or add Fast2SMS API key in Settings.',
+            { duration: 6000 }
+          );
+          return;
+        }
+
+        // Mobile device fallback
+        toast('Opening device SMS composer...', { icon: '📱' });
         const cleanPhone = phone.replace(/\D/g, '');
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
         const separator = isIOS ? '&' : '?';
         const targetNumber = cleanPhone.length === 10 ? `+91${cleanPhone}` : cleanPhone;
-        const text = generateReceiptText(data.memberName, data.months, data.amount, data.paymentMode);
         const smsUrl = `sms:${targetNumber}${separator}body=${encodeURIComponent(text)}`;
         window.location.href = smsUrl;
         return;
@@ -116,15 +129,26 @@ export default function Subscriptions() {
 
       toast.error(res.data?.message || 'Failed to send automated SMS.', { id: 'sms-dispatch' });
     } catch (err) {
-      console.warn('Backend SMS failed, falling back to device SMS:', err);
+      console.warn('Backend SMS failed:', err);
       toast.dismiss(toastId);
-      // Fallback
+      const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      const text = generateReceiptText(data.memberName, data.months, data.amount, data.paymentMode);
+
+      if (!isMobile) {
+        navigator.clipboard.writeText(text);
+        toast.error(
+          '💻 Desktop PC detected. Native SMS app not available. Receipt copied to clipboard!',
+          { duration: 5000 }
+        );
+        return;
+      }
+
+      // Mobile Fallback
       toast('Opening device SMS composer...', { icon: '📱' });
       const cleanPhone = phone.replace(/\D/g, '');
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
       const separator = isIOS ? '&' : '?';
       const targetNumber = cleanPhone.length === 10 ? `+91${cleanPhone}` : cleanPhone;
-      const text = generateReceiptText(data.memberName, data.months, data.amount, data.paymentMode);
       const smsUrl = `sms:${targetNumber}${separator}body=${encodeURIComponent(text)}`;
       window.location.href = smsUrl;
     }
@@ -134,10 +158,24 @@ export default function Subscriptions() {
     const phone = data.phone || getMemberPhone(data.memberName);
     const text = generateReceiptText(data.memberName, data.months, data.amount, data.paymentMode);
     const cleanPhone = (phone || '').replace(/\D/g, '');
-    const url = cleanPhone
-      ? `https://api.whatsapp.com/send?phone=91${cleanPhone.slice(-10)}&text=${encodeURIComponent(text)}`
-      : `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
-    window.open(url, '_blank');
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    
+    // On desktop PC/Laptop, direct to WhatsApp Web; on mobile, open WhatsApp app via wa.me / api
+    const formattedPhone = cleanPhone ? (cleanPhone.length === 10 ? `91${cleanPhone}` : cleanPhone) : '';
+    const url = formattedPhone
+      ? (isMobile
+          ? `https://api.whatsapp.com/send?phone=${formattedPhone}&text=${encodeURIComponent(text)}`
+          : `https://web.whatsapp.com/send?phone=${formattedPhone}&text=${encodeURIComponent(text)}`)
+      : (isMobile
+          ? `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`
+          : `https://web.whatsapp.com/send?text=${encodeURIComponent(text)}`);
+
+    const win = window.open(url, '_blank');
+    if (!win || win.closed || typeof win.closed === 'undefined') {
+      toast.error('⚠️ Pop-up blocked! Please allow pop-ups for this site in your browser address bar to open WhatsApp.');
+    } else {
+      toast.success(isMobile ? 'Opening WhatsApp app... 💬' : 'Opening WhatsApp Web... 💬');
+    }
   };
 
   const copyReceiptToClipboard = (data) => {
