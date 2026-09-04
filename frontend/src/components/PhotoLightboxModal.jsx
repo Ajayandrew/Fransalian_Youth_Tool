@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { X, Download, Eye } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getImageUrl } from '../utils/urlUtils';
 
 export default function PhotoLightboxModal({ photo, photoUrl: directUrl, title: directTitle, subtitle: directSubtitle, onClose, onViewProfile, allowDownload = false }) {
+  const [imgLoaded, setImgLoaded] = useState(false);
   const rawUrl = directUrl || photo?.url || (typeof photo === 'string' ? photo : '');
   const url = getImageUrl(rawUrl);
   const title = directTitle || photo?.caption || photo?.albumTitle || photo?.title || 'Youth Photo';
@@ -80,15 +81,22 @@ export default function PhotoLightboxModal({ photo, photoUrl: directUrl, title: 
 
         {/* Large Photo Display */}
         <div className="w-full max-h-[75vh] min-h-[300px] rounded-2xl overflow-hidden bg-slate-950 flex items-center justify-center border border-slate-800 p-2 relative group">
+          {!imgLoaded && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950 z-10">
+              <div className="w-10 h-10 border-3 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin"></div>
+              <span className="text-xs text-slate-400 font-medium mt-3">Loading full photo...</span>
+            </div>
+          )}
           <img
             src={url}
             alt={title || 'Photo'}
+            onLoad={() => setImgLoaded(true)}
             {...(allowDownload ? {
               onClick: () => window.open(url, '_blank'),
               title: "Click to view raw full size photo in new tab",
-              className: "w-full max-h-[72vh] object-contain rounded-xl shadow-lg cursor-zoom-in group-hover:scale-[1.01] transition-transform duration-300"
+              className: `w-full max-h-[72vh] object-contain rounded-xl shadow-lg cursor-zoom-in group-hover:scale-[1.01] transition-transform duration-300 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`
             } : {
-              className: "w-full max-h-[72vh] object-contain rounded-xl shadow-lg select-none"
+              className: `w-full max-h-[72vh] object-contain rounded-xl shadow-lg select-none ${imgLoaded ? 'opacity-100' : 'opacity-0'}`
             })}
           />
         </div>

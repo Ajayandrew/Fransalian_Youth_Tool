@@ -7,10 +7,72 @@ import { useAuth } from '../context/AuthContext';
 import { useDataCache } from '../context/DataContext';
 import { getImageUrl } from '../utils/urlUtils';
 
+function GalleryPhotoCard({ photo, fitMode, canEdit, onDelete, onSelect }) {
+  const [imgLoaded, setImgLoaded] = useState(false);
+  const [imgError, setImgError] = useState(false);
+
+  return (
+    <div
+      onClick={() => onSelect(photo)}
+      className="group relative h-64 bg-slate-950 rounded-3xl overflow-hidden cursor-pointer shadow-xs hover:shadow-xl transition-all duration-300 border border-slate-800"
+    >
+      {/* Individual image loading spinner */}
+      {!imgLoaded && !imgError && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900 z-10">
+          <div className="w-8 h-8 border-2 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin"></div>
+          <span className="text-[10px] text-slate-400 font-semibold mt-2">Loading image...</span>
+        </div>
+      )}
+
+      <img
+        src={getImageUrl(photo.url)}
+        alt={photo.caption || photo.albumTitle}
+        onLoad={() => setImgLoaded(true)}
+        onError={(e) => {
+          setImgError(true);
+          setImgLoaded(true);
+          e.target.onerror = null;
+          e.target.src = 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=600';
+        }}
+        className={`w-full h-full ${
+          fitMode === 'contain' ? 'object-contain p-2 bg-slate-950' : 'object-cover object-top'
+        } group-hover:scale-105 transition-all duration-500 ${imgLoaded ? 'opacity-90 group-hover:opacity-100' : 'opacity-0'}`}
+      />
+
+      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent opacity-80 group-hover:opacity-95 transition-opacity pointer-events-none" />
+
+      <div className="absolute bottom-0 left-0 right-0 p-4 text-white transform translate-y-1 group-hover:translate-y-0 transition-transform pointer-events-none">
+        <span className="text-[10px] font-black uppercase tracking-wider text-amber-400 bg-amber-400/20 px-2 py-0.5 rounded-md backdrop-blur-xs">
+          {photo.category || 'General'}
+        </span>
+        <h4 className="text-xs font-extrabold text-white mt-1.5 line-clamp-1">{photo.caption || photo.albumTitle}</h4>
+        <p className="text-[11px] text-slate-300 font-medium">{photo.albumTitle}</p>
+      </div>
+
+      <div className="absolute top-3 right-3 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+        {canEdit && (
+          <button
+            type="button"
+            onClick={(e) => onDelete(photo, e)}
+            className="p-2 rounded-full bg-rose-600/80 hover:bg-rose-600 text-white transition shadow-sm cursor-pointer"
+            title="Delete Photo"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        )}
+        <div className="p-2 rounded-full bg-white/20 backdrop-blur-md text-white pointer-events-none">
+          <Eye className="w-4 h-4" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Gallery() {
   const { hasRole } = useAuth();
   const { fetchWithCache, invalidateCache } = useDataCache();
   const [albums, setAlbums] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState('All');
   const [fitMode, setFitMode] = useState('contain'); // 'contain' for full uncropped image, 'cover' for grid crop
   const [selectedPhoto, setSelectedPhoto] = useState(null);
@@ -37,6 +99,8 @@ export default function Gallery() {
       }
     } catch (err) {
       console.warn('Fallback gallery data');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -239,51 +303,23 @@ export default function Gallery() {
       </div>
 
       {/* Photo Gallery Masonry Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-        {filteredPhotos.length > 0 ? (
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 min-h-[260px]">
+        {loading ? (
+          <div className="col-span-full py-20 flex flex-col items-center justify-center space-y-3 bg-white rounded-3xl border border-slate-200 shadow-xs">
+            <div className="w-10 h-10 border-3 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+            <h4 className="text-sm font-bold text-slate-800">Loading gallery albums & photos...</h4>
+            <p className="text-xs text-slate-400 font-medium">Fetching photos, memories, and event snapshots.</p>
+          </div>
+        ) : filteredPhotos.length > 0 ? (
           filteredPhotos.map((photo, index) => (
-            <div
-              key={index}
-              onClick={() => setSelectedPhoto(photo)}
-              className="group relative h-64 bg-slate-950 rounded-3xl overflow-hidden cursor-pointer shadow-xs hover:shadow-xl transition-all duration-300 border border-slate-800"
-            >
-              <img
-                src={getImageUrl(photo.url)}
-                alt={photo.caption || photo.albumTitle}
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.src = 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=600';
-                }}
-                className={`w-full h-full ${fitMode === 'contain'
-                    ? 'object-contain p-2 bg-slate-950'
-                    : 'object-cover object-top'
-                  } group-hover:scale-105 transition-all duration-500 opacity-90 group-hover:opacity-100`}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent opacity-80 group-hover:opacity-95 transition-opacity" />
-
-              <div className="absolute bottom-0 left-0 right-0 p-4 text-white transform translate-y-1 group-hover:translate-y-0 transition-transform">
-                <span className="text-[10px] font-black uppercase tracking-wider text-amber-400 bg-amber-400/20 px-2 py-0.5 rounded-md backdrop-blur-xs">
-                  {photo.category || 'General'}
-                </span>
-                <h4 className="text-xs font-extrabold text-white mt-1.5 line-clamp-1">{photo.caption || photo.albumTitle}</h4>
-                <p className="text-[11px] text-slate-300 font-medium">{photo.albumTitle}</p>
-              </div>
-
-              <div className="absolute top-3 right-3 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                {canEdit && (
-                  <button
-                    onClick={(e) => handleDeletePhoto(photo, e)}
-                    className="p-2 rounded-full bg-rose-600/80 hover:bg-rose-600 text-white transition shadow-sm"
-                    title="Delete Photo"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                )}
-                <div className="p-2 rounded-full bg-white/20 backdrop-blur-md text-white">
-                  <Eye className="w-4 h-4" />
-                </div>
-              </div>
-            </div>
+            <GalleryPhotoCard
+              key={photo._id || photo.url || index}
+              photo={photo}
+              fitMode={fitMode}
+              canEdit={canEdit}
+              onDelete={handleDeletePhoto}
+              onSelect={setSelectedPhoto}
+            />
           ))
         ) : (
           <div className="col-span-full py-16 text-center bg-white rounded-3xl border border-slate-200">
