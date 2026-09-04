@@ -836,18 +836,23 @@ export default function Subscriptions() {
               </div>
 
               {/* Auto SMS Checkbox */}
-              <div className="flex items-center gap-2.5 p-3 bg-sky-50 border border-sky-200 rounded-2xl text-sky-900">
-                <input
-                  type="checkbox"
-                  id="autoSMSCheck"
-                  checked={autoOpenSMS}
-                  onChange={(e) => setAutoOpenSMS(e.target.checked)}
-                  className="w-4 h-4 rounded text-sky-600 focus:ring-sky-500 cursor-pointer accent-sky-600"
-                />
-                <label htmlFor="autoSMSCheck" className="text-xs font-bold cursor-pointer select-none flex items-center gap-1.5">
-                  <MessageSquare className="w-3.5 h-3.5 text-sky-600" />
-                  Automatically compose SMS receipt upon confirmation
-                </label>
+              <div className="flex items-center justify-between p-3 bg-sky-50 border border-sky-200 rounded-2xl text-sky-900">
+                <div className="flex items-center gap-2.5">
+                  <input
+                    type="checkbox"
+                    id="autoSMSCheck"
+                    checked={autoOpenSMS}
+                    onChange={(e) => setAutoOpenSMS(e.target.checked)}
+                    className="w-4 h-4 rounded text-sky-600 focus:ring-sky-500 cursor-pointer accent-sky-600"
+                  />
+                  <label htmlFor="autoSMSCheck" className="text-xs font-bold cursor-pointer select-none flex items-center gap-1.5">
+                    <MessageSquare className="w-3.5 h-3.5 text-sky-600" />
+                    <span>Automatically send SMS receipt</span>
+                  </label>
+                </div>
+                <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${settings?.fast2smsApiKey ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800 border border-amber-300'}`}>
+                  {settings?.fast2smsApiKey ? '⚡ Instant Cloud SMS' : '📱 Device SMS'}
+                </span>
               </div>
 
               {/* Action Buttons */}
