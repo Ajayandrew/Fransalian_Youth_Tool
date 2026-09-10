@@ -2,13 +2,12 @@ const mongoose = require('mongoose');
 
 const incomeSchema = new mongoose.Schema({
   _id: { type: String, default: () => 'inc_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7) },
-  title: { type: String, required: true },
+  title: { type: String, required: true, trim: true },
   amount: { type: Number, required: true },
   date: { type: String, required: true },
   category: { 
     type: String, 
-    enum: ['Monthly Subscription', 'Donation', 'Offering', 'Sponsor', 'Meeting Secret Offering', 'Other'],
-    default: 'Offering' 
+    default: 'Donation' 
   },
   source: { type: String, default: 'Offering' },
   receiptNumber: { type: String, default: '' },
@@ -19,12 +18,11 @@ const incomeSchema = new mongoose.Schema({
 
 const expenseSchema = new mongoose.Schema({
   _id: { type: String, default: () => 'exp_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7) },
-  title: { type: String, required: true },
+  title: { type: String, required: true, trim: true },
   amount: { type: Number, required: true },
   date: { type: String, required: true },
   category: { 
     type: String, 
-    enum: ['Food', 'Decoration', 'Travel', 'Charity', 'Sound System', 'Miscellaneous'],
     default: 'Miscellaneous' 
   },
   paymentMode: { type: String, default: 'Cash' },

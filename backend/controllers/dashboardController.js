@@ -46,7 +46,12 @@ const getDashboardStats = async (req, res) => {
       .reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
     const totalSecretOff = secretOfferings.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
     const generalIncome = incomeList
-      .filter(i => i.category !== 'Monthly Subscription' && i.source !== 'Monthly Subscription')
+      .filter(i => 
+        i.category !== 'Monthly Subscription' && 
+        i.source !== 'Monthly Subscription' &&
+        i.category !== 'Meeting Secret Offering' &&
+        i.source !== 'Meeting Secret Offering'
+      )
       .reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
 
     const totalIncome = generalIncome + totalSubsPaid + totalSecretOff;

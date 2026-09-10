@@ -15,13 +15,15 @@ const getFinanceSummary = async (req, res) => {
     } else {
       const Subscription = require('../models/Subscription');
       [incomeList, expenseList, subscriptions] = await Promise.all([
-        Income.find({}).lean(),
-        Expense.find({}).lean(),
+        Income.find({}).sort({ date: -1, createdAt: -1 }).lean(),
+        Expense.find({}).sort({ date: -1, createdAt: -1 }).lean(),
         Subscription.find({}).select('amount status').lean()
       ]);
       secretOfferings = memoryStore.secretOfferings || [];
     }
 
+    // General income includes all manually logged income entries 
+    // (excluding subscriptions which come from Subscriptions table and meeting secret offerings which come from secretOfferings)
     const generalIncome = incomeList
       .filter(i =>
         i.category !== 'Monthly Subscription' &&
@@ -54,17 +56,29 @@ const getFinanceSummary = async (req, res) => {
       secretOfferings
     });
   } catch (error) {
+    console.error('[Finance Summary Error]:', error);
     return res.status(500).json({ success: false, message: error.message });
   }
 };
 
 const addIncome = async (req, res) => {
   try {
-    const data = req.body;
+    const data = { ...req.body };
     if (!data.title || !data.amount || !data.date) {
       return res.status(400).json({ success: false, message: 'Title, Amount, and Date are required.' });
     }
 
+    const numericAmount = Number(data.amount);
+    if (isNaN(numericAmount) || numericAmount <= 0) {
+      return res.status(400).json({ success: false, message: 'Please enter a valid positive amount.' });
+    }
+    data.amount = numericAmount;
+
+    data.title = data.title.trim();
+    data.notes = data.notes || data.remarks || '';
+    data.category = (data.category && data.category.trim()) || 'Donation';
+    data.source = data.source || data.category || 'General';
+    data.paymentMode = data.paymentMode || 'Cash';
     data.receiptNumber = data.receiptNumber || `REC-INC-${Date.now().toString().slice(-6)}`;
     if (req.file) {
       data.receiptImage = req.file.dataUrl || `/uploads/${req.file.filename}`;
@@ -72,27 +86,45 @@ const addIncome = async (req, res) => {
 
     let newIncome;
     if (getIsInMemory()) {
-      newIncome = { _id: 'inc_' + Date.now(), ...data, createdAt: new Date() };
+      newIncome = { 
+        _id: 'inc_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7), 
+        ...data, 
+        createdAt: new Date() 
+      };
+      if (!memoryStore.income) memoryStore.income = [];
       memoryStore.income.unshift(newIncome);
     } else {
       newIncome = await Income.create(data);
-      memoryStore.income.unshift(newIncome.toObject ? newIncome.toObject() : newIncome);
+      const plainObj = newIncome.toObject ? newIncome.toObject() : newIncome;
+      if (!memoryStore.income) memoryStore.income = [];
+      memoryStore.income.unshift(plainObj);
     }
     savePersistentStore();
 
-    return res.status(201).json({ success: true, income: newIncome, message: 'Income entry created successfully.' });
+    return res.status(201).json({ success: true, income: newIncome, message: 'Income entry recorded successfully.' });
   } catch (error) {
+    console.error('[Add Income Error]:', error);
     return res.status(500).json({ success: false, message: error.message });
   }
 };
 
 const addExpense = async (req, res) => {
   try {
-    const data = req.body;
+    const data = { ...req.body };
     if (!data.title || !data.amount || !data.date) {
       return res.status(400).json({ success: false, message: 'Title, Amount, and Date are required.' });
     }
 
+    const numericAmount = Number(data.amount);
+    if (isNaN(numericAmount) || numericAmount <= 0) {
+      return res.status(400).json({ success: false, message: 'Please enter a valid positive amount.' });
+    }
+    data.amount = numericAmount;
+
+    data.title = data.title.trim();
+    data.notes = data.notes || data.remarks || '';
+    data.category = (data.category && data.category.trim()) || 'Miscellaneous';
+    data.paymentMode = data.paymentMode || 'Cash';
     data.receiptNumber = data.receiptNumber || `EXP-${Date.now().toString().slice(-6)}`;
     if (req.file) {
       data.receiptImage = req.file.dataUrl || `/uploads/${req.file.filename}`;
@@ -100,16 +132,24 @@ const addExpense = async (req, res) => {
 
     let newExpense;
     if (getIsInMemory()) {
-      newExpense = { _id: 'exp_' + Date.now(), ...data, createdAt: new Date() };
+      newExpense = { 
+        _id: 'exp_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7), 
+        ...data, 
+        createdAt: new Date() 
+      };
+      if (!memoryStore.expense) memoryStore.expense = [];
       memoryStore.expense.unshift(newExpense);
     } else {
       newExpense = await Expense.create(data);
-      memoryStore.expense.unshift(newExpense.toObject ? newExpense.toObject() : newExpense);
+      const plainObj = newExpense.toObject ? newExpense.toObject() : newExpense;
+      if (!memoryStore.expense) memoryStore.expense = [];
+      memoryStore.expense.unshift(plainObj);
     }
     savePersistentStore();
 
-    return res.status(201).json({ success: true, expense: newExpense, message: 'Expense entry recorded.' });
+    return res.status(201).json({ success: true, expense: newExpense, message: 'Expense entry recorded successfully.' });
   } catch (error) {
+    console.error('[Add Expense Error]:', error);
     return res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -121,22 +161,28 @@ const addSecretOffering = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Amount and Date are required.' });
     }
 
+    const numericAmount = Number(data.amount);
+    if (isNaN(numericAmount) || numericAmount <= 0) {
+      return res.status(400).json({ success: false, message: 'Please enter a valid positive amount.' });
+    }
+
+    const entryId = 'sec_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
     const newSecretEntry = {
-      _id: 'sec_' + Date.now(),
+      _id: entryId,
       title: data.title || 'Meeting Secret Box Offering Collection',
       meetingName: data.meetingName || 'Youth Meeting',
       date: data.date,
-      amount: Number(data.amount),
+      amount: numericAmount,
       collectedBy: data.collectedBy || (req.user ? req.user.fullName : 'Parish Leader'),
-      notes: data.notes || 'Anonymous secret box collection'
+      notes: data.notes || data.remarks || 'Anonymous secret box collection'
     };
 
     if (!memoryStore.secretOfferings) memoryStore.secretOfferings = [];
     memoryStore.secretOfferings.unshift(newSecretEntry);
 
-    // Auto-record as Income
-    memoryStore.income.unshift({
-      _id: 'inc_' + Date.now(),
+    // Save as persistent Income record mirror
+    const incomeDoc = {
+      _id: 'inc_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
       title: `${newSecretEntry.title} (${newSecretEntry.meetingName})`,
       amount: newSecretEntry.amount,
       date: newSecretEntry.date,
@@ -145,11 +191,25 @@ const addSecretOffering = async (req, res) => {
       receiptNumber: `SEC-${Date.now().toString().slice(-6)}`,
       paymentMode: 'Anonymous Box',
       notes: newSecretEntry.notes
-    });
+    };
+
+    if (getIsInMemory()) {
+      if (!memoryStore.income) memoryStore.income = [];
+      memoryStore.income.unshift(incomeDoc);
+    } else {
+      try {
+        await Income.create(incomeDoc);
+      } catch (e) {
+        console.warn('Failed to mirror secret offering to Income collection:', e.message);
+      }
+      if (!memoryStore.income) memoryStore.income = [];
+      memoryStore.income.unshift(incomeDoc);
+    }
     savePersistentStore();
 
     return res.status(201).json({ success: true, secretOffering: newSecretEntry, message: 'Secret box offering recorded.' });
   } catch (error) {
+    console.error('[Add Secret Offering Error]:', error);
     return res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -160,12 +220,13 @@ const deleteIncome = async (req, res) => {
     if (getIsInMemory()) {
       memoryStore.income = (memoryStore.income || []).filter(i => i._id !== id);
     } else {
-      await Income.findByIdAndDelete(id);
+      await Income.deleteOne({ _id: id });
       memoryStore.income = (memoryStore.income || []).filter(i => i._id !== id);
     }
     savePersistentStore();
     return res.json({ success: true, message: 'Income record deleted.' });
   } catch (error) {
+    console.error('[Delete Income Error]:', error);
     return res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -176,14 +237,38 @@ const deleteExpense = async (req, res) => {
     if (getIsInMemory()) {
       memoryStore.expense = (memoryStore.expense || []).filter(e => e._id !== id);
     } else {
-      await Expense.findByIdAndDelete(id);
+      await Expense.deleteOne({ _id: id });
       memoryStore.expense = (memoryStore.expense || []).filter(e => e._id !== id);
     }
     savePersistentStore();
     return res.json({ success: true, message: 'Expense record deleted.' });
   } catch (error) {
+    console.error('[Delete Expense Error]:', error);
     return res.status(500).json({ success: false, message: error.message });
   }
 };
 
-module.exports = { getFinanceSummary, addIncome, addExpense, addSecretOffering, deleteIncome, deleteExpense };
+const deleteSecretOffering = async (req, res) => {
+  try {
+    const { id } = req.params;
+    memoryStore.secretOfferings = (memoryStore.secretOfferings || []).filter(s => s._id !== id);
+    if (!getIsInMemory()) {
+      await Income.deleteMany({ $or: [{ _id: id }, { notes: { $regex: id } }] });
+    }
+    savePersistentStore();
+    return res.json({ success: true, message: 'Secret offering record deleted.' });
+  } catch (error) {
+    console.error('[Delete Secret Offering Error]:', error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+module.exports = { 
+  getFinanceSummary, 
+  addIncome, 
+  addExpense, 
+  addSecretOffering, 
+  deleteIncome, 
+  deleteExpense,
+  deleteSecretOffering 
+};
